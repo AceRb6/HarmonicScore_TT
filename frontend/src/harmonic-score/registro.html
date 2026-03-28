@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonic Score - Registro</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<!-- HEADER -->
+<header class="header">
+    <div class="header-contenido">
+        <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+            <div class="header-logo-img">HS</div>
+            <h1 class="header-titulo">Harmonic Score</h1>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="carga.html">Transcribir</a></li>
+                <li><a href="consultas.html">Transcripciones</a></li>
+                <li><a href="registro.html" class="activo">Registrarse</a></li>
+                <li><a href="login.html">Iniciar Sesión</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+    <!-- CONTENIDO PRINCIPAL - FORMULARIO CENTRADO -->
+    <main class="main">
+        <div class="formulario-contenedor">
+            <h2 class="formulario-titulo">Registro de Usuario</h2>
+            
+            <form id="formulario-registro" class="formulario">
+                <!-- Nombres -->
+                <div class="formulario-grupo">
+                    <label for="nombres" class="formulario-label">Nombres:</label>
+                    <input type="text" id="nombres" name="nombres" class="formulario-input" 
+                           placeholder="Ingresa tus nombres" required>
+                </div>
+
+                <!-- Apellidos -->
+                <div class="formulario-grupo">
+                    <label for="apellidos" class="formulario-label">Apellidos:</label>
+                    <input type="text" id="apellidos" name="apellidos" class="formulario-input" 
+                           placeholder="Ingresa tus apellidos" required>
+                </div>
+
+                <!-- Correo -->
+                <div class="formulario-grupo">
+                    <label for="correo" class="formulario-label">Correo:</label>
+                    <input type="email" id="correo" name="correo" class="formulario-input" 
+                           placeholder="ejemplo@correo.com" required>
+                </div>
+
+                <!-- Nombre de Usuario -->
+                <div class="formulario-grupo">
+                    <label for="nombre-usuario" class="formulario-label">Nombre de Usuario:</label>
+                    <input type="text" id="nombre-usuario" name="nombre-usuario" class="formulario-input" 
+                           placeholder="Elige un nombre de usuario" required>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="formulario-grupo">
+                    <label for="contrasena" class="formulario-label">Contraseña:</label>
+                    <div class="password-contenedor">
+                        <input type="password" id="contrasena" name="contrasena" class="formulario-input" 
+                               placeholder="Ingresa tu contraseña" required>
+                        <button type="button" class="password-toggle" id="toggle-contrasena">👁️</button>
+                    </div>
+                    <small class="formulario-mensaje-error" id="password-pattern">
+                        Mínimo 8 caracteres, 1 mayúscula, 1 número
+                    </small>
+                </div>
+
+                <!-- Confirmar Contraseña -->
+                <div class="formulario-grupo">
+                    <label for="confirmar-contrasena" class="formulario-label">Confirmar Contraseña:</label>
+                    <div class="password-contenedor">
+                        <input type="password" id="confirmar-contrasena" name="confirmar-contrasena" 
+                               class="formulario-input" placeholder="Confirma tu contraseña" required>
+                        <button type="button" class="password-toggle" id="toggle-confirmar">👁️</button>
+                    </div>
+                </div>
+
+                <!-- Captcha Placeholder -->
+                <div class="formulario-grupo">
+                    <label class="formulario-label">Captcha:</label>
+                    <div class="captcha-contenedor">
+                        <p class="captcha-texto">[Espacio para reCAPTCHA]</p>
+                    </div>
+                    <input type="text" class="formulario-input" placeholder="Ingresa el captcha" required>
+                </div>
+
+                <!-- Términos y Condiciones -->
+                <div class="terminos-checkbox-container">
+                    <input type="checkbox" id="checkbox-terminos" required>
+                    <label for="checkbox-terminos" class="terminos-link" id="label-terminos">
+                        He leído y acepto los Términos y Condiciones
+                    </label>
+                </div>
+
+                <!-- Botón de Registro - DESHABILITADO POR DEFECTO -->
+                <button type="submit" class="btn btn-primario btn-grande btn-deshabilitado" id="btn-registrar" disabled>
+                    Registrarse
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 1.1rem;">
+                ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
+            </p>
+        </div>
+    </main>
+
+    <!-- MODAL DE TÉRMINOS Y CONDICIONES -->
+    <div id="modal-terminos" class="modal-fondo">
+        <div class="modal-contenido">
+            <button class="modal-cerrar" id="cerrar-terminos">&times;</button>
+            <h3 class="modal-titulo">Términos y Condiciones</h3>
+            
+            <div class="terminos-contenido" id="terminos-scroll">
+                <div class="terminos-texto">
+                    <p><strong>1. ACEPTACIÓN DE TÉRMINOS</strong></p>
+                    <p>Al registrarse en Harmonic Score, usted acepta los términos y condiciones establecidos en este documento. Si no está de acuerdo con alguno de los términos, no debe utilizar este servicio.</p>
+                    <br>
+                    <p><strong>2. USO DEL SERVICIO</strong></p>
+                    <p>Harmonic Score es una herramienta gratuita destinada exclusivamente para fines educativos y de investigación. Queda prohibido el uso comercial sin autorización previa.</p>
+                    <br>
+                    <p><strong>3. PROPIEDAD INTELECTUAL</strong></p>
+                    <p>Los usuarios conservan todos los derechos sobre sus grabaciones de audio. Harmonic Score solo procesa temporalmente los archivos para generar la transcripción.</p>
+                    <br>
+                    <p><strong>4. PRIVACIDAD DE DATOS</strong></p>
+                    <p>Los datos personales proporcionados durante el registro serán tratados conforme a la Ley Federal de Protección de Datos Personales. Los archivos de audio se eliminan automáticamente después de 30 días.</p>
+                    <br>
+                    <p><strong>5. LIMITACIÓN DE RESPONSABILIDAD</strong></p>
+                    <p>Harmonic Score proporciona el servicio "tal cual" sin garantías de precisión absoluta. Los usuarios son responsables de verificar la exactitud de las transcripciones generadas.</p>
+                    <br>
+                    <p><strong>6. PROPIEDAD INTELECTUAL DEL SOFTWARE</strong></p>
+                    <p>El código fuente de Harmonic Score está disponible bajo licencia MIT. Los usuarios pueden consultar, modificar y distribuir el código conforme a los términos de dicha licencia.</p>
+                    <br>
+                    <p><strong>7. MODIFICACIONES AL SERVICIO</strong></p>
+                    <p>El equipo de desarrollo se reserva el derecho de modificar o discontinuar el servicio en cualquier momento, notificando previamente a los usuarios registrados.</p>
+                    <br>
+                    <p><strong>8. LEGISLACIÓN APLICABLE</strong></p>
+                    <p>Este servicio se rige por las leyes mexicanas, incluyendo la Ley Federal de Derechos de Autor y la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
+                    <br>
+                    <p><strong>9. CONTACTO</strong></p>
+                    <p>Para cualquier duda o aclaración sobre estos términos, puede contactar al equipo de desarrollo a través del correo electrónico proporcionado en el pie de página.</p>
+                    <br>
+                    <p><strong>10. ACEPTACIÓN FINAL</strong></p>
+                    <p>Al hacer scroll hasta el final de este documento y marcar la casilla de aceptación, usted confirma haber leído y comprendido todos los términos establecidos.</p>
+                </div>
+            </div>
+
+            <div class="modal-botones">
+                <button class="btn btn-error" id="btn-no-acepto">Declinar</button>
+                <button class="btn btn-primario btn-deshabilitado" id="btn-acepto" disabled>Acepto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-contenido">
+            <div class="footer-seccion">
+                <h3>Harmonic Score</h3>
+                <p>Transcripción automática de música</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Desarrolladores</h3>
+                <p>Arroyo Parra Jair Uziel</p>
+                <p>Cano Portugal Israel Daniel Arturo</p>
+                <p>Garcés Valencia Brisa Isabel</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Institución</h3>
+                <p>ESCOM</p>
+                <p>Proyecto Académico 2026-B115</p>
+            </div>
+        </div>
+        <div class="footer-inferior">
+            <p>&copy; 2026 Harmonic Score. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/validacion.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

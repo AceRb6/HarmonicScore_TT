@@ -1,0 +1,9 @@
+/* ============================================
+   ARCHIVO PRINCIPAL - Importa todos los CSS
+   ============================================ */
+
+@import url('variables.css');
+@import url('reset.css');
+@import url('layout.css');
+@import url('componentes.css');
+@import url('wavesurfer-custom.css');

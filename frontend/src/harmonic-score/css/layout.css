@@ -1,0 +1,256 @@
+/* ============================================
+   LAYOUT - Header, Footer y Estructura Principal
+   Proyecto: Harmonic Score
+   Versión: 1.2
+   ============================================ */
+
+/* HEADER - Título izquierda, botones derecha */
+.header {
+    background-color: var(--color-header);
+    color: var(--color-texto-header);
+    padding: var(--espaciado-md) 0;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-contenido {
+    max-width: var(--ancho-contenido);
+    margin: 0 auto;
+    padding: 0 var(--espaciado-lg);
+    display: flex;
+    justify-content: space-between; /* Título izquierda, botones derecha */
+    align-items: center;
+    flex-wrap: nowrap; /* No permitir que se rompa en desktop */
+    gap: var(--espaciado-md);
+}
+
+/* LOGO Y TÍTULO - IZQUIERDA TOTAL */
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--espaciado-md);
+    cursor: pointer;
+    transition: transform var(--transicion-rapida);
+    flex-shrink: 0; /* No permitir que se encoja */
+}
+
+.header-logo:hover {
+    transform: scale(1.05);
+}
+
+.header-logo-img {
+    width: 50px;
+    height: 50px;
+    background-color: var(--color-blanco);
+    border-radius: var(--borde-radio-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--color-header);
+    font-size: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.header-titulo {
+    font-size: var(--tamano-fuente-titulo);
+    font-weight: 700;
+    color: var(--color-blanco);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.5px;
+    white-space: nowrap; /* No permitir que el texto se rompa */
+}
+
+/* NAVEGACIÓN - BOTONES A LA DERECHA */
+.header-nav {
+    flex-shrink: 0; /* No permitir que se encoja */
+}
+
+.header-nav ul {
+    display: flex;
+    gap: var(--espaciado-sm);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap; /* Los botones no se rompen */
+}
+
+.header-nav a {
+    display: inline-block;
+    color: var(--color-blanco);
+    padding: var(--espaciado-sm) var(--espaciado-lg);
+    border-radius: var(--borde-radio-lg);
+    transition: all var(--transicion-media);
+    font-size: var(--tamano-fuente-pequeno);
+    font-weight: 600;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    white-space: nowrap;
+}
+
+/* Efecto hover atractivo */
+.header-nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.header-nav a:hover::before {
+    left: 100%;
+}
+
+.header-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Botón activo */
+.header-nav a.activo {
+    background-color: var(--color-blanco);
+    color: var(--color-header);
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--color-blanco);
+}
+
+.header-nav a.activo:hover {
+    background-color: var(--color-blanco);
+    transform: translateY(-2px);
+}
+
+/* MAIN CONTENT */
+.main {
+    flex: 1;
+    padding: var(--espaciado-xl) var(--espaciado-md);
+    max-width: var(--ancho-contenido);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* FOOTER */
+.footer {
+    background-color: var(--color-footer);
+    color: var(--color-texto-footer);
+    padding: var(--espaciado-lg) 0;
+    margin-top: auto;
+}
+
+.footer-contenido {
+    max-width: var(--ancho-contenido);
+    margin: 0 auto;
+    padding: 0 var(--espaciado-md);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--espaciado-lg);
+}
+
+.footer-seccion h3 {
+    color: var(--color-blanco);
+    margin-bottom: var(--espaciado-sm);
+    font-size: 1.1rem;
+}
+
+.footer-seccion p,
+.footer-seccion li {
+    font-size: var(--tamano-fuente-pequeno);
+    margin-bottom: var(--espaciado-xs);
+}
+
+.footer-seccion a {
+    color: var(--color-texto-claro);
+}
+
+.footer-seccion a:hover {
+    color: var(--color-blanco);
+}
+
+.footer-inferior {
+    text-align: center;
+    padding-top: var(--espaciado-md);
+    margin-top: var(--espaciado-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: var(--tamano-fuente-pequeno);
+}
+
+/* BARRA DE PROGRESO MINI EN FOOTER */
+.footer-barra-progreso {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--borde-radio-sm);
+    height: 8px;
+    margin-top: var(--espaciado-sm);
+    overflow: hidden;
+}
+
+.footer-barra-progreso-relleno {
+    height: 100%;
+    background-color: var(--color-primario);
+    width: 0%;
+    transition: width var(--transicion-lenta);
+}
+
+/* CONTENEDORES DE PÁGINA */
+.contenedor-pagina {
+    background-color: var(--color-fondo);
+    border-radius: var(--borde-radio-lg);
+    padding: var(--espaciado-xl);
+    box-shadow: var(--sombra-suave);
+}
+
+.contenedor-centrado {
+    max-width: var(--ancho-formulario);
+    margin: 0 auto;
+}
+
+/* PANEL DOBLE */
+.panel-doble {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--espaciado-lg);
+}
+
+/* RESPONSIVE - MÓVIL */
+@media (max-width: 900px) {
+    .header-contenido {
+        flex-direction: column;
+        gap: var(--espaciado-md);
+    }
+    
+    .header-nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .header-nav a {
+        flex: 1;
+        min-width: 100px;
+        text-align: center;
+    }
+    
+    .panel-doble {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .header-titulo {
+        font-size: 1.8rem;
+    }
+    
+    .header-nav a {
+        padding: var(--espaciado-xs) var(--espaciado-sm);
+        font-size: 0.85rem;
+    }
+}

@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: harmonic_django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DB_HOST=db
+      - DB_NAME=harmonic
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - ML_SERVICE_URL=http://ml:5000
+    depends_on:
+      - db
+      - ml
+
+  ml:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: harmonic_ml
+    volumes:
+      - ./ml-service:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  db:
+    image: postgres:15
+    container_name: harmonic_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: harmonic
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

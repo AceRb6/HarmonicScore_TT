@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonic Score - Consultas</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<!-- HEADER -->
+<header class="header">
+    <div class="header-contenido">
+        <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+            <div class="header-logo-img">HS</div>
+            <h1 class="header-titulo">Harmonic Score</h1>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="carga.html">Transcribir</a></li>
+                <li><a href="consultas.html" class="activo">Transcripciones</a></li>
+                <li><a href="registro.html">Registrarse</a></li>
+                <li><a href="login.html">Iniciar Sesión</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main">
+        <div class="contenedor-pagina">
+            <h2 class="seccion-titulo">Consulta de Transcripciones</h2>
+            
+            <div class="card">
+                <div style="overflow-x: auto;">
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Fecha Trans.</th>
+                                <th>Estado</th>
+                                <th>Descargar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Ejemplo 1: Éxito -->
+                            <tr>
+                                <td>"1.mp3"</td>
+                                <td>15/5/26</td>
+                                <td class="estado-exito">✓ Completado</td>
+                                <td>
+                                    <a href="#" class="btn btn-primario" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
+                                        PDF/XML ↓
+                                    </a>
+                                </td>
+                            </tr>
+                            <!-- Ejemplo 2: Error -->
+                            <tr>
+                                <td>"2.mp3"</td>
+                                <td>10/6/26</td>
+                                <td class="estado-error">✗ Error</td>
+                                <td>
+                                    <span style="color: var(--color-error); font-weight: bold;">Error</span>
+                                </td>
+                            </tr>
+                            <!-- Ejemplo 3: En Proceso -->
+                            <tr>
+                                <td>"3.mp3"</td>
+                                <td>11/6/26</td>
+                                <td class="estado-proceso">⊖ En Proceso</td>
+                                <td>
+                                    <span style="color: var(--color-proceso);">--</span>
+                                </td>
+                            </tr>
+                            <!-- Ejemplo 4: Éxito -->
+                            <tr>
+                                <td>"ejercicio_piano.wav"</td>
+                                <td>12/6/26</td>
+                                <td class="estado-exito">✓ Completado</td>
+                                <td>
+                                    <a href="#" class="btn btn-primario" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
+                                        PDF/XML ↓
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 1rem; padding: 1rem; background-color: var(--color-fondo-secundario); border-radius: var(--borde-radio-sm);">
+                    <p style="font-size: 0.9rem; color: var(--color-texto-secundario); margin: 0;">
+                        <strong>Leyenda:</strong> 
+                        <span class="estado-exito">✓ Completado</span> | 
+                        <span class="estado-error">✗ Error</span> | 
+                        <span class="estado-proceso">⊖ En Proceso</span>
+                    </p>
+                    <p style="font-size: 0.9rem; color: var(--color-texto-secundario); margin-top: 0.5rem;">
+                        * Tu transcripción durará 1 mes máximo en nuestros servidores.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER ESTÁTICO -->
+    <footer class="footer">
+        <div class="footer-contenido">
+            <div class="footer-seccion">
+                <h3>Harmonic Score</h3>
+                <p>Transcripción automática de música</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Desarrolladores</h3>
+                <p>Arroyo Parra Jair Uziel</p>
+                <p>Cano Portugal Israel Daniel Arturo</p>
+                <p>Garcés Valencia Brisa Isabel</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Institución</h3>
+                <p>ESCOM</p>
+                <p>Proyecto Académico 2026-B115</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Contacto</h3>
+                <p>Email: harmonic.score@escom.ipn.mx</p>
+                <p><a href="#">Términos y Condiciones</a></p>
+                <p><a href="#">Aviso de Privacidad</a></p>
+            </div>
+        </div>
+        <div class="footer-inferior">
+            <p>&copy; 2026 Harmonic Score. Todos los derechos reservados.</p>
+            <div id="footer-barra-progreso" class="footer-barra-progreso" style="display: none;">
+                <div id="footer-barra-relleno" class="footer-barra-progreso-relleno"></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

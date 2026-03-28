@@ -1,0 +1,87 @@
+/* ============================================
+   VARIABLES GLOBALES - FÁCIL DE EDITAR
+   Proyecto: Harmonic Score
+   Versión: 1.1
+   ============================================ */
+
+:root {
+    /* COLORES PRINCIPALES (Naranja IPN) */
+    --color-header: #FF9100;           /* Naranja IPN - Header */
+    --color-header-hover: #F57C00;     /* Naranja hover */
+    --color-footer: #263238;           /* Azul Grisáceo - Footer */
+    --color-primario: #FF9100;         /* Naranja - Botones principales */
+    --color-primario-hover: #F57C00;   /* Naranja hover */
+    --color-secundario: #1A237E;       /* Azul Noche - Botones secundarios */
+    --color-acento: #0288D1;           /* Azul claro - Links */
+    --color-terminos: #1976D2;         /* Azul - Texto términos */
+    
+    /* COLORES DE FONDO */
+    --color-fondo: #FFFFFF;
+    --color-fondo-secundario: #F5F5F5;
+    --color-fondo-input: #FAFAFA;
+    --color-fondo-modal: rgba(0, 0, 0, 0.7);
+    
+    /* COLORES DE TEXTO */
+    --color-texto-principal: #212121;
+    --color-texto-secundario: #757575;
+    --color-texto-claro: #BDBDBD;
+    --color-blanco: #FFFFFF;
+    --color-texto-header: #FFFFFF;
+    --color-texto-footer: #BDBDBD;
+    
+    /* COLORES DE ESTADO */
+    --color-exito: #4CAF50;
+    --color-error: #F44336;
+    --color-advertencia: #FF9800;
+    --color-info: #2196F3;
+    --color-proceso: #FF9800;
+    
+    /* TIPOGRAFÍA */
+    --fuente-principal: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --fuente-titulos: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --tamano-fuente-base: 18px;
+    --tamano-fuente-titulo: 2.5rem;
+    --tamano-fuente-subtitulo: 1.8rem;
+    --tamano-fuente-pequeno: 1rem;
+    --tamano-fuente-grande: 1.3rem;
+    
+    /* ESPACIADO */
+    --espaciado-xs: 0.25rem;
+    --espaciado-sm: 0.5rem;
+    --espaciado-md: 1rem;
+    --espaciado-lg: 1.5rem;
+    --espaciado-xl: 2rem;
+    --espaciado-xxl: 3rem;
+    
+    /* BORDES */
+    --borde-radio-sm: 4px;
+    --borde-radio-md: 8px;
+    --borde-radio-lg: 12px;
+    --borde-radio-xl: 16px;
+    
+    /* SOMBRAS */
+    --sombra-suave: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --sombra-media: 0 4px 8px rgba(0, 0, 0, 0.15);
+    --sombra-fuerte: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --sombra-modal: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --sombra-boton: 0 4px 6px rgba(255, 145, 0, 0.3);
+    
+    /* TRANSICIONES */
+    --transicion-rapida: 0.2s ease;
+    --transicion-media: 0.3s ease;
+    --transicion-lenta: 0.5s ease;
+    
+    /* Z-INDEX */
+    --z-header: 1000;
+    --z-modal: 2000;
+    --z-popup: 3000;
+    
+    /* ANCHOS */
+    --ancho-contenido: 1200px;
+    --ancho-formulario: 600px;
+
+    /* COLORES DE GRIS PARA WAVEFORM */
+    --color-waveform-bg: #D0D0D0;
+    --color-waveform-border: #BDBDBD;
+    --color-waveform-progress: #9E9E9E;
+}

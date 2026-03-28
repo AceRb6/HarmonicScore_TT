@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonic Score - Inicio de Sesión</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<!-- HEADER -->
+<header class="header">
+    <div class="header-contenido">
+        <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+            <div class="header-logo-img">HS</div>
+            <h1 class="header-titulo">Harmonic Score</h1>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="carga.html">Transcribir</a></li>
+                <li><a href="consultas.html">Transcripciones</a></li>
+                <li><a href="registro.html">Registrarse</a></li>
+                <li><a href="login.html" class="activo">Iniciar Sesión</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main">
+        <div class="formulario-contenedor">
+            <h2 class="formulario-titulo">Inicio de Sesión</h2>
+            
+            <form id="formulario-login" class="formulario">
+                <!-- Usuario/Correo -->
+                <div class="formulario-grupo">
+                    <label for="login-usuario" class="formulario-label">Usuario/Correo:</label>
+                    <input type="text" id="login-usuario" name="login-usuario" class="formulario-input" 
+                           placeholder="Ingresa tu usuario o correo" required>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="formulario-grupo">
+                    <label for="login-contrasena" class="formulario-label">Contraseña:</label>
+                    <div class="password-contenedor">
+                        <input type="password" id="login-contrasena" name="login-contrasena" class="formulario-input" 
+                               placeholder="Ingresa tu contraseña" required>
+                        <button type="button" class="password-toggle" id="toggle-login-contrasena">👁️</button>
+                    </div>
+                </div>
+
+                <!-- Captcha Placeholder -->
+                <div class="formulario-grupo">
+                    <label class="formulario-label">Captcha:</label>
+                    <div class="captcha-contenedor">
+                        <p class="captcha-texto">[Espacio para reCAPTCHA]</p>
+                    </div>
+                    <input type="text" class="formulario-input" placeholder="Ingresa el captcha" required>
+                </div>
+
+                <!-- Botón de Ingresar -->
+                <button type="submit" class="btn btn-primario btn-grande">Ingresar</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 1.1rem;">
+                ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+            </p>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-contenido">
+            <div class="footer-seccion">
+                <h3>Harmonic Score</h3>
+                <p>Transcripción automática de música</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Desarrolladores</h3>
+                <p>Arroyo Parra Jair Uziel</p>
+                <p>Cano Portugal Israel Daniel Arturo</p>
+                <p>Garcés Valencia Brisa Isabel</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Institución</h3>
+                <p>ESCOM</p>
+                <p>Proyecto Académico 2026-B115</p>
+            </div>
+        </div>
+        <div class="footer-inferior">
+            <p>&copy; 2026 Harmonic Score. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/validacion.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
