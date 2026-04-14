@@ -147,7 +147,7 @@ C:\dev\harmonic-score-app
 ---
 
 # 👥 Colaboración (Git)
-
+#Jair uziel xd
 ## Crear nueva rama
 
 ```
