@@ -72,9 +72,9 @@ function mostrarBarraProgresoMini() {
 }
 
 /**
- * Inicia la simulación de progreso (1 minuto)
+ * Inicia la carga real del archivo al backend y gestiona progreso. (CU-05)
  */
-function iniciarSimulacionTranscripcion() {
+async function iniciarSimulacionTranscripcion() {
     const modalProgreso = document.getElementById('modal-progreso');
     const modalBarra = document.getElementById('modal-barra-relleno');
     const miniBaraProgreso = document.getElementById('mini-barra-progreso');
@@ -85,17 +85,23 @@ function iniciarSimulacionTranscripcion() {
         return;
     }
 
-    console.log('Iniciando simulación de transcripción');
+    // El archivoActual viene de wavesurfer-setup.js (variable global compartida)
+    if (typeof archivoActual === 'undefined' || !archivoActual) {
+        mostrarError('No hay ningún archivo válido seleccionado para transcribir.');
+        return;
+    }
 
-    // Resetear
+    console.log('Iniciando subida de archivo para transcripción');
+
+    // Resetear visuales de progreso
     progresoActual = 0;
     transcripcionActiva = true;
-    modalBarra.textContent = '0%';
-    modalBarra.style.width = '0%';
+    modalBarra.textContent = 'En proceso...';
+    modalBarra.style.width = '50%';
     
     if (miniBaraRelleno) {
-        miniBaraRelleno.style.width = '0%';
-        miniBaraRelleno.textContent = '0%';
+        miniBaraRelleno.style.width = '50%';
+        miniBaraRelleno.textContent = 'En proceso...';
     }
 
     // Mostrar modal
@@ -106,43 +112,45 @@ function iniciarSimulacionTranscripcion() {
         miniBaraProgreso.style.display = 'none';
     }
 
-    // Calcular incremento por intervalo (60 segundos = 60000 ms)
-    const duracionTotal = 60000; // 1 minuto
-    const intervalo = 100; // Actualizar cada 100ms
-    const incremento = 100 / (duracionTotal / intervalo);
-
-    console.log('Duración:', duracionTotal, 'ms');
-    console.log('Incremento por intervalo:', incremento);
-
-    clearInterval(intervaloProgreso);
+    // Llamada al backend
+    const formData = new FormData();
+    formData.append('audio', archivoActual);
     
-    intervaloProgreso = setInterval(function() {
-        progresoActual += incremento;
-        
-        if (progresoActual >= 100) {
+    try {
+        const respuesta = await DjangoAPI.peticion('/transcripciones/subir/', 'POST', formData);
+
+        if (respuesta.ok) {
+            // Completar barra
             progresoActual = 100;
-            finalizarTranscripcion();
+            modalBarra.style.width = '100%';
+            modalBarra.textContent = '100%';
+            if (miniBaraRelleno) {
+                miniBaraRelleno.style.width = '100%';
+                miniBaraRelleno.textContent = '100%';
+            }
+            finalizarTranscripcion(true); // Éxito
+        } else {
+            // Error en servidor
+            modalProgreso.classList.remove('activo');
+            transcripcionActiva = false;
+            // msn2
+            mostrarError(respuesta.data.error || 'Error en el procesamiento. ' + JSON.stringify(respuesta.data));
         }
 
-        // Actualizar visualmente en modal
-        modalBarra.style.width = progresoActual + '%';
-        modalBarra.textContent = Math.round(progresoActual) + '%';
-        
-        // Actualizar barra mini si existe
-        if (miniBaraRelleno) {
-            miniBaraRelleno.style.width = progresoActual + '%';
-            miniBaraRelleno.textContent = Math.round(progresoActual) + '%';
-        }
-
-    }, intervalo);
+    } catch (error) {
+        modalProgreso.classList.remove('activo');
+        transcripcionActiva = false;
+        // msn2
+        mostrarError('Error en el procesamiento. Verifica tu conexión con el servidor.');
+    }
 }
 
 /**
- * Finaliza la simulación y muestra resultados
+ * Finaliza la transcripción y muestra resultados
  */
-function finalizarTranscripcion() {
+function finalizarTranscripcion(esExito) {
+    if (!esExito) return;
     console.log('Transcripción finalizada');
-    clearInterval(intervaloProgreso);
     transcripcionActiva = false;
     
     // Esperar un momento en 100%
@@ -152,6 +160,7 @@ function finalizarTranscripcion() {
             modalProgreso.classList.remove('activo');
         }
         
+        // msn1
         alert('Transcripción completada. Redirigiendo a consultas...');
         window.location.href = 'consultas.html';
     }, 500);

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonic Score - Recuperar Contraseña</title>
+    <meta name="description" content="Recupera el acceso a tu cuenta de Harmonic Score ingresando tu correo registrado.">
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+<!-- HEADER -->
+<header class="header">
+    <div class="header-contenido">
+        <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+            <div class="header-logo-img">HS</div>
+            <h1 class="header-titulo">Harmonic Score</h1>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Recuperar Contraseña</span></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main">
+        <div class="formulario-contenedor">
+
+            <!-- Ícono y título -->
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🔑</div>
+                <h2 class="formulario-titulo">Recuperar Contraseña</h2>
+                <p style="color: var(--color-texto-secundario); font-size: 0.97rem; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+                    Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                </p>
+            </div>
+
+            <form id="formulario-recuperar" class="formulario">
+                <!-- Correo electrónico -->
+                <div class="formulario-grupo">
+                    <label for="recuperar-correo" class="formulario-label">Correo electrónico registrado:</label>
+                    <input type="email" id="recuperar-correo" name="recuperar-correo" class="formulario-input"
+                           placeholder="ejemplo@correo.com" required>
+                </div>
+
+                <!-- Contenedor de mensajes (msn1 y msn2) -->
+                <div id="mensaje-recuperar" class="mensaje-alerta"
+                     style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;">
+                </div>
+
+                <!-- Botón de enviar -->
+                <button type="submit" class="btn btn-primario btn-grande" id="btn-recuperar"
+                        style="width: 100%;">
+                    Enviar enlace de recuperación
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 1rem;">
+                ¿Recordaste tu contraseña? <a href="login.html">Inicia sesión aquí</a>
+            </p>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-contenido">
+            <div class="footer-seccion">
+                <h3>Harmonic Score</h3>
+                <p>Transcripción automática de música</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Desarrolladores</h3>
+                <p>Arroyo Parra Jair Uziel</p>
+                <p>Cano Portugal Israel Daniel Arturo</p>
+                <p>Garcés Valencia Brisa Isabel</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Institución</h3>
+                <p>ESCOM</p>
+                <p>Proyecto Académico 2026-B115</p>
+            </div>
+        </div>
+        <div class="footer-inferior">
+            <p>&copy; 2026 Harmonic Score. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/sesion.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/validacion.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

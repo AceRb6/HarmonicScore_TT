@@ -292,16 +292,18 @@
     border: 2px solid #E0E0E0;
     border-radius: var(--borde-radio-md);
     overflow: hidden;
+    font-size: 1.15rem; /* Letra de tabla más grande */
 }
 
 .tabla thead {
     background-color: var(--color-header);
     color: var(--color-blanco);
+    font-size: 1.25rem; /* Cabeceras aún más prominentes */
 }
 
 .tabla th,
 .tabla td {
-    padding: var(--espaciado-md);
+    padding: var(--espaciado-lg) var(--espaciado-md); /* Mayor respiro vertical para celdas altas */
     text-align: left;
     border-bottom: 1px solid #E0E0E0;
 }

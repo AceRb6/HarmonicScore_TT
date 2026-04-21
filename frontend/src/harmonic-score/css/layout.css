@@ -16,7 +16,7 @@
 }
 
 .header-contenido {
-    max-width: var(--ancho-contenido);
+    width: 100%;
     margin: 0 auto;
     padding: 0 var(--espaciado-lg);
     display: flex;
@@ -75,6 +75,7 @@
     margin: 0;
     padding: 0;
     white-space: nowrap; /* Los botones no se rompen */
+    align-items: center;
 }
 
 .header-nav a {
@@ -133,10 +134,14 @@
 /* MAIN CONTENT */
 .main {
     flex: 1;
+    min-height: 100vh; /* Fuerza al menos 100vh para que el footer quede oculto por defecto (Scroll 100%) */
     padding: var(--espaciado-xl) var(--espaciado-md);
     max-width: var(--ancho-contenido);
     margin: 0 auto;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centrar verticalmente el contenido interior (Login, Formularios, Paneles) para mayor atractivo */
 }
 
 /* FOOTER */

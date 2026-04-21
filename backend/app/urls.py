@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/registro/', views.registro_usuario, name='registro_usuario'),
+    path('api/auth/recuperar-contrasena/', views.recuperar_contrasena, name='recuperar_contrasena'),
+    path('api/transcripciones/subir/', views.subir_transcripcion, name='subir_transcripcion'),
 ]

@@ -17,11 +17,7 @@
         </div>
         <nav class="header-nav">
             <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="carga.html">Transcribir</a></li>
-                <li><a href="consultas.html">Transcripciones</a></li>
-                <li><a href="registro.html">Registrarse</a></li>
-                <li><a href="login.html" class="activo">Iniciar Sesión</a></li>
+                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Iniciar Sesión</span></li>
             </ul>
         </nav>
     </div>
@@ -33,11 +29,11 @@
             <h2 class="formulario-titulo">Inicio de Sesión</h2>
             
             <form id="formulario-login" class="formulario">
-                <!-- Usuario/Correo -->
+                <!-- Correo electrónico -->
                 <div class="formulario-grupo">
-                    <label for="login-usuario" class="formulario-label">Usuario/Correo:</label>
-                    <input type="text" id="login-usuario" name="login-usuario" class="formulario-input" 
-                           placeholder="Ingresa tu usuario o correo" required>
+                    <label for="login-correo" class="formulario-label">Correo electrónico:</label>
+                    <input type="email" id="login-correo" name="login-correo" class="formulario-input"
+                           placeholder="ejemplo@correo.com" required>
                 </div>
 
                 <!-- Contraseña -->
@@ -50,20 +46,35 @@
                     </div>
                 </div>
 
-                <!-- Captcha Placeholder -->
+                <!-- reCAPTCHA de Google -->
                 <div class="formulario-grupo">
-                    <label class="formulario-label">Captcha:</label>
-                    <div class="captcha-contenedor">
-                        <p class="captcha-texto">[Espacio para reCAPTCHA]</p>
+                    <label class="formulario-label">Verificación:</label>
+                    <div id="recaptcha-contenedor-login">
+                        <div class="g-recaptcha"
+                             data-sitekey="6LedhbksAAAAAPa2x_bBl7Nhbxn2dju-mRqzuoVR"
+                             data-theme="light"
+                             data-callback="onRecaptchaLoginSuccess"
+                             data-expired-callback="onRecaptchaLoginExpired">
+                        </div>
                     </div>
-                    <input type="text" class="formulario-input" placeholder="Ingresa el captcha" required>
+                    <small id="captcha-login-error" style="display:none; color:#c62828; font-size:0.85em;">Por favor, completa el captcha.</small>
                 </div>
+
+                <!-- Contenedor de mensajes -->
+                <div id="mensaje-login" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
 
                 <!-- Botón de Ingresar -->
                 <button type="submit" class="btn btn-primario btn-grande">Ingresar</button>
             </form>
 
-            <p style="text-align: center; margin-top: 1.5rem; font-size: 1.1rem;">
+            <p style="text-align: center; margin-top: 1rem;">
+                <a href="recuperar-contrasena.html" id="link-olvide-contrasena"
+                   style="color: var(--color-primario); font-weight: 600; text-decoration: underline; font-size: 0.95rem;">
+                    ¿Olvidé mi contraseña?
+                </a>
+            </p>
+
+            <p style="text-align: center; margin-top: 1rem; font-size: 1.1rem;">
                 ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
             </p>
         </div>
@@ -94,9 +105,13 @@
     </footer>
 
     <!-- JavaScript -->
+    <script src="js/sesion.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/config.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/validacion.js"></script>
     <script src="js/main.js"></script>
+    <!-- Google reCAPTCHA API -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>

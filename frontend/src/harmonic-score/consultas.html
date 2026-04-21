@@ -28,12 +28,38 @@
 </header>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="main">
-        <div class="contenedor-pagina">
-            <h2 class="seccion-titulo">Consulta de Transcripciones</h2>
+    <main class="main" style="justify-content: flex-start; padding-top: 4rem;">
+        <div class="contenedor-pagina" style="padding-bottom: 5rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 class="seccion-titulo" style="margin-bottom: 0.5rem;">Mis Transcripciones</h2>
+                <p style="color: var(--color-texto-secundario); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Explora, descarga y reproduce las partituras musicales que la IA ha generado para ti.</p>
+            </div>
             
-            <div class="card">
-                <div style="overflow-x: auto;">
+            <div style="width: 100%; border-top: 1px solid var(--color-borde); padding-top: 2rem;">
+                <!-- ESTADO VACÍO: se muestra cuando no hay transcripciones -->
+                <div id="transcripciones-vacio" style="
+                    display: none;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 3rem 1rem;
+                    text-align: center;
+                ">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;">🎵</div>
+                    <h3 style="color: var(--color-header); margin-bottom: 0.75rem; font-size: 1.4rem;">
+                        Aún no tienes transcripciones
+                    </h3>
+                    <p style="color: var(--color-texto-secundario); margin-bottom: 1.5rem; font-size: 1rem;">
+                        Aún no tienes transcripciones guardadas.<br>
+                        Sube un archivo de audio y conviértelo en partitura.
+                    </p>
+                    <a href="carga.html" class="btn btn-primario btn-grande" id="btn-ir-transcribir">
+                        Transcribir ahora
+                    </a>
+                </div>
+
+                <!-- TABLA: se muestra cuando hay transcripciones -->
+                <div id="transcripciones-tabla-wrapper" style="display: none; overflow-x: auto;">
                     <table class="tabla">
                         <thead>
                             <tr>
@@ -43,56 +69,23 @@
                                 <th>Descargar</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Ejemplo 1: Éxito -->
-                            <tr>
-                                <td>"1.mp3"</td>
-                                <td>15/5/26</td>
-                                <td class="estado-exito">✓ Completado</td>
-                                <td>
-                                    <a href="#" class="btn btn-primario" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
-                                        PDF/XML ↓
-                                    </a>
-                                </td>
-                            </tr>
-                            <!-- Ejemplo 2: Error -->
-                            <tr>
-                                <td>"2.mp3"</td>
-                                <td>10/6/26</td>
-                                <td class="estado-error">✗ Error</td>
-                                <td>
-                                    <span style="color: var(--color-error); font-weight: bold;">Error</span>
-                                </td>
-                            </tr>
-                            <!-- Ejemplo 3: En Proceso -->
-                            <tr>
-                                <td>"3.mp3"</td>
-                                <td>11/6/26</td>
-                                <td class="estado-proceso">⊖ En Proceso</td>
-                                <td>
-                                    <span style="color: var(--color-proceso);">--</span>
-                                </td>
-                            </tr>
-                            <!-- Ejemplo 4: Éxito -->
-                            <tr>
-                                <td>"ejercicio_piano.wav"</td>
-                                <td>12/6/26</td>
-                                <td class="estado-exito">✓ Completado</td>
-                                <td>
-                                    <a href="#" class="btn btn-primario" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
-                                        PDF/XML ↓
-                                    </a>
-                                </td>
-                            </tr>
+                        <tbody id="transcripciones-tbody">
+                            <!-- Las filas se insertarán dinámicamente desde el backend -->
                         </tbody>
                     </table>
                 </div>
-                
-                <div style="margin-top: 1rem; padding: 1rem; background-color: var(--color-fondo-secundario); border-radius: var(--borde-radio-sm);">
+
+                <div id="transcripciones-leyenda" style="
+                    display: none;
+                    margin-top: 1rem;
+                    padding: 1rem;
+                    background-color: var(--color-fondo-secundario);
+                    border-radius: var(--borde-radio-sm);
+                ">
                     <p style="font-size: 0.9rem; color: var(--color-texto-secundario); margin: 0;">
-                        <strong>Leyenda:</strong> 
-                        <span class="estado-exito">✓ Completado</span> | 
-                        <span class="estado-error">✗ Error</span> | 
+                        <strong>Leyenda:</strong>
+                        <span class="estado-exito">✓ Completado</span> |
+                        <span class="estado-error">✗ Error</span> |
                         <span class="estado-proceso">⊖ En Proceso</span>
                     </p>
                     <p style="font-size: 0.9rem; color: var(--color-texto-secundario); margin-top: 0.5rem;">
@@ -102,6 +95,18 @@
             </div>
         </div>
     </main>
+
+    <!-- MODAL DE MENSAJE -->
+    <div id="modal-mensaje" class="modal-fondo" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.5);">
+        <div class="modal-contenido" style="max-width: 500px; background: white; padding: 2rem; border-radius: 8px; text-align: center;">
+            <button class="modal-cerrar" id="cerrar-modal-mensaje" type="button" style="float: right; border: none; background: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            <h3 class="modal-titulo" id="titulo-mensaje" style="color: var(--color-header);">Notificación</h3>
+            <p id="texto-mensaje" style="font-size: 1.1rem; margin: 1rem 0;"></p>
+            <div style="margin-top: 1.5rem;">
+                <button class="btn btn-primario" id="btn-cerrar-mensaje" type="button">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- FOOTER ESTÁTICO -->
     <footer class="footer">
@@ -137,8 +142,10 @@
     </footer>
 
     <!-- JavaScript -->
+    <script src="js/sesion.js"></script>
     <script src="js/config.js"></script>
     <script src="js/navigation.js"></script>
+    <script src="js/transcripciones.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
