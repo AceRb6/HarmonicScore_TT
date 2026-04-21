@@ -60,9 +60,28 @@ function inicializarWavesurfer() {
         wavesurfer.on('ready', function() {
             console.log('Wavesurfer listo');
             archivoCargado = true;
-            habilitarBotonTranscribir();
+            
+            // Ocultar placeholder del waveform
+            const placeholder = document.getElementById('waveform-placeholder');
+            if (placeholder) placeholder.style.display = 'none';
+
             if (archivoActual) {
-                actualizarInfoDuracion(wavesurfer.getDuration());
+                const duracion = wavesurfer.getDuration();
+                // Validar duración máxima sugerida: 6 minutos (360 segundos)
+                if (duracion > 360) {
+                    mostrarError('Duración excedida. El archivo no debe superar los 6 minutos');
+                    wavesurfer.empty();
+                    if (placeholder) placeholder.style.display = 'block';
+                    archivoCargado = false;
+                    archivoActual = null;
+                    return;
+                }
+                
+                actualizarInfoDuracion(duracion);
+                habilitarBotonTranscribir();
+
+                // Mostrar mensaje temporal de éxito msn1
+                alert('Archivo cargado correctamente'); // TODO: Cambiar por toast o mensaje en UI en el futuro
             }
         });
 
@@ -99,8 +118,22 @@ function inicializarCargaArchivo() {
         return;
     }
 
+    // --- Validación general de Invitado ---
+    function cancelarInvitado(e) {
+        if (!Sesion.estaActiva()) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            window.location.href = 'login.html';
+            return true;
+        }
+        return false;
+    }
+
     // Click en botón "Cargar Archivo" - ABRE EXPLORADOR
     btnExaminar.addEventListener('click', function(e) {
+        if (cancelarInvitado(e)) return;
         console.log('Click en botón Cargar Archivo');
         e.preventDefault();
         e.stopPropagation();
@@ -109,8 +142,9 @@ function inicializarCargaArchivo() {
 
     // Click en el área completa - ABRE EXPLORADOR
     dropZone.addEventListener('click', function(e) {
-        // Solo abrir si no es el botón
+        // Solo abrir si no es el botón interactivo interno
         if (e.target !== btnExaminar && !btnExaminar.contains(e.target)) {
+            if (cancelarInvitado(e)) return;
             console.log('Click en drop zone');
             fileInput.click();
         }
@@ -118,6 +152,7 @@ function inicializarCargaArchivo() {
 
     // Cambio en input file
     fileInput.addEventListener('change', function(e) {
+        if (cancelarInvitado(e)) return;
         console.log('Cambio en input file');
         const archivo = e.target.files[0];
         if (archivo) {
@@ -143,6 +178,11 @@ function inicializarCargaArchivo() {
     });
 
     dropZone.addEventListener('drop', function(e) {
+        if (cancelarInvitado(e)) {
+            dropZone.style.borderColor = '#FF9100';
+            dropZone.style.backgroundColor = '#F5F5F5';
+            return;
+        }
         e.preventDefault();
         dropZone.style.borderColor = '#FF9100';
         dropZone.style.backgroundColor = '#F5F5F5';
@@ -181,7 +221,7 @@ function validarYProcesarArchivo(archivo) {
     
     if (tamañoMB > 50) {
         console.log('Archivo muy grande');
-        mostrarError('El archivo excede el límite de 50 MB');
+        mostrarError('Tamaño excedido. El archivo no debe superar los 50 MB');
         return;
     }
 
@@ -237,13 +277,58 @@ function mostrarError(mensaje) {
 function procesarArchivo(archivo, tamañoMB) {
     console.log('Procesando archivo:', archivo.name);
     
-    // Mostrar información
+    // 1. Mostrar información en el panel derecho
     mostrarInfoArchivo(archivo, tamañoMB);
 
-    // Cargar en Wavesurfer
+    // 2. Actualizar la zona de carga (Panel Izquierdo) inmediatamente
+    actualizarInterfazCargaExitosa(archivo);
+
+    // 3. Cargar en Wavesurfer para visualización
     const url = URL.createObjectURL(archivo);
     console.log('Cargando en Wavesurfer...');
     wavesurfer.load(url);
+}
+
+/**
+ * Cambia visualmente la zona de drop para indicar que ya hay un archivo
+ */
+function actualizarInterfazCargaExitosa(archivo) {
+    const dropIcono = document.getElementById('drop-icono');
+    const dropTexto1 = document.getElementById('drop-texto-1');
+    const dropTexto2 = document.getElementById('drop-texto-2');
+    const dropTexto3 = document.getElementById('drop-texto-3');
+    const btnExaminar = document.getElementById('btn-examinar');
+    const dropZone = document.getElementById('drop-zone');
+
+    if (dropIcono) {
+        dropIcono.textContent = '🎶'; 
+        dropIcono.style.color = 'var(--color-exito)'; 
+        dropIcono.style.fontSize = '4rem'; // Más prominente
+    }
+    if (dropTexto1) {
+        dropTexto1.textContent = '¡Archivo cargado con éxito!'; 
+        dropTexto1.style.color = 'var(--color-exito)';
+    }
+    if (dropTexto2) {
+        dropTexto2.textContent = archivo.name; 
+        dropTexto2.style.fontWeight = '700';
+        dropTexto2.style.fontSize = '1.1rem';
+        dropTexto2.style.color = 'var(--color-texto-principal)';
+    }
+    if (dropTexto3) { 
+        dropTexto3.style.display = 'none'; 
+    }
+    
+    if (btnExaminar) {
+        btnExaminar.textContent = 'Seleccionar otro archivo'; 
+        btnExaminar.classList.remove('btn-primario');
+        btnExaminar.classList.add('btn-secundario');
+    }
+
+    if (dropZone) {
+        dropZone.style.borderColor = 'var(--color-exito)';
+        dropZone.style.backgroundColor = '#e8f5e9'; // Verde muy ligero de fondo
+    }
 }
 
 /**
@@ -253,8 +338,11 @@ function mostrarInfoArchivo(archivo, tamañoMB) {
     console.log('Mostrando información del archivo');
     
     const archivoInfo = document.getElementById('archivo-info');
+    const detallesVacio = document.getElementById('detalles-vacio');
+    
     if (archivoInfo) {
-        archivoInfo.style.display = 'block';
+        document.getElementById('archivo-info').style.display = 'block';
+        if (detallesVacio) detallesVacio.style.display = 'none';
         console.log('Información visible');
     }
     

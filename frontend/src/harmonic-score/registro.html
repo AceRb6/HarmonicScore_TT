@@ -17,11 +17,7 @@
         </div>
         <nav class="header-nav">
             <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="carga.html">Transcribir</a></li>
-                <li><a href="consultas.html">Transcripciones</a></li>
-                <li><a href="registro.html" class="activo">Registrarse</a></li>
-                <li><a href="login.html">Iniciar Sesión</a></li>
+                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Registro de Usuario</span></li>
             </ul>
         </nav>
     </div>
@@ -69,8 +65,8 @@
                                placeholder="Ingresa tu contraseña" required>
                         <button type="button" class="password-toggle" id="toggle-contrasena">👁️</button>
                     </div>
-                    <small class="formulario-mensaje-error" id="password-pattern">
-                        Mínimo 8 caracteres, 1 mayúscula, 1 número
+                    <small class="formulario-mensaje-error" id="password-pattern" style="display: block; margin-top: 5px; color: #666; font-size: 0.85em;">
+                        Mínimo 8 caracteres, al menos 1 mayúscula y 1 símbolo especial
                     </small>
                 </div>
 
@@ -84,13 +80,18 @@
                     </div>
                 </div>
 
-                <!-- Captcha Placeholder -->
+                <!-- reCAPTCHA de Google -->
                 <div class="formulario-grupo">
-                    <label class="formulario-label">Captcha:</label>
-                    <div class="captcha-contenedor">
-                        <p class="captcha-texto">[Espacio para reCAPTCHA]</p>
+                    <label class="formulario-label">Verificación:</label>
+                    <div id="recaptcha-contenedor">
+                        <div class="g-recaptcha" 
+                             data-sitekey="6LedhbksAAAAAPa2x_bBl7Nhbxn2dju-mRqzuoVR"
+                             data-theme="light"
+                             data-callback="onRecaptchaSuccess"
+                             data-expired-callback="onRecaptchaExpired">
+                        </div>
                     </div>
-                    <input type="text" class="formulario-input" placeholder="Ingresa el captcha" required>
+                    <small id="captcha-error" style="display:none; color:#c62828; font-size:0.85em;">Por favor, completa el captcha.</small>
                 </div>
 
                 <!-- Términos y Condiciones -->
@@ -100,6 +101,9 @@
                         He leído y acepto los Términos y Condiciones
                     </label>
                 </div>
+
+                <!-- Contenedor de mensajes (msn1, msn2, msn3) -->
+                <div id="mensaje-registro" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
 
                 <!-- Botón de Registro - DESHABILITADO POR DEFECTO -->
                 <button type="submit" class="btn btn-primario btn-grande btn-deshabilitado" id="btn-registrar" disabled>
@@ -185,9 +189,13 @@
     </footer>
 
     <!-- JavaScript -->
+    <script src="js/sesion.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/config.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/validacion.js"></script>
     <script src="js/main.js"></script>
+    <!-- Google reCAPTCHA API - cargado al final para no bloquear el render -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>
