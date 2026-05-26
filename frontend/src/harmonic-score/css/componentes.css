@@ -10,14 +10,14 @@
 
 .btn {
     display: inline-block;
-    padding: var(--espaciado-md) var(--espaciado-xl);
+    padding: 1.2rem 2.5rem; /* Aumentado */
     border-radius: var(--borde-radio-lg);
     font-weight: 600;
     text-align: center;
     transition: all var(--transicion-media);
     cursor: pointer;
     border: none;
-    font-size: 1.1rem;
+    font-size: 1.3rem; /* Aumentado */
     position: relative;
     overflow: hidden;
     text-decoration: none;
@@ -56,14 +56,14 @@
 
 /* Botón deshabilitado (con candado) */
 .btn-deshabilitado {
-    background: linear-gradient(135deg, #BDBDBD 0%, #9E9E9E 100%);
-    color: #757575;
+    background: var(--color-secundario);
+    color: var(--color-texto-secundario);
     cursor: not-allowed;
     pointer-events: none;
     box-shadow: none;
     transform: none;
     position: relative;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 .btn-deshabilitado::after {
@@ -77,8 +77,8 @@
 
 /* Botón grande */
 .btn-grande {
-    padding: var(--espaciado-lg) var(--espaciado-xxl);
-    font-size: 1.3rem;
+    padding: 1.5rem 3.5rem; /* Aumentado */
+    font-size: 1.6rem; /* Aumentado */
 }
 
 /* Botón de error */
@@ -121,10 +121,11 @@
     max-width: 600px;
     margin: 0 auto;
     padding: var(--espaciado-xxl);
-    background: linear-gradient(135deg, var(--color-fondo) 0%, #FFF8E1 100%);
+    background: var(--glass-bg);
     border-radius: var(--borde-radio-xl);
     box-shadow: var(--sombra-fuerte);
-    border: 1px solid #FFE0B2;
+    border: var(--glass-border);
+    backdrop-filter: blur(10px);
 }
 
 /* Título de formulario */
@@ -147,7 +148,7 @@
     font-weight: 600;
     color: var(--color-texto-principal);
     margin-bottom: var(--espaciado-xs);
-    font-size: var(--tamano-fuente-pequeno);
+    font-size: 1.2rem; /* Aumentado */
 }
 
 /* Input de formulario */
@@ -155,12 +156,13 @@
 .formulario-select,
 .formulario-textarea {
     width: 100%;
-    padding: var(--espaciado-md);
-    border: 2px solid #E0E0E0;
+    padding: 1rem 1.2rem; /* Aumentado */
+    border: 2px solid #E2E8F0;
     border-radius: var(--borde-radio-md);
-    font-size: 1rem;
+    font-size: 1.25rem; /* Aumentado */
     transition: all var(--transicion-rapida);
-    background-color: var(--color-fondo);
+    background-color: var(--color-fondo-input);
+    color: var(--color-texto-principal);
 }
 
 .formulario-input:focus,
@@ -193,7 +195,7 @@
     gap: var(--espaciado-md);
     margin: var(--espaciado-lg) 0;
     padding: var(--espaciado-md);
-    background-color: #FFF3E0;
+    background-color: var(--color-fondo-secundario);
     border-radius: var(--borde-radio-md);
     border-left: 4px solid var(--color-primario);
 }
@@ -225,8 +227,8 @@
    ============================================ */
 
 .captcha-contenedor {
-    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-    border: 2px dashed #2196F3;
+    background: rgba(56, 189, 248, 0.05);
+    border: 1px dashed var(--color-acento);
     border-radius: var(--borde-radio-md);
     padding: var(--espaciado-lg);
     text-align: center;
@@ -269,11 +271,11 @@
    ============================================ */
 
 .card {
-    background-color: var(--color-fondo);
+    background-color: var(--color-fondo-secundario);
     border-radius: var(--borde-radio-lg);
     padding: var(--espaciado-lg);
-    box-shadow: var(--sombra-suave);
-    border: 1px solid #E0E0E0;
+    box-shadow: var(--sombra-media);
+    border: var(--glass-border);
 }
 
 .card-titulo {
@@ -289,23 +291,23 @@
 
 .tabla {
     width: 100%;
-    border: 2px solid #E0E0E0;
+    border: var(--glass-border);
     border-radius: var(--borde-radio-md);
     overflow: hidden;
-    font-size: 1.15rem; /* Letra de tabla más grande */
+    font-size: 1.3rem; /* Aumentado para mejor lectura */
 }
 
 .tabla thead {
     background-color: var(--color-header);
     color: var(--color-blanco);
-    font-size: 1.25rem; /* Cabeceras aún más prominentes */
+    font-size: 1.45rem; /* Cabeceras aumentadas */
 }
 
 .tabla th,
 .tabla td {
-    padding: var(--espaciado-lg) var(--espaciado-md); /* Mayor respiro vertical para celdas altas */
+    padding: 1.5rem 2rem; /* Mayor respiro y tamaño para celdas */
     text-align: left;
-    border-bottom: 1px solid #E0E0E0;
+    border-bottom: 1px solid #E2E8F0;
 }
 
 .tabla tbody tr:nth-child(even) {
@@ -313,11 +315,11 @@
 }
 
 .tabla tbody tr:nth-child(odd) {
-    background-color: #F9FAFB;
+    background-color: #F8FAFC;
 }
 
 .tabla tbody tr:hover {
-    background-color: #E3F2FD;
+    background-color: #F1F5F9;
 }
 
 /* Estados de tabla */
@@ -452,18 +454,18 @@
    ============================================ */
 
 .carga-archivo-area {
-    border: 3px dashed var(--color-primario);
+    border: 2px dashed var(--color-primario);
     border-radius: var(--borde-radio-lg);
     padding: var(--espaciado-xl);
     text-align: center;
-    background-color: var(--color-fondo-secundario);
+    background-color: #F8FAFC;
     transition: all var(--transicion-media);
     cursor: pointer;
 }
 
 .carga-archivo-area:hover {
-    border-color: var(--color-primario-hover);
-    background-color: #FFF3E0;
+    border-color: var(--color-acento);
+    background-color: rgba(56, 189, 248, 0.05);
     transform: scale(1.02);
 }
 
@@ -505,7 +507,7 @@
     display: flex;
     justify-content: space-between;
     padding: var(--espaciado-xs) 0;
-    border-bottom: 1px solid #E0E0E0;
+    border-bottom: var(--glass-border);
 }
 
 .archivo-info-item:last-child {
@@ -527,10 +529,10 @@
 .terminos-contenido {
     max-height: 350px;
     overflow-y: auto;
-    border: 2px solid #E0E0E0;
+    border: var(--glass-border);
     border-radius: var(--borde-radio-sm);
     padding: var(--espaciado-lg);
-    background-color: var(--color-fondo-secundario);
+    background-color: var(--color-fondo-input);
     margin-bottom: var(--espaciado-md);
 }
 
@@ -553,28 +555,28 @@
    ============================================ */
 
 .waveform-contenedor {
-    background-color: #D0D0D0;
+    background-color: var(--color-fondo-secundario);
     border-radius: var(--borde-radio-lg);
     padding: var(--espaciado-lg);
     margin: var(--espaciado-md) 0;
-    border: 2px solid #BDBDBD;
+    border: 1px solid #E2E8F0;
 }
 
 #waveform {
     width: 100%;
     height: 120px;
-    background-color: #C0C0C0;
+    background-color: #E2E8F0;
     border-radius: var(--borde-radio-md);
     margin-bottom: var(--espaciado-md);
-    border: 2px solid #A0A0A0;
+    border: 1px solid #CBD5E1;
 }
 
 #waveform-timeline {
     width: 100%;
     height: 30px;
-    background-color: #C0C0C0;
+    background-color: #E2E8F0;
     border-radius: var(--borde-radio-sm);
-    border: 2px solid #A0A0A0;
+    border: 1px solid #CBD5E1;
 }
 
 .wavesurfer-region {
@@ -615,7 +617,7 @@
    ============================================ */
 
 .hero-section {
-    background: linear-gradient(135deg, var(--color-header) 0%, #FFB74D 100%);
+    background: var(--gradiente-primario);
     color: var(--color-blanco);
     padding: var(--espaciado-xxl) var(--espaciado-md);
     text-align: center;
@@ -661,11 +663,11 @@
 }
 
 .caracteristica-card {
-    background-color: var(--color-fondo);
+    background-color: var(--color-fondo-secundario);
     border-radius: var(--borde-radio-lg);
     padding: var(--espaciado-xl);
     box-shadow: var(--sombra-suave);
-    border: 1px solid #E0E0E0;
+    border: var(--glass-border);
     transition: all var(--transicion-media);
     text-align: center;
 }
@@ -693,8 +695,8 @@
    ============================================ */
 
 .imagen-placeholder {
-    background: linear-gradient(135deg, #E0E0E0 0%, #F5F5F5 100%);
-    border: 2px dashed #BDBDBD;
+    background: #F1F5F9;
+    border: 2px dashed #CBD5E1;
     border-radius: var(--borde-radio-lg);
     display: flex;
     align-items: center;
@@ -710,10 +712,10 @@
    ============================================ */
 
 #mini-barra-progreso {
-    background-color: #F5F5F5;
+    background-color: #F8FAFC;
     padding: var(--espaciado-md);
     border-radius: var(--borde-radio-md);
-    border: 1px solid #E0E0E0;
+    border: 1px solid #E2E8F0;
     margin-top: var(--espaciado-md);
 }
 

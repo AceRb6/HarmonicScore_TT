@@ -23,97 +23,109 @@
     </div>
 </header>
 
-    <!-- CONTENIDO PRINCIPAL - FORMULARIO CENTRADO -->
-    <main class="main">
-        <div class="formulario-contenedor">
-            <h2 class="formulario-titulo">Registro de Usuario</h2>
-            
-            <form id="formulario-registro" class="formulario">
-                <!-- Nombres -->
-                <div class="formulario-grupo">
-                    <label for="nombres" class="formulario-label">Nombres:</label>
-                    <input type="text" id="nombres" name="nombres" class="formulario-input" 
-                           placeholder="Ingresa tus nombres" required>
-                </div>
+    <!-- CONTENIDO PRINCIPAL - PANTALLA DIVIDIDA INVERSA -->
+    <main class="main" style="max-width: 100%; padding: 0; margin: 0; min-height: calc(100vh - 70px);">
+        <div class="login-split" style="border-radius: 0; border: none; box-shadow: none; min-height: calc(100vh - 70px);">
+            <!-- MITAD IZQUIERDA: IMAGEN / BRANDING -->
+            <div class="login-image-side" style="background-image: url('assets/img/registro.png'); background-size: cover; background-position: center; position: relative;">
+                <!-- Opcional: overlay oscuro -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 62, 138, 0.2);"></div>
+            </div>
 
-                <!-- Apellidos -->
-                <div class="formulario-grupo">
-                    <label for="apellidos" class="formulario-label">Apellidos:</label>
-                    <input type="text" id="apellidos" name="apellidos" class="formulario-input" 
-                           placeholder="Ingresa tus apellidos" required>
-                </div>
-
-                <!-- Correo -->
-                <div class="formulario-grupo">
-                    <label for="correo" class="formulario-label">Correo:</label>
-                    <input type="email" id="correo" name="correo" class="formulario-input" 
-                           placeholder="ejemplo@correo.com" required>
-                </div>
-
-                <!-- Nombre de Usuario -->
-                <div class="formulario-grupo">
-                    <label for="nombre-usuario" class="formulario-label">Nombre de Usuario:</label>
-                    <input type="text" id="nombre-usuario" name="nombre-usuario" class="formulario-input" 
-                           placeholder="Elige un nombre de usuario" required>
-                </div>
-
-                <!-- Contraseña -->
-                <div class="formulario-grupo">
-                    <label for="contrasena" class="formulario-label">Contraseña:</label>
-                    <div class="password-contenedor">
-                        <input type="password" id="contrasena" name="contrasena" class="formulario-input" 
-                               placeholder="Ingresa tu contraseña" required>
-                        <button type="button" class="password-toggle" id="toggle-contrasena">👁️</button>
-                    </div>
-                    <small class="formulario-mensaje-error" id="password-pattern" style="display: block; margin-top: 5px; color: #666; font-size: 0.85em;">
-                        Mínimo 8 caracteres, al menos 1 mayúscula y 1 símbolo especial
-                    </small>
-                </div>
-
-                <!-- Confirmar Contraseña -->
-                <div class="formulario-grupo">
-                    <label for="confirmar-contrasena" class="formulario-label">Confirmar Contraseña:</label>
-                    <div class="password-contenedor">
-                        <input type="password" id="confirmar-contrasena" name="confirmar-contrasena" 
-                               class="formulario-input" placeholder="Confirma tu contraseña" required>
-                        <button type="button" class="password-toggle" id="toggle-confirmar">👁️</button>
-                    </div>
-                </div>
-
-                <!-- reCAPTCHA de Google -->
-                <div class="formulario-grupo">
-                    <label class="formulario-label">Verificación:</label>
-                    <div id="recaptcha-contenedor">
-                        <div class="g-recaptcha" 
-                             data-sitekey="6LedhbksAAAAAPa2x_bBl7Nhbxn2dju-mRqzuoVR"
-                             data-theme="light"
-                             data-callback="onRecaptchaSuccess"
-                             data-expired-callback="onRecaptchaExpired">
+            <!-- MITAD DERECHA: FORMULARIO -->
+            <div class="login-form-side" style="padding: 4rem;">
+                <div class="formulario-contenedor" style="box-shadow: none; border: none; padding: 0; max-width: 650px;">
+                    <h2 class="formulario-titulo" style="font-size: 3.2rem; text-align: left; margin-bottom: 1rem;">Crea tu cuenta</h2>
+                    <p style="color: var(--color-texto-secundario); font-size: 1.25rem; margin-bottom: 2.5rem;">Únete a Harmonic Score y comienza a transcribir.</p>
+                    
+                    <form id="formulario-registro" class="formulario">
+                        <!-- Nombres -->
+                        <div class="formulario-grupo">
+                            <label for="nombres" class="formulario-label">Nombres:</label>
+                            <input type="text" id="nombres" name="nombres" class="formulario-input" 
+                                   placeholder="Ingresa tus nombres" required>
                         </div>
-                    </div>
-                    <small id="captcha-error" style="display:none; color:#c62828; font-size:0.85em;">Por favor, completa el captcha.</small>
+
+                        <!-- Apellidos -->
+                        <div class="formulario-grupo">
+                            <label for="apellidos" class="formulario-label">Apellidos:</label>
+                            <input type="text" id="apellidos" name="apellidos" class="formulario-input" 
+                                   placeholder="Ingresa tus apellidos" required>
+                        </div>
+
+                        <!-- Correo -->
+                        <div class="formulario-grupo">
+                            <label for="correo" class="formulario-label">Correo:</label>
+                            <input type="email" id="correo" name="correo" class="formulario-input" 
+                                   placeholder="ejemplo@correo.com" required>
+                        </div>
+
+                        <!-- Nombre de Usuario -->
+                        <div class="formulario-grupo">
+                            <label for="nombre-usuario" class="formulario-label">Nombre de Usuario:</label>
+                            <input type="text" id="nombre-usuario" name="nombre-usuario" class="formulario-input" 
+                                   placeholder="Elige un nombre de usuario" required>
+                        </div>
+
+                        <!-- Contraseña -->
+                        <div class="formulario-grupo">
+                            <label for="contrasena" class="formulario-label">Contraseña:</label>
+                            <div class="password-contenedor">
+                                <input type="password" id="contrasena" name="contrasena" class="formulario-input" 
+                                       placeholder="Ingresa tu contraseña" required>
+                                <button type="button" class="password-toggle" id="toggle-contrasena">👁️</button>
+                            </div>
+                            <small class="formulario-mensaje-error" id="password-pattern" style="display: block; margin-top: 5px; color: #666; font-size: 0.85em;">
+                                Mínimo 8 caracteres, al menos 1 mayúscula y 1 símbolo especial
+                            </small>
+                        </div>
+
+                        <!-- Confirmar Contraseña -->
+                        <div class="formulario-grupo">
+                            <label for="confirmar-contrasena" class="formulario-label">Confirmar Contraseña:</label>
+                            <div class="password-contenedor">
+                                <input type="password" id="confirmar-contrasena" name="confirmar-contrasena" 
+                                       class="formulario-input" placeholder="Confirma tu contraseña" required>
+                                <button type="button" class="password-toggle" id="toggle-confirmar">👁️</button>
+                            </div>
+                        </div>
+
+                        <!-- reCAPTCHA de Google -->
+                        <div class="formulario-grupo">
+                            <label class="formulario-label">Verificación:</label>
+                            <div id="recaptcha-contenedor">
+                                <div class="g-recaptcha" 
+                                     data-sitekey="6LedhbksAAAAAPa2x_bBl7Nhbxn2dju-mRqzuoVR"
+                                     data-theme="light"
+                                     data-callback="onRecaptchaSuccess"
+                                     data-expired-callback="onRecaptchaExpired">
+                                </div>
+                            </div>
+                            <small id="captcha-error" style="display:none; color:#EF4444; font-size:0.85em;">Por favor, completa el captcha.</small>
+                        </div>
+
+                        <!-- Términos y Condiciones -->
+                        <div class="terminos-checkbox-container">
+                            <input type="checkbox" id="checkbox-terminos" required>
+                            <label for="checkbox-terminos" class="terminos-link" id="label-terminos">
+                                He leído y acepto los Términos y Condiciones
+                            </label>
+                        </div>
+
+                        <!-- Contenedor de mensajes (msn1, msn2, msn3) -->
+                        <div id="mensaje-registro" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
+
+                        <!-- Botón de Registro - DESHABILITADO POR DEFECTO -->
+                        <button type="submit" class="btn btn-primario btn-grande btn-deshabilitado" id="btn-registrar" style="width: 100%;" disabled>
+                            Registrarse
+                        </button>
+                    </form>
+
+                    <p style="text-align: center; margin-top: 1.5rem; font-size: 1.1rem; color: var(--color-texto-secundario);">
+                        ¿Ya tienes cuenta? <a href="login.html" style="color: var(--color-primario); font-weight: 600;">Inicia sesión aquí</a>
+                    </p>
                 </div>
-
-                <!-- Términos y Condiciones -->
-                <div class="terminos-checkbox-container">
-                    <input type="checkbox" id="checkbox-terminos" required>
-                    <label for="checkbox-terminos" class="terminos-link" id="label-terminos">
-                        He leído y acepto los Términos y Condiciones
-                    </label>
-                </div>
-
-                <!-- Contenedor de mensajes (msn1, msn2, msn3) -->
-                <div id="mensaje-registro" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
-
-                <!-- Botón de Registro - DESHABILITADO POR DEFECTO -->
-                <button type="submit" class="btn btn-primario btn-grande btn-deshabilitado" id="btn-registrar" disabled>
-                    Registrarse
-                </button>
-            </form>
-
-            <p style="text-align: center; margin-top: 1.5rem; font-size: 1.1rem;">
-                ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
-            </p>
+            </div>
         </div>
     </main>
 
