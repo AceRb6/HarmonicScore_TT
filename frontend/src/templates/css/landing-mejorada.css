@@ -4,7 +4,7 @@
 
 /* HERO SECTION MEJORADO */
 .hero-mejorado {
-    background: var(--gradiente-primario);
+    background: linear-gradient(135deg, #FF9100 0%, #FFB74D 50%, #FFD54F 100%);
     padding: 5rem 2rem;
     color: white;
     position: relative;
@@ -99,7 +99,7 @@
 
 .btn-primario.btn-extra-grande {
     background: white;
-    color: var(--color-primario);
+    color: #FF9100;
 }
 
 .btn-primario.btn-extra-grande:hover {
@@ -116,7 +116,7 @@
 
 .btn-secundario.btn-extra-grande:hover {
     background: white;
-    color: var(--color-primario);
+    color: #FF9100;
 }
 
 .hero-confianza {
@@ -210,7 +210,7 @@
 .section-title {
     text-align: center;
     font-size: 2.5rem;
-    color: var(--color-primario);
+    color: #FF9100;
     margin-bottom: 1rem;
     font-weight: 700;
 }
@@ -246,12 +246,8 @@
 }
 
 .feature-icon {
-    font-size: 4rem;
+    font-size: 3.5rem;
     margin-bottom: 1.5rem;
-    animation: iconBob 3s ease-in-out infinite;
-    color: #023E8A;
-    font-weight: 900;
-    line-height: 1;
 }
 
 .feature-card h3 {
@@ -301,7 +297,7 @@
 .step-number {
     width: 60px;
     height: 60px;
-    background: var(--gradiente-primario);
+    background: linear-gradient(135deg, #FF9100, #FFB74D);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -331,14 +327,14 @@
 
 .process-connector {
     font-size: 2.5rem;
-    color: var(--color-secundario);
+    color: #704814;
     font-weight: bold;
 }
 
 /* INSTITUCIONAL SECTION */
 .institucional-section {
     padding: 4rem 2rem;
-    background: var(--gradiente-primario);
+    background: linear-gradient(135deg, #1A237E, #283593);
     color: white;
 }
 
@@ -381,7 +377,7 @@
 /* CTA FINAL */
 .cta-final {
     padding: 5rem 2rem;
-    background: var(--gradiente-primario);
+    background: linear-gradient(135deg, #FF9100, #FFB74D);
     text-align: center;
     color: white;
 }
@@ -464,307 +460,4 @@
     .process-connector {
         display: none;
     }
-}
-
-/* ============================================
-   FLOATING MUSIC NOTES PARTICLES
-   ============================================ */
-
-.music-particles {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 0;
-}
-
-.music-note {
-    position: absolute;
-    left: var(--x);
-    bottom: -3rem;
-    font-size: var(--size, 1.5rem);
-    color: rgba(255, 255, 255, 0.55);
-    animation: floatNote var(--dur, 8s) var(--delay, 0s) ease-in infinite;
-    user-select: none;
-    text-shadow: 0 0 12px rgba(255,255,255,0.4);
-}
-
-@keyframes floatNote {
-    0%   { transform: translateY(0)  rotate(0deg);   opacity: 0; }
-    10%  { opacity: 0.7; }
-    80%  { opacity: 0.4; }
-    100% { transform: translateY(-110vh) rotate(25deg); opacity: 0; }
-}
-
-/* ============================================
-   SVG SOUNDWAVES IN HERO
-   ============================================ */
-
-.hero-soundwaves {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 120px;
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* ============================================
-   WAVE DIVIDER BETWEEN HERO AND FEATURES
-   ============================================ */
-
-.wave-divider {
-    background: var(--gradiente-primario);
-    line-height: 0;
-    margin-top: -1px;
-}
-
-.wave-divider svg {
-    display: block;
-    width: 100%;
-}
-
-/* ============================================
-   ENHANCED EQUALIZER DEMO
-   ============================================ */
-
-.equalizer-demo {
-    display: flex;
-    align-items: flex-end;
-    gap: 6px;
-    height: 110px;
-    margin-bottom: 1rem;
-    padding: 0 4px;
-}
-
-.eq-bar {
-    flex: 1;
-    border-radius: 4px 4px 0 0;
-    background: linear-gradient(to top, rgba(255,255,255,0.9), rgba(144,224,239,0.85));
-    animation: eqPulse 1.2s var(--d, 0s) ease-in-out infinite alternate;
-    box-shadow: 0 0 8px rgba(144,224,239,0.4);
-}
-
-@keyframes eqPulse {
-    from { height: calc(var(--h, 60%) * 0.35); }
-    to   { height: var(--h, 60%); }
-}
-
-/* ============================================
-   AI PROCESS PILL INDICATOR
-   ============================================ */
-
-.ai-process-indicator {
-    text-align: center;
-    margin: 0.8rem 0;
-}
-
-.ai-pill {
-    display: inline-block;
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.35);
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 0.4rem 1.1rem;
-    border-radius: 50px;
-    backdrop-filter: blur(6px);
-    animation: pillPulse 2s ease-in-out infinite;
-    letter-spacing: 0.02em;
-}
-
-@keyframes pillPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
-    50%       { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
-}
-
-/* ============================================
-   SHEET MUSIC WITH ANIMATED NOTES
-   ============================================ */
-
-.sheet-music-demo {
-    background: white;
-    padding: 1rem 1.2rem;
-    border-radius: 8px;
-    min-height: 70px;
-    position: relative;
-}
-
-.staff-note {
-    position: absolute;
-    left: var(--left, 10%);
-    top: var(--top, 0);
-    color: #023E8A;
-    font-size: 1.3rem;
-    animation: noteAppear 2.4s var(--nd, 0s) ease-in-out infinite;
-    font-weight: bold;
-}
-
-@keyframes noteAppear {
-    0%, 20%  { opacity: 0; transform: translateY(6px); }
-    35%, 75% { opacity: 1; transform: translateY(0); }
-    90%,100% { opacity: 0; transform: translateY(-6px); }
-}
-
-/* ============================================
-   VINYL RECORD
-   ============================================ */
-
-.vinyl-record {
-    width: 90px;
-    height: 90px;
-    background: radial-gradient(circle, #1a1a1a 28%, #333 30%, #1a1a1a 32%,
-        #2a2a2a 45%, #1e1e1e 46%, #2a2a2a 60%, #1a1a1a 62%,
-        #333 75%, #1a1a1a 77%, #333 90%);
-    border-radius: 50%;
-    position: absolute;
-    top: -20px;
-    right: -20px;
-    animation: vinylSpin 4s linear infinite;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    border: 3px solid rgba(255,255,255,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.vinyl-center {
-    width: 28px;
-    height: 28px;
-    background: radial-gradient(circle, #0096C7, #023E8A);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    color: white;
-    animation: vinylSpin 4s linear infinite reverse;
-}
-
-@keyframes vinylSpin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
-
-.hero-visual {
-    position: relative;
-}
-
-/* ============================================
-   ANIMATED PIANO KEYS DECORATION
-   ============================================ */
-
-.piano-keys-decoration {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 3px;
-    margin: 0 auto 2.5rem;
-    height: 60px;
-    width: fit-content;
-}
-
-.piano-key {
-    border-radius: 0 0 5px 5px;
-    cursor: default;
-    animation: keyPress 2.4s var(--kd, 0s) ease-in-out infinite;
-}
-
-.piano-key.white {
-    width: 26px;
-    height: 60px;
-    background: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.12), inset 0 -3px 6px rgba(0,0,0,0.06);
-    z-index: 1;
-}
-
-.piano-key.black {
-    width: 16px;
-    height: 38px;
-    background: linear-gradient(to bottom, #222, #444);
-    margin: 0 -9px;
-    border-radius: 0 0 3px 3px;
-    z-index: 2;
-    box-shadow: 2px 3px 6px rgba(0,0,0,0.5);
-}
-
-@keyframes keyPress {
-    0%, 30%, 100% { transform: translateY(0);   filter: brightness(1); }
-    15%            { transform: translateY(3px); filter: brightness(1.3); }
-}
-
-/* ============================================
-   CTA FINAL — FREQUENCY SPECTRUM
-   ============================================ */
-
-.cta-final {
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-spectrum {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 70%;
-    display: flex;
-    align-items: flex-end;
-    gap: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.12;
-}
-
-.cta-spectrum span {
-    flex: 1;
-    background: white;
-    border-radius: 3px 3px 0 0;
-    animation: specBar 1s var(--sd, 0s) ease-in-out infinite alternate;
-}
-
-@keyframes specBar {
-    from { height: calc(var(--sh, 50%) * 0.2); }
-    to   { height: var(--sh, 50%); }
-}
-
-.cta-treble-clef {
-    font-size: 5rem;
-    opacity: 0.15;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: clefFloat 4s ease-in-out infinite;
-    z-index: 0;
-}
-
-@keyframes clefFloat {
-    0%, 100% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
-    50%       { transform: translate(-50%, -54%) rotate(5deg) scale(1.08); }
-}
-
-/* ============================================
-   FEATURE CARD MUSIC ACCENT
-   ============================================ */
-
-.feature-card {
-    border-top: 3px solid transparent;
-    transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.feature-card:hover {
-    border-top-color: #023E8A;
-}
-
-.feature-icon {
-    animation: iconBob 3s ease-in-out infinite;
-}
-
-@keyframes iconBob {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-6px); }
 }

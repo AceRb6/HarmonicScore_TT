@@ -31,95 +31,95 @@
 </header>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="main">
-        <div class="contenedor-pagina">
-            <h2 class="seccion-titulo">Carga y Transcripción</h2>
+    <main class="main" style="max-width: 100%; padding: 0; margin: 0; background: var(--color-fondo); min-height: calc(100vh - 70px); display: flex;">
+        <div class="workspace-container" style="display: flex; flex-wrap: wrap; width: 100%; height: 100%;">
             
-            <div class="panel-doble" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-                <!-- PANEL IZQUIERDO: Carga -->
-                <div class="card">
-                    <h3 class="card-titulo">1. Cargar Archivo</h3>
-                    
-                    <!-- Área de Carga -->
-                    <div class="carga-archivo-area" id="drop-zone" style="min-height: 250px; display: flex; flex-direction: column; justify-content: center;">
-                        <div id="drop-icono" class="carga-archivo-icono">📁</div>
-                        <p id="drop-texto-1" class="carga-archivo-texto" style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Arrastra tu archivo aquí</p>
-                        <p id="drop-texto-2" class="carga-archivo-texto" style="font-size: 1rem; margin: 0.5rem 0;">o</p>
-                        <p id="drop-texto-3" class="carga-archivo-texto" style="font-size: 0.9rem; margin: 0.5rem 0;">(MP3 o WAV, máx 50 MB)</p>
-                        <!-- Input file oculto pero funcional -->
+            <!-- PANEL IZQUIERDO: VISUALIZACIÓN Y ONDAS (70%) -->
+            <div class="workspace-left" style="flex: 7; min-width: 600px; padding: 3rem; display: flex; flex-direction: column;">
+                <h2 style="font-size: 2.2rem; font-weight: 700; color: var(--color-header); margin-bottom: 2rem;">Visualización de Audio</h2>
+                
+                <!-- Contenedor Wavesurfer gigante -->
+                <div class="waveform-contenedor" style="background: #F8FAFC; padding: 2rem; border-radius: 16px; border: 2px solid #E2E8F0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 450px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);">
+                    <div id="waveform" style="width: 100%;"></div>
+                    <div id="waveform-timeline" style="margin-top: 1rem; width: 100%;"></div>
+                    <!-- Placeholder visual si no hay audio -->
+                    <div id="waveform-placeholder" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #94A3B8; font-size: 1.6rem; font-weight: 500;">
+                        El espectrograma aparecerá aquí
+                    </div>
+                </div>
+
+                <!-- Barra de edición/reproducción debajo de las ondas -->
+                <div class="controles-reproduccion" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: var(--sombra-suave);">
+                    <button class="btn btn-secundario" id="btn-play" type="button" style="border-radius: 50px; padding: 1rem 3rem; font-size: 1.3rem;">
+                        <span style="font-size: 1.3rem; margin-right: 8px;">▶</span> Reproducir / Pausar
+                    </button>
+                    <!-- Espacio para futuros controles: zoom, volumen, etc. -->
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: CARGA, ESTADÍSTICAS Y ACCIÓN (30%) -->
+            <div class="workspace-right" style="flex: 3; min-width: 400px; background: #E0F2FE; border-left: 2px solid #BAE6FD; padding: 3rem 2.5rem; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(2, 62, 138, 0.05);">
+                
+                <!-- Área de Carga -->
+                <div class="card" style="background: white; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; border-radius: 16px;">
+                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">1. Cargar Archivo</h3>
+                    <div class="carga-archivo-area" id="drop-zone" style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #7DD3FC; background: #F0F9FF; border-radius: 12px; margin-top: 1rem;">
+                        <div id="drop-icono" class="carga-archivo-icono" style="font-size: 3.5rem; margin-bottom: 0.5rem; color: #0284C7;">📁</div>
+                        <p id="drop-texto-1" class="carga-archivo-texto" style="font-size: 1.2rem; font-weight: 600; margin: 0.5rem 0; color: #0369A1;">Arrastra tu audio aquí</p>
+                        <p id="drop-texto-3" class="carga-archivo-texto" style="font-size: 1rem; color: #0EA5E9;">(MP3 o WAV, máx 50 MB)</p>
                         <input type="file" id="file-input" accept=".mp3,.wav,audio/mpeg,audio/wav" style="display: none;">
                         <div style="text-align: center; margin-top: 1rem;">
-                            <button class="btn btn-primario" id="btn-examinar" type="button">Examinar</button>
+                            <button class="btn btn-secundario" id="btn-examinar" type="button" style="padding: 0.8rem 2rem; font-size: 1.1rem; border-color: #0284C7; color: #0284C7;">Examinar</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- PANEL DERECHO: Información -->
-                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
-                    <h3 class="card-titulo">Detalles del Audio</h3>
+                <!-- Información -->
+                <div class="card" style="background: white; flex-grow: 1; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; display: flex; flex-direction: column; border-radius: 16px;">
+                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">2. Estadísticas del Audio</h3>
                     
-                    <div class="archivo-info" id="archivo-info" style="display: none; padding: 1rem; background: var(--color-fondo); border-radius: 8px;">
-                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">
-                            <span>Nombre:</span>
-                            <strong id="info-nombre">--</strong>
-                        </div>
-                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">
-                            <span>Peso:</span>
-                            <strong id="info-peso">--</strong>
-                        </div>
-                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">
-                            <span>Duración:</span>
-                            <strong id="info-duracion">--</strong>
-                        </div>
-                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.1rem;">
-                            <span>Formato:</span>
-                            <strong id="info-formato">--</strong>
-                        </div>
-                        <div class="archivo-info-item" style="font-size: 1.1rem;">
-                            <span>Predicción IA:</span>
-                            <strong id="info-clasificacion" style="color: var(--color-primario);">--</strong>
-                        </div>
+                    <div id="detalles-vacio" style="text-align: center; padding: 3rem 1rem; color: #94A3B8; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 500;">
+                        Sube un archivo para ver sus propiedades.
                     </div>
 
-                    <!-- Estado vacío inicial de detalles -->
-                    <div id="detalles-vacio" style="text-align: center; padding: 2rem; color: var(--color-texto-secundario);">
-                        Sube un archivo para analizar sus propiedades.
-                    </div>
-
-                    <!-- Barra de progreso mini (oculta inicialmente) -->
-                    <div id="mini-barra-progreso" style="display: none; margin-top: 2rem;">
-                        <p style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: var(--color-primario);">Progreso de modelo IA:</p>
-                        <div class="barra-progreso-contenedor">
-                            <div id="mini-barra-relleno" class="barra-progreso-relleno">0%</div>
+                    <div class="archivo-info" id="archivo-info" style="display: none; padding: 1.5rem; background: #F8FAFC; border-radius: 12px; flex-grow: 1; border: 1px solid #E2E8F0;">
+                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                            <span style="color: var(--color-texto-secundario);">Nombre:</span>
+                            <strong id="info-nombre" style="word-break: break-all; color: var(--color-texto-principal);">--</strong>
+                        </div>
+                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                            <span style="color: var(--color-texto-secundario);">Peso:</span>
+                            <strong id="info-peso" style="color: var(--color-texto-principal);">--</strong>
+                        </div>
+                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                            <span style="color: var(--color-texto-secundario);">Duración:</span>
+                            <strong id="info-duracion" style="color: var(--color-texto-principal);">--</strong>
+                        </div>
+                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                            <span style="color: var(--color-texto-secundario);">Formato:</span>
+                            <strong id="info-formato" style="color: var(--color-texto-principal);">--</strong>
+                        </div>
+                        <div class="archivo-info-item" style="font-size: 1.25rem; margin-top: 2rem; border-top: 2px solid #E2E8F0; padding-top: 1.5rem;">
+                            <span style="color: var(--color-texto-secundario);">Predicción IA:</span>
+                            <strong id="info-clasificacion" style="color: var(--color-primario); font-size: 1.4rem;">--</strong>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- SECCIÓN 2: Visualización y Controles (100% Ancho) -->
-            <div class="card" style="width: 100%;">
-                <h3 class="card-titulo">2. Visualización e Inspección Musical</h3>
+                <!-- Botón de Acción -->
+                <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button" style="width: 100%; padding: 1.5rem; font-size: 1.6rem; border-radius: 16px; box-shadow: var(--sombra-media);">
+                    ✨ ¡Transcribir!
+                </button>
                 
-                <!-- Contenedor Wavesurfer -->
-                <div class="waveform-contenedor" style="background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); min-height: 160px; display: flex; flex-direction: column; justify-content: center;">
-                    <div id="waveform"></div>
-                    <div id="waveform-timeline"></div>
-                    <!-- Placeholder visual si no hay audio -->
-                    <div id="waveform-placeholder" style="text-align: center; color: #999; font-style: italic;">
-                        El espectrograma se dibujará aquí
+                <!-- Barra de progreso mini (oculta inicialmente) -->
+                <div id="mini-barra-progreso" style="display: none; margin-top: 1.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #BAE6FD; box-shadow: var(--sombra-suave);">
+                    <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-align: center; color: var(--color-primario);">Progreso IA:</p>
+                    <div class="barra-progreso-contenedor" style="margin: 0; height: 25px; border-radius: 50px;">
+                        <div id="mini-barra-relleno" class="barra-progreso-relleno" style="border-radius: 50px;">0%</div>
                     </div>
                 </div>
-
-                <!-- Controles -->
-                <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;">
-                    <button class="btn btn-secundario" id="btn-play" type="button" style="min-width: 180px;">
-                        <span style="font-size: 1.2rem; margin-right: 8px;">▶</span> Reproducir Selección
-                    </button>
-                    <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button" style="min-width: 250px; font-size: 1.2rem; padding: 1rem 3rem;">
-                        ✨ ¡Transcribir!
-                    </button>
-                </div>
             </div>
+
         </div>
     </main>
 

@@ -31,6 +31,28 @@
 
     <!-- HERO SECTION -->
     <section class="hero-mejorado">
+        <!-- Floating Music Notes Particles -->
+        <div class="music-particles" aria-hidden="true">
+            <span class="music-note" style="--x:10%;--delay:0s;--dur:8s;--size:1.4rem">♩</span>
+            <span class="music-note" style="--x:20%;--delay:1.2s;--dur:7s;--size:1.8rem">♪</span>
+            <span class="music-note" style="--x:35%;--delay:0.5s;--dur:9s;--size:1.2rem">♫</span>
+            <span class="music-note" style="--x:50%;--delay:2s;--dur:6.5s;--size:2rem">♬</span>
+            <span class="music-note" style="--x:65%;--delay:0.8s;--dur:8.5s;--size:1.5rem">♩</span>
+            <span class="music-note" style="--x:75%;--delay:1.8s;--dur:7.5s;--size:1.1rem">♪</span>
+            <span class="music-note" style="--x:85%;--delay:0.3s;--dur:9.5s;--size:1.7rem">♫</span>
+            <span class="music-note" style="--x:92%;--delay:2.5s;--dur:6s;--size:1.3rem">♬</span>
+            <span class="music-note" style="--x:5%;--delay:3s;--dur:10s;--size:1.6rem">𝄞</span>
+            <span class="music-note" style="--x:45%;--delay:1.5s;--dur:8s;--size:2.2rem">𝄞</span>
+            <span class="music-note" style="--x:28%;--delay:4s;--dur:7s;--size:1rem">♩</span>
+            <span class="music-note" style="--x:58%;--delay:3.5s;--dur:9s;--size:1.4rem">♫</span>
+        </div>
+
+        <!-- SVG Sound Waves Background -->
+        <svg class="hero-soundwaves" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,60 C180,20 360,100 540,60 C720,20 900,100 1080,60 C1260,20 1440,80 1440,60 L1440,120 L0,120 Z" fill="rgba(255,255,255,0.05)"/>
+            <path d="M0,60 C200,10 400,110 600,60 C800,10 1000,110 1200,60 C1320,30 1440,70 1440,60" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+        </svg>
+
         <div class="hero-contenido">
             <div class="hero-texto">
                 <h1 class="hero-titulo-principal">Transcribe tu música con Inteligencia Artificial</h1>
@@ -67,26 +89,54 @@
                     ✓ Sin instalación ✓ Sin tarjeta de crédito ✓ Resultados inmediatos
                 </p>
             </div>
+
+            <!-- ENHANCED HERO VISUAL -->
             <div class="hero-visual">
-                <div class="demo-visual-container">
-                    <div class="audio-waveform-demo">
-                        <div class="wave-bar" style="height: 40%"></div>
-                        <div class="wave-bar" style="height: 70%"></div>
-                        <div class="wave-bar" style="height: 50%"></div>
-                        <div class="wave-bar" style="height: 90%"></div>
-                        <div class="wave-bar" style="height: 60%"></div>
-                        <div class="wave-bar" style="height: 80%"></div>
+                <div class="demo-visual-container" style="width:420px;max-width:100%">
+                    <!-- Animated Equalizer -->
+                    <div class="equalizer-demo" aria-label="Visualizador de audio animado" style="height:180px">
+                        <div class="eq-bar" style="--h:55%;--d:0s"></div>
+                        <div class="eq-bar" style="--h:80%;--d:0.1s"></div>
+                        <div class="eq-bar" style="--h:40%;--d:0.2s"></div>
+                        <div class="eq-bar" style="--h:95%;--d:0.05s"></div>
+                        <div class="eq-bar" style="--h:65%;--d:0.15s"></div>
+                        <div class="eq-bar" style="--h:75%;--d:0.25s"></div>
+                        <div class="eq-bar" style="--h:50%;--d:0.3s"></div>
+                        <div class="eq-bar" style="--h:85%;--d:0.08s"></div>
+                        <div class="eq-bar" style="--h:45%;--d:0.18s"></div>
+                        <div class="eq-bar" style="--h:70%;--d:0.35s"></div>
+                        <div class="eq-bar" style="--h:60%;--d:0.12s"></div>
+                        <div class="eq-bar" style="--h:90%;--d:0.22s"></div>
                     </div>
-                    <div class="arrow-down">⬇</div>
+
+                    <!-- Sheet Music with notes -->
                     <div class="sheet-music-demo">
                         <div class="music-staff"></div>
                         <div class="music-staff"></div>
                         <div class="music-staff"></div>
+                        <!-- Animated notes on staff -->
+                        <div class="staff-note" style="--left:10%;--top:-8px;--nd:0s">♩</div>
+                        <div class="staff-note" style="--left:28%;--top:2px;--nd:0.3s">♪</div>
+                        <div class="staff-note" style="--left:48%;--top:-14px;--nd:0.6s">♩</div>
+                        <div class="staff-note" style="--left:68%;--top:6px;--nd:0.9s">♫</div>
+                        <div class="staff-note" style="--left:84%;--top:-4px;--nd:1.2s">♪</div>
                     </div>
+                </div>
+
+                <!-- Vinyl Record Decoration -->
+                <div class="vinyl-record" aria-hidden="true">
+                    <div class="vinyl-center">𝄞</div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- MUSIC WAVE DIVIDER -->
+    <div class="wave-divider" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#f8f9fa"/>
+        </svg>
+    </div>
 
     <!-- CARACTERÍSTICAS PRINCIPALES -->
     <section class="features-section">
@@ -95,35 +145,53 @@
             <p class="section-subtitle">
                 La herramienta de transcripción musical más avanzada y accesible
             </p>
+
+            <!-- Animated Piano Keys Decoration -->
+            <div class="piano-keys-decoration" aria-hidden="true">
+                <div class="piano-key white" style="--kd:0s"></div>
+                <div class="piano-key black" style="--kd:0.05s"></div>
+                <div class="piano-key white" style="--kd:0.1s"></div>
+                <div class="piano-key white" style="--kd:0.15s"></div>
+                <div class="piano-key black" style="--kd:0.2s"></div>
+                <div class="piano-key white" style="--kd:0.25s"></div>
+                <div class="piano-key black" style="--kd:0.3s"></div>
+                <div class="piano-key white" style="--kd:0.35s"></div>
+                <div class="piano-key white" style="--kd:0.4s"></div>
+                <div class="piano-key black" style="--kd:0.45s"></div>
+                <div class="piano-key white" style="--kd:0.5s"></div>
+                <div class="piano-key white" style="--kd:0.55s"></div>
+                <div class="piano-key black" style="--kd:0.6s"></div>
+                <div class="piano-key white" style="--kd:0.65s"></div>
+            </div>
             
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🎵</div>
+                    <div class="feature-icon">&#x266B;</div>
                     <h3>Transcripción Automática</h3>
                     <p>Convierte audio de piano, guitarra, flauta y más instrumentos a partitura en segundos con IA de última generación.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📄</div>
+                    <div class="feature-icon">&#x1D100;</div>
                     <h3>Exportación PDF</h3>
                     <p>Descarga tus partituras en formato PDF profesional, listo para imprimir o estudiar en tu tablet.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">✓</div>
+                    <div class="feature-icon">&#x1D11E;</div>
                     <h3>Alta Precisión</h3>
                     <p>94% de precisión en transcripciones. Resultados confiables para tu estudio y práctica musical.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">💯</div>
+                    <div class="feature-icon">&#x2669;</div>
                     <h3>100% Gratuito</h3>
                     <p>Sin costos ocultos, sin suscripciones. Herramienta abierta para la comunidad musical.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🌐</div>
+                    <div class="feature-icon">&#x266A;</div>
                     <h3>Sin Instalación</h3>
                     <p>Accede desde cualquier navegador web. Funciona en computadora, tablet o celular.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
+                    <div class="feature-icon">&#x266C;</div>
                     <h3>Privacidad Total</h3>
                     <p>Tus archivos se eliminan automáticamente. Tú eres el dueño de tu música.</p>
                 </div>
@@ -164,9 +232,84 @@
         </div>
     </section>
 
+    <!-- TECNOLOGÍA -->
+    <section class="tecnologia-section" style="padding: 5rem 2rem; background: var(--color-fondo-secundario);">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 4rem; align-items: center;">
+            <div style="flex: 1; min-width: 300px;">
+                <h2 class="section-title" style="text-align: left; margin-bottom: 1.5rem;">Impulsado por Inteligencia Artificial Avanzada</h2>
+                <p style="font-size: 1.15rem; color: var(--color-texto-secundario); line-height: 1.8; margin-bottom: 1.5rem;">
+                    Harmonic Score utiliza redes neuronales profundas (Deep Learning) entrenadas con miles de horas de música para reconocer patrones complejos, separación de fuentes acústicas y transcripción polifónica.
+                </p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 15px;">
+                        <span style="color: var(--color-primario); font-size: 1.8rem; background: #E0F2FE; padding: 10px; border-radius: 12px;">🧠</span>
+                        <div>
+                            <strong style="color: var(--color-texto-principal); font-size: 1.15rem;">Reconocimiento Polifónico</strong>
+                            <p style="color: var(--color-texto-secundario); font-size: 0.95rem; margin-top: 0.4rem; line-height: 1.5;">Capacidad para detectar múltiples notas tocadas simultáneamente con gran precisión, adaptándose a diversos instrumentos.</p>
+                        </div>
+                    </li>
+                    <li style="margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 15px;">
+                        <span style="color: var(--color-primario); font-size: 1.8rem; background: #E0F2FE; padding: 10px; border-radius: 12px;">⚡</span>
+                        <div>
+                            <strong style="color: var(--color-texto-principal); font-size: 1.15rem;">Procesamiento en la Nube</strong>
+                            <p style="color: var(--color-texto-secundario); font-size: 0.95rem; margin-top: 0.4rem; line-height: 1.5;">Arquitectura escalable que garantiza resultados rápidos (menos de 45 segundos) sin consumir los recursos de tu dispositivo local.</p>
+                        </div>
+                    </li>
+                    <li style="margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 15px;">
+                        <span style="color: var(--color-primario); font-size: 1.8rem; background: #E0F2FE; padding: 10px; border-radius: 12px;">🎼</span>
+                        <div>
+                            <strong style="color: var(--color-texto-principal); font-size: 1.15rem;">Notación Estándar (MusicXML/PDF)</strong>
+                            <p style="color: var(--color-texto-secundario); font-size: 0.95rem; margin-top: 0.4rem; line-height: 1.5;">Exportación compatible con los estándares de la industria musical para fácil lectura, edición en Sibelius o Finale y distribución.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div style="flex: 1; min-width: 300px; background: var(--color-fondo); border-radius: 20px; padding: 2rem; box-shadow: var(--sombra-fuerte); border: 1px solid #E2E8F0;">
+                <div style="display: flex; gap: 8px; margin-bottom: 1.5rem;">
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F56;"></div>
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #FFBD2E;"></div>
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #27C93F;"></div>
+                </div>
+                <pre style="background: #0F172A; color: #E2E8F0; padding: 1.5rem; border-radius: 12px; font-family: monospace; font-size: 0.95rem; overflow-x: auto; line-height: 1.6; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+<span style="color: #818CF8;">def</span> <span style="color: #F8FAFC;">transcribe_audio</span>(file_path):
+    <span style="color: #64748B;"># Inicializando modelo acústico</span>
+    model = HarmonicAI.load_model(<span style="color: #A5B4FC;">'polyphonic_v2'</span>)
+    
+    <span style="color: #64748B;"># Extracción de características (CQT)</span>
+    features = extract_spectrogram(file_path)
+    
+    <span style="color: #64748B;"># Predicción de notas y tiempos</span>
+    notes = model.predict(features)
+    
+    <span style="color: #818CF8;">return</span> generate_sheet_music(notes)
+                </pre>
+            </div>
+        </div>
+    </section>
+
     <!-- CTA FINAL -->
     <section class="cta-final">
-        <div class="container">
+        <!-- Frequency Spectrum Bars -->
+        <div class="cta-spectrum" aria-hidden="true">
+            <span style="--sh:30%;--sd:0s"></span>
+            <span style="--sh:70%;--sd:0.07s"></span>
+            <span style="--sh:45%;--sd:0.14s"></span>
+            <span style="--sh:85%;--sd:0.21s"></span>
+            <span style="--sh:55%;--sd:0.28s"></span>
+            <span style="--sh:100%;--sd:0.35s"></span>
+            <span style="--sh:60%;--sd:0.42s"></span>
+            <span style="--sh:75%;--sd:0.49s"></span>
+            <span style="--sh:40%;--sd:0.56s"></span>
+            <span style="--sh:90%;--sd:0.63s"></span>
+            <span style="--sh:50%;--sd:0.7s"></span>
+            <span style="--sh:65%;--sd:0.77s"></span>
+            <span style="--sh:35%;--sd:0.84s"></span>
+            <span style="--sh:80%;--sd:0.91s"></span>
+            <span style="--sh:48%;--sd:0.98s"></span>
+            <span style="--sh:95%;--sd:0.05s"></span>
+        </div>
+        <div class="container" style="position:relative;z-index:1">
+            <div class="cta-treble-clef" aria-hidden="true">𝄞</div>
             <h2>¿Listo para transcribir tu primera pieza?</h2>
             <p>Únete a músicos y estudiantes que ya usan Harmonic Score</p>
             <a href="carga.html" class="btn btn-primario btn-extra-grande">

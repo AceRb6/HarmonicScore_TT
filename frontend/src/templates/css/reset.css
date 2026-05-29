@@ -1,0 +1,70 @@
+/* ============================================
+   RESET/NORMALIZE
+   Elimina estilos por defecto del navegador
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--tamano-fuente-base);
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--fuente-principal);
+    line-height: 1.6;
+    color: var(--color-texto-principal);
+    background-color: var(--color-fondo);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--fuente-titulos);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+a {
+    text-decoration: none;
+    color: var(--color-acento);
+    transition: color var(--transicion-rapida);
+}
+
+a:hover {
+    color: var(--color-primario);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+button {
+    cursor: pointer;
+    font-family: var(--fuente-principal);
+    border: none;
+    outline: none;
+    transition: all var(--transicion-rapida);
+}
+
+input, textarea, select {
+    font-family: var(--fuente-principal);
+    outline: none;
+    transition: border-color var(--transicion-rapida);
+}
+
+ul, ol {
+    list-style: none;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}

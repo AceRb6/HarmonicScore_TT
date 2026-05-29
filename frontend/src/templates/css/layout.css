@@ -12,10 +12,7 @@
     position: sticky;
     top: 0;
     z-index: var(--z-header);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: var(--glass-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .header-contenido {
@@ -84,10 +81,10 @@
 .header-nav a {
     display: inline-block;
     color: var(--color-blanco);
-    padding: 0.8rem 1.5rem; /* Aumentado */
+    padding: var(--espaciado-sm) var(--espaciado-lg);
     border-radius: var(--borde-radio-lg);
     transition: all var(--transicion-media);
-    font-size: 1.25rem; /* Aumentado significativamente */
+    font-size: var(--tamano-fuente-pequeno);
     font-weight: 600;
     text-decoration: none;
     position: relative;
@@ -261,44 +258,4 @@
         padding: var(--espaciado-xs) var(--espaciado-sm);
         font-size: 0.85rem;
     }
-}
-
-/* ============================================
-   SPLIT SCREEN LAYOUT (Login/Registro)
-   ============================================ */
-.login-split {
-    display: flex;
-    flex-wrap: wrap;
-    background: var(--color-fondo);
-    border-radius: var(--borde-radio-xl);
-    overflow: hidden;
-    box-shadow: var(--sombra-fuerte);
-    border: 1px solid #E2E8F0;
-    min-height: 600px;
-    width: 100%;
-}
-
-.login-form-side {
-    flex: 1;
-    min-width: 350px;
-    padding: var(--espaciado-xl);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.login-image-side {
-    flex: 1;
-    min-width: 350px;
-    background: var(--gradiente-primario);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.login-image-side::after {
-    /* content: '[Imagen Pendiente de Cargar]'; */
-    display: none; /* Oculto ya que cargaremos imágenes reales */
 }
