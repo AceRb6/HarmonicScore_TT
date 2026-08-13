@@ -24,59 +24,71 @@
 </header>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="main">
-        <div class="formulario-contenedor">
-            <h2 class="formulario-titulo">Inicio de Sesión</h2>
-            
-            <form id="formulario-login" class="formulario">
-                <!-- Correo electrónico -->
-                <div class="formulario-grupo">
-                    <label for="login-correo" class="formulario-label">Correo electrónico:</label>
-                    <input type="email" id="login-correo" name="login-correo" class="formulario-input"
-                           placeholder="ejemplo@correo.com" required>
-                </div>
-
-                <!-- Contraseña -->
-                <div class="formulario-grupo">
-                    <label for="login-contrasena" class="formulario-label">Contraseña:</label>
-                    <div class="password-contenedor">
-                        <input type="password" id="login-contrasena" name="login-contrasena" class="formulario-input" 
-                               placeholder="Ingresa tu contraseña" required>
-                        <button type="button" class="password-toggle" id="toggle-login-contrasena">👁️</button>
-                    </div>
-                </div>
-
-                <!-- reCAPTCHA de Google -->
-                <div class="formulario-grupo">
-                    <label class="formulario-label">Verificación:</label>
-                    <div id="recaptcha-contenedor-login">
-                        <div class="g-recaptcha"
-                             data-sitekey="6LedhbksAAAAAPa2x_bBl7Nhbxn2dju-mRqzuoVR"
-                             data-theme="light"
-                             data-callback="onRecaptchaLoginSuccess"
-                             data-expired-callback="onRecaptchaLoginExpired">
+    <main class="main" style="max-width: 100%; padding: 0; margin: 0; min-height: calc(100vh - 70px);">
+        <div class="login-split" style="border-radius: 0; border: none; box-shadow: none; min-height: calc(100vh - 70px);">
+            <!-- MITAD IZQUIERDA: FORMULARIO -->
+            <div class="login-form-side" style="padding: 4rem;">
+                <div class="formulario-contenedor" style="box-shadow: none; border: none; padding: 0; max-width: 550px;">
+                    <h2 class="formulario-titulo" style="font-size: 3.2rem; text-align: left; margin-bottom: 1rem;">Bienvenido de vuelta</h2>
+                    <p style="color: var(--color-texto-secundario); font-size: 1.25rem; margin-bottom: 2.5rem;">Ingresa tus credenciales para acceder a tu cuenta.</p>
+                    
+                    <form id="formulario-login" class="formulario">
+                        <!-- Correo electrónico -->
+                        <div class="formulario-grupo">
+                            <label for="login-correo" class="formulario-label">Correo electrónico:</label>
+                            <input type="email" id="login-correo" name="login-correo" class="formulario-input"
+                                   placeholder="ejemplo@correo.com" required>
                         </div>
-                    </div>
-                    <small id="captcha-login-error" style="display:none; color:#c62828; font-size:0.85em;">Por favor, completa el captcha.</small>
+
+                        <!-- Contraseña -->
+                        <div class="formulario-grupo">
+                            <label for="login-contrasena" class="formulario-label">Contraseña:</label>
+                            <div class="password-contenedor">
+                                <input type="password" id="login-contrasena" name="login-contrasena" class="formulario-input" 
+                                       placeholder="Ingresa tu contraseña" required>
+                                <button type="button" class="password-toggle" id="toggle-login-contrasena">👁️</button>
+                            </div>
+                        </div>
+
+                        <!-- reCAPTCHA de Google -->
+                        <div class="formulario-grupo">
+                            <label class="formulario-label">Verificación:</label>
+                            <div id="recaptcha-contenedor-login">
+                                <div class="g-recaptcha"
+                                     data-sitekey="6LedhbksAAAAAPa2x_bBl7Nhbxn2dju-mRqzuoVR"
+                                     data-theme="light"
+                                     data-callback="onRecaptchaLoginSuccess"
+                                     data-expired-callback="onRecaptchaLoginExpired">
+                                </div>
+                            </div>
+                            <small id="captcha-login-error" style="display:none; color:#EF4444; font-size:0.85em;">Por favor, completa el captcha.</small>
+                        </div>
+
+                        <!-- Contenedor de mensajes -->
+                        <div id="mensaje-login" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
+
+                        <!-- Botón de Ingresar -->
+                        <button type="submit" class="btn btn-primario btn-grande" style="width: 100%;">Ingresar</button>
+                    </form>
+
+                    <p style="text-align: center; margin-top: 1.5rem;">
+                        <a href="recuperar-contrasena.html" id="link-olvide-contrasena"
+                           style="color: var(--color-primario); font-weight: 600; text-decoration: underline; font-size: 0.95rem;">
+                            ¿Olvidé mi contraseña?
+                        </a>
+                    </p>
+
+                    <p style="text-align: center; margin-top: 1rem; font-size: 1.1rem; color: var(--color-texto-secundario);">
+                        ¿No tienes cuenta? <a href="registro.html" style="color: var(--color-primario); font-weight: 600;">Regístrate aquí</a>
+                    </p>
                 </div>
-
-                <!-- Contenedor de mensajes -->
-                <div id="mensaje-login" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
-
-                <!-- Botón de Ingresar -->
-                <button type="submit" class="btn btn-primario btn-grande">Ingresar</button>
-            </form>
-
-            <p style="text-align: center; margin-top: 1rem;">
-                <a href="recuperar-contrasena.html" id="link-olvide-contrasena"
-                   style="color: var(--color-primario); font-weight: 600; text-decoration: underline; font-size: 0.95rem;">
-                    ¿Olvidé mi contraseña?
-                </a>
-            </p>
-
-            <p style="text-align: center; margin-top: 1rem; font-size: 1.1rem;">
-                ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
-            </p>
+            </div>
+            
+            <!-- MITAD DERECHA: IMAGEN / BRANDING -->
+            <div class="login-image-side" style="background-image: url('assets/img/login.png'); background-size: cover; background-position: center; position: relative;">
+                <!-- Opcional: overlay para oscurecer la imagen si es muy brillante -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 62, 138, 0.2);"></div>
+            </div>
         </div>
     </main>
 

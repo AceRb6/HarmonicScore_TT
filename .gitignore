@@ -1,0 +1,8 @@
+
+# Modelos y datasets pesados (Se gestionan externamente)
+ml-service/models/
+ml-service/models/amt/
+*.ckpt
+*.pt
+*.zip
+*.rar

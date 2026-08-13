@@ -1,3 +1,33 @@
-fastapi
-uvicorn
-pydantic
+# Core científico
+numpy>=1.26.0,<2.0.0
+scipy>=1.11.0
+pandas>=2.0.0
+
+# Audio y DSP
+librosa==0.11.0
+soundfile>=0.12.0
+sox>=1.4.1
+
+# Deep Learning (versión compatible con Python 3.10)
+torch>=2.1.0,<2.5.0
+torchaudio>=2.1.0,<2.5.0
+transformers==4.45.1
+lightning>=2.2.1
+einops>=0.7.0
+
+# Git dependencies (formato compatible con uv)
+mir_eval @ git+https://github.com/craffel/mir_eval.git@8db0b38
+cosine-annealing-warmup @ git+https://github.com/katsura-jp/pytorch-cosine-annealing-with-warmup.git@12d03c0
+
+# Backend y utilidades
+fastapi>=0.100.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+pydantic>=2.4.0
+APScheduler>=3.10.0
+tqdm>=4.66.0
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
