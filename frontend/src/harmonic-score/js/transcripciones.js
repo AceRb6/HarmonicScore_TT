@@ -32,21 +32,24 @@ const Transcripciones = {
     },
 
     /**
-     * Simula la descarga de un PDF para el CU-06
+     * 2026-08-21: Descarga el PDF real generado por el backend.
+     * Recibe la URL directa del PDF almacenado en /media/ del servidor Django.
      */
-    descargarPDF(event, exito) {
+    descargarPDF(event, urlPdf) {
         event.preventDefault();
-        
+
         // Redirigir a login si es invitado
         if (!Sesion.estaActiva()) {
             window.location.href = 'login.html';
             return;
         }
 
-        if (exito) {
+        // 2026-08-21: Si existe la URL real del PDF, abrir en nueva pestaña
+        if (urlPdf && urlPdf !== 'null' && urlPdf !== '') {
+            window.open(urlPdf, '_blank');
             this.mostrarPopup("Descarga iniciada", false);
         } else {
-            this.mostrarPopup("Error al generar PDF", true);
+            this.mostrarPopup("El PDF aún no está disponible", true);
         }
     },
 
@@ -100,11 +103,10 @@ const Transcripciones = {
             switch (item.estado) {
                 case 'completado':
                     estadoHtml   = `<td class="estado-exito">✓ Completado</td>`;
-                    // Simulación 80% éxito, 20% error para demo del CU-06
-                    const exitoVisual = Math.random() > 0.2;
-                    descargaHtml = `<td><a href="#" onclick="Transcripciones.descargarPDF(event, ${exitoVisual})" class="btn btn-primario"
+                    // 2026-08-21: Usar la URL real del PDF devuelta por el backend
+                    descargaHtml = `<td><a href="#" onclick="Transcripciones.descargarPDF(event, '${item.url_pdf || ''}')" class="btn btn-primario"
                                         style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
-                                        PDF/XML ↓</a></td>`;
+                                        PDF ↓</a></td>`;
                     break;
                 case 'error':
                     estadoHtml   = `<td class="estado-error">✗ Error</td>`;
@@ -145,34 +147,29 @@ const Transcripciones = {
                 { titulo: '"3.mp3"',               fecha: '11/6/26',  estado: 'proceso'     },
                 { titulo: '"ejercicio_piano.wav"',  fecha: '12/6/26',  estado: 'completado' }
             ]);
-            // (Los invitados ven la prueba, no disparamos historial cargado real)
             return;
         }
 
-        // USUARIO AUTENTICADO: cargar transcripciones reales del backend
-        /*
-        ---- Activar cuando el backend tenga el endpoint ----
+        // 2026-08-21: USUARIO AUTENTICADO — consultar el endpoint real del backend.
+        // Se pasa el username del localStorage porque el login sigue siendo simulado.
+        const username = Sesion.obtenerUsuario();
         try {
-            const respuesta = await DjangoAPI.peticion('/transcripciones/mis/', 'GET');
-            if (respuesta.ok && Array.isArray(respuesta.data)) {
-                this.renderizar(respuesta.data);
+            const respuesta = await DjangoAPI.peticion(`/transcripciones/mis/?username=${encodeURIComponent(username)}`, 'GET');
+
+            if (respuesta.ok && respuesta.data.transcripciones) {
+                // 2026-08-21: Renderizar el historial real devuelto por Django
+                this.renderizar(respuesta.data.transcripciones);
+                this.mostrarPopup("Historial cargado", false);
             } else {
-                this.renderizar([]); // Vacío si falla
+                // El backend respondió pero sin datos esperados
+                this.renderizar([]);
+                this.mostrarPopup("No se pudo cargar el historial", true);
             }
         } catch (e) {
+            // 2026-08-21: Si el backend no responde, mostrar vacío con mensaje de error
+            console.error('Error al cargar transcripciones:', e);
             this.renderizar([]);
-        }
-        */
-
-        // Mientras el backend no tenga el endpoint:
-        // Simulamos que el backend devolvió el historial vacío o mock
-        const mockHistorial = localStorage.getItem('hs_mock_historial'); // por si quisieramos inyectarle uno
-        if (mockHistorial) {
-            this.renderizar(JSON.parse(mockHistorial));
-            this.mostrarPopup("Historial cargado", false);
-        } else {
-            this.renderizar([]);
-            this.mostrarPopup("Historial cargado", false);
+            this.mostrarPopup("Error de conexión con el servidor", true);
         }
     }
 };

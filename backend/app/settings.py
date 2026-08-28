@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    # 2026-08-21: App de Django para el modelo Transcripcion y sus migraciones
+    'transcripciones',
 ]
 
 MIDDLEWARE = [
@@ -119,3 +121,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# 2026-08-21: Configuración de archivos de media (PDFs generados por transcripción)
+# Permite que Django sirva los PDFs como archivos descargables desde /media/
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# 2026-08-21: Tipo de campo automático para modelos sin PK explícita
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

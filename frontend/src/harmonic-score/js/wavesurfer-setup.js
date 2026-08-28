@@ -228,6 +228,11 @@ function validarYProcesarArchivo(archivo) {
     // Archivo válido - procesar
     console.log('Archivo válido, procesando...');
     archivoActual = archivo;
+    
+    // 2026-08-21: Habilitar el botón de transcripción inmediatamente
+    // No esperamos a que wavesurfer decodifique el audio por si falla o tarda.
+    habilitarBotonTranscribir();
+
     procesarArchivo(archivo, tamañoMB);
 }
 

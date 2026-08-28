@@ -28,10 +28,11 @@ function inicializarTranscripcion() {
 
     console.log('Inicializando botón de transcripción');
 
-    btnTranscribir.addEventListener('click', function() {
-        console.log('Click en transcribir');
+    // 2026-08-21: Remueve listeners previos por si acaso y asigna el click
+    btnTranscribir.onclick = function() {
+        console.log('--- ¡BOTÓN TRANSCRIBIR CLICKED! ---');
         iniciarSimulacionTranscripcion();
-    });
+    };
 
     // Cerrar modal
     if (cerrarModal && modalProgreso) {
@@ -112,12 +113,16 @@ async function iniciarSimulacionTranscripcion() {
         miniBaraProgreso.style.display = 'none';
     }
 
-    // Llamada al backend
+    // 2026-08-21: Llamada al backend — incluye el username del usuario de sesión
+    // El backend usa este campo porque el login todavía es simulado (no hay sesión real)
     const formData = new FormData();
     formData.append('audio', archivoActual);
-    
+    formData.append('username', Sesion.obtenerUsuario()); // nombre del usuario actual
+
     try {
+        console.log('--- ENVIANDO PETICIÓN AL BACKEND ---', formData.get('username'));
         const respuesta = await DjangoAPI.peticion('/transcripciones/subir/', 'POST', formData);
+        console.log('--- RESPUESTA RECIBIDA ---', respuesta);
 
         if (respuesta.ok) {
             // Completar barra
@@ -128,6 +133,15 @@ async function iniciarSimulacionTranscripcion() {
                 miniBaraRelleno.style.width = '100%';
                 miniBaraRelleno.textContent = '100%';
             }
+
+            // 2026-08-21: Guardar la transcripción devuelta por el backend en localStorage
+            // para que consultas.html pueda mostrarla en la tabla con su URL de descarga real
+            if (respuesta.data && respuesta.data.transcripcion) {
+                const historialActual = JSON.parse(localStorage.getItem('hs_mock_historial') || '[]');
+                historialActual.unshift(respuesta.data.transcripcion); // agregar al inicio
+                localStorage.setItem('hs_mock_historial', JSON.stringify(historialActual));
+            }
+
             finalizarTranscripcion(true); // Éxito
         } else {
             // Error en servidor
@@ -146,22 +160,27 @@ async function iniciarSimulacionTranscripcion() {
 }
 
 /**
- * Finaliza la transcripción y muestra resultados
+ * 2026-08-21: Finaliza la transcripción, limpia el área de carga y redirige a Transcripciones.
+ * Se eliminó el alert() bloqueante y se reemplazó con una espera visual en la barra al 100%.
  */
 function finalizarTranscripcion(esExito) {
     if (!esExito) return;
-    console.log('Transcripción finalizada');
+    console.log('Transcripción finalizada — limpiando estado y redirigiendo');
     transcripcionActiva = false;
-    
-    // Esperar un momento en 100%
+
+    // 2026-08-21: Limpiar la variable global del archivo actual para dejar el área limpia
+    if (typeof archivoActual !== 'undefined') {
+        archivoActual = null;
+    }
+
+    // 2026-08-21: Esperar brevemente en 100% para que el usuario vea la barra completa
+    // y luego redirigir automáticamente a la pestaña de Transcripciones
     setTimeout(function() {
         const modalProgreso = document.getElementById('modal-progreso');
         if (modalProgreso) {
             modalProgreso.classList.remove('activo');
         }
-        
-        // msn1
-        alert('Transcripción completada. Redirigiendo a consultas...');
+        // Redirigir a la pestaña Transcripciones donde se verá el PDF generado
         window.location.href = 'consultas.html';
-    }, 500);
+    }, 1000);
 }

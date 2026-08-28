@@ -18,9 +18,20 @@ from django.contrib import admin
 from django.urls import path
 from . import views
 
+# 2026-08-21: Importaciones necesarias para servir archivos /media/ en desarrollo
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/registro/', views.registro_usuario, name='registro_usuario'),
     path('api/auth/recuperar-contrasena/', views.recuperar_contrasena, name='recuperar_contrasena'),
     path('api/transcripciones/subir/', views.subir_transcripcion, name='subir_transcripcion'),
+    # 2026-08-21: Nuevo endpoint para obtener el historial de transcripciones del usuario autenticado
+    path('api/transcripciones/mis/', views.mis_transcripciones, name='mis_transcripciones'),
 ]
+
+# 2026-08-21: Servir archivos /media/ en modo DEBUG (desarrollo local)
+# En producción esto lo maneja el servidor web (nginx/apache)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
