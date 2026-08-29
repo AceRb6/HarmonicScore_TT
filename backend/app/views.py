@@ -307,3 +307,55 @@ def mis_transcripciones(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+# 2026-08-29: Nuevo endpoint para registrar la transcripción en Django desde FastAPI
+@csrf_exempt
+def registrar_historial(request):
+    if request.method == 'POST':
+        try:
+            import json
+            data = json.loads(request.body)
+            username = data.get('username')
+            titulo = data.get('titulo')
+            url_pdf = data.get('url_pdf')
+            estado = data.get('estado', 'Finalizado')
+
+            if not username or not titulo:
+                return JsonResponse({'error': 'Faltan parámetros'}, status=400)
+
+            # Buscar usuario
+            try:
+                usuario = User.objects.get(username__iexact=username)
+            except User.DoesNotExist:
+                usuario = User.objects.filter(email__startswith=f"{username}@").first()
+                if not usuario:
+                    return JsonResponse({'error': f'Usuario "{username}" no encontrado'}, status=404)
+            
+            # Quitar prefijo /media/ si viene en url_pdf porque FileField asume la base
+            # Ej: "/media/pdfs/Jair_audio.pdf" -> "pdfs/Jair_audio.pdf"
+            if url_pdf and url_pdf.startswith('/media/'):
+                url_pdf = url_pdf.replace('/media/', '', 1)
+
+            # Crear transcripción
+            nueva_transcripcion = Transcripcion.objects.create(
+                usuario=usuario,
+                titulo=titulo,
+                estado=estado,
+                archivo_pdf=url_pdf
+            )
+
+            return JsonResponse({
+                'success': True,
+                'transcripcion': {
+                    'id': nueva_transcripcion.id,
+                    'titulo': nueva_transcripcion.titulo,
+                    'fecha': nueva_transcripcion.fecha.strftime('%d/%m/%Y'),
+                    'estado': nueva_transcripcion.estado,
+                    'url_pdf': nueva_transcripcion.archivo_pdf.url if nueva_transcripcion.archivo_pdf else None,
+                }
+            }, status=201)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)

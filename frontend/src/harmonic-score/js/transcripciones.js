@@ -100,25 +100,30 @@ const Transcripciones = {
             let estadoHtml = '';
             let descargaHtml = '';
 
+            // 2026-08-29: Actualización de textos de estado según requerimientos
             switch (item.estado) {
-                case 'completado':
-                    estadoHtml   = `<td class="estado-exito">✓ Completado</td>`;
+                case 'Finalizado':
+                    estadoHtml   = `<td class="estado-exito">✓ Finalizado</td>`;
                     // 2026-08-21: Usar la URL real del PDF devuelta por el backend
                     descargaHtml = `<td><a href="#" onclick="Transcripciones.descargarPDF(event, '${item.url_pdf || ''}')" class="btn btn-primario"
                                         style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
                                         PDF ↓</a></td>`;
                     break;
-                case 'error':
-                    estadoHtml   = `<td class="estado-error">✗ Error</td>`;
-                    descargaHtml = `<td><span style="color:var(--color-error);font-weight:bold;">Error</span></td>`;
+                case 'Error en el procesamiento':
+                    estadoHtml   = `<td class="estado-error">✗ Error en el procesamiento</td>`;
+                    descargaHtml = `<td><button class="btn btn-secundario" disabled 
+                                        style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
+                                        Fallo</button></td>`;
                     break;
-                case 'proceso':
-                    estadoHtml   = `<td class="estado-proceso">⊖ En Proceso</td>`;
-                    descargaHtml = `<td><span style="color:var(--color-proceso);">--</span></td>`;
+                case 'En proceso':
+                    estadoHtml   = `<td class="estado-proceso">⏳ En proceso</td>`;
+                    descargaHtml = `<td><button class="btn btn-secundario" disabled 
+                                        style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
+                                        Procesando...</button></td>`;
                     break;
                 default:
-                    estadoHtml   = `<td>—</td>`;
-                    descargaHtml = `<td>—</td>`;
+                    estadoHtml   = `<td>${item.estado}</td>`;
+                    descargaHtml = `<td>-</td>`;
             }
 
             tr.innerHTML = `
@@ -142,10 +147,10 @@ const Transcripciones = {
         // INVITADO: sin sesión activa → mostrar tabla de ejemplo
         if (!Sesion.estaActiva()) {
             this.renderizar([
-                { titulo: '"1.mp3"',               fecha: '15/5/26',  estado: 'completado' },
-                { titulo: '"2.mp3"',               fecha: '10/6/26',  estado: 'error'       },
-                { titulo: '"3.mp3"',               fecha: '11/6/26',  estado: 'proceso'     },
-                { titulo: '"ejercicio_piano.wav"',  fecha: '12/6/26',  estado: 'completado' }
+                { titulo: '"1.mp3"',               fecha: '15/5/26',  estado: 'Finalizado' },
+                { titulo: '"2.mp3"',               fecha: '10/6/26',  estado: 'Error en el procesamiento'       },
+                { titulo: '"3.mp3"',               fecha: '11/6/26',  estado: 'En proceso'     },
+                { titulo: '"ejercicio_piano.wav"',  fecha: '12/6/26',  estado: 'Finalizado' }
             ]);
             return;
         }

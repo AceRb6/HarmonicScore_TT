@@ -69,7 +69,8 @@ function inicializarWavesurfer() {
                 const duracion = wavesurfer.getDuration();
                 // Validar duración máxima sugerida: 6 minutos (360 segundos)
                 if (duracion > 360) {
-                    mostrarError('Duración excedida. El archivo no debe superar los 6 minutos');
+                    // 2026-08-29: Mensaje actualizado según requerimientos
+                    mostrarError('Duración excedida. El archivo no debe superar los seis minutos');
                     wavesurfer.empty();
                     if (placeholder) placeholder.style.display = 'block';
                     archivoCargado = false;
@@ -211,7 +212,8 @@ function validarYProcesarArchivo(archivo) {
     
     if (!formatosValidos.includes(extension)) {
         console.log('Formato no válido');
-        mostrarError('Formato no soportado. Solo se aceptan archivos MP3 o WAV');
+        // 2026-08-29: Mensaje actualizado según requerimientos
+        mostrarError('Formato no soportado. Solo se aceptan archivos MP3 o WAV.');
         return;
     }
 
@@ -221,7 +223,8 @@ function validarYProcesarArchivo(archivo) {
     
     if (tamañoMB > 50) {
         console.log('Archivo muy grande');
-        mostrarError('Tamaño excedido. El archivo no debe superar los 50 MB');
+        // 2026-08-29: Mensaje actualizado según requerimientos
+        mostrarError('Tamaño excedido. El archivo no debe superar los cincuenta megabytes.');
         return;
     }
 

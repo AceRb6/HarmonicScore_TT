@@ -44,7 +44,9 @@ const DjangoAPI = {
         }
 
         try {
-            const respuesta = await fetch(`${API_BASE_URL}${endpoint}`, opciones);
+            // 2026-08-29: Soportar URLs absolutas (útil para apuntar a FastAPI en el puerto 8001)
+            const urlFinal = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+            const respuesta = await fetch(urlFinal, opciones);
             const data = await respuesta.json().catch(() => ({})); // Captura si el servidor no devuelve JSON
             
             return {

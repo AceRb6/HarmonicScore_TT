@@ -121,7 +121,8 @@ async function iniciarSimulacionTranscripcion() {
 
     try {
         console.log('--- ENVIANDO PETICIÓN AL BACKEND ---', formData.get('username'));
-        const respuesta = await DjangoAPI.peticion('/transcripciones/subir/', 'POST', formData);
+        // 2026-08-29: Cambiamos el endpoint para apuntar directamente a FastAPI (puerto 8001) en lugar de Django
+        const respuesta = await DjangoAPI.peticion('http://127.0.0.1:8001/api/transcribir', 'POST', formData);
         console.log('--- RESPUESTA RECIBIDA ---', respuesta);
 
         if (respuesta.ok) {
@@ -134,7 +135,7 @@ async function iniciarSimulacionTranscripcion() {
                 miniBaraRelleno.textContent = '100%';
             }
 
-            // 2026-08-21: Guardar la transcripción devuelta por el backend en localStorage
+            // 2026-08-29: Guardar la transcripción devuelta por el backend en localStorage
             // para que consultas.html pueda mostrarla en la tabla con su URL de descarga real
             if (respuesta.data && respuesta.data.transcripcion) {
                 const historialActual = JSON.parse(localStorage.getItem('hs_mock_historial') || '[]');
@@ -147,15 +148,15 @@ async function iniciarSimulacionTranscripcion() {
             // Error en servidor
             modalProgreso.classList.remove('activo');
             transcripcionActiva = false;
-            // msn2
-            mostrarError(respuesta.data.error || 'Error en el procesamiento. ' + JSON.stringify(respuesta.data));
+            // 2026-08-29: Mensaje actualizado según requerimientos
+            mostrarError(respuesta.data.error || 'Error en el procesamiento');
         }
 
     } catch (error) {
         modalProgreso.classList.remove('activo');
         transcripcionActiva = false;
-        // msn2
-        mostrarError('Error en el procesamiento. Verifica tu conexión con el servidor.');
+        // 2026-08-29: Mensaje actualizado según requerimientos
+        mostrarError('Error en el procesamiento. Verifica tu conexión con el servidor');
     }
 }
 

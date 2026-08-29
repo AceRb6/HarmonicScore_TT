@@ -29,6 +29,8 @@ urlpatterns = [
     path('api/transcripciones/subir/', views.subir_transcripcion, name='subir_transcripcion'),
     # 2026-08-21: Nuevo endpoint para obtener el historial de transcripciones del usuario autenticado
     path('api/transcripciones/mis/', views.mis_transcripciones, name='mis_transcripciones'),
+    # 2026-08-29: Nuevo endpoint interno para que FastAPI registre las transcripciones en la base de datos de Django
+    path('api/transcripciones/registrar-historial/', views.registrar_historial, name='registrar_historial'),
 ]
 
 # 2026-08-21: Servir archivos /media/ en modo DEBUG (desarrollo local)
