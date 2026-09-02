@@ -100,23 +100,23 @@ const Transcripciones = {
             let estadoHtml = '';
             let descargaHtml = '';
 
-            // 2026-08-29: Actualización de textos de estado según requerimientos
+            // 2026-09-01: Estados en texto limpio sin símbolos ni emojis
             switch (item.estado) {
                 case 'Finalizado':
-                    estadoHtml   = `<td class="estado-exito">✓ Finalizado</td>`;
+                    estadoHtml   = `<td class="estado-exito">Finalizado</td>`;
                     // 2026-08-21: Usar la URL real del PDF devuelta por el backend
                     descargaHtml = `<td><a href="#" onclick="Transcripciones.descargarPDF(event, '${item.url_pdf || ''}')" class="btn btn-primario"
                                         style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
-                                        PDF ↓</a></td>`;
+                                        PDF</a></td>`;
                     break;
                 case 'Error en el procesamiento':
-                    estadoHtml   = `<td class="estado-error">✗ Error en el procesamiento</td>`;
+                    estadoHtml   = `<td class="estado-error">Error en el procesamiento</td>`;
                     descargaHtml = `<td><button class="btn btn-secundario" disabled 
                                         style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
                                         Fallo</button></td>`;
                     break;
                 case 'En proceso':
-                    estadoHtml   = `<td class="estado-proceso">⏳ En proceso</td>`;
+                    estadoHtml   = `<td class="estado-proceso">En proceso</td>`;
                     descargaHtml = `<td><button class="btn btn-secundario" disabled 
                                         style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
                                         Procesando...</button></td>`;

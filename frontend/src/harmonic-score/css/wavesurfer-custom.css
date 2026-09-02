@@ -1,45 +1,66 @@
 /* ============================================
-   WAVESURFER.JS - Estilos personalizados
+   WAVESURFER.JS v7 - Estilos personalizados
+   Espectrograma Alto y Recortador con Botón Play Redondo
+   2026-09-01
    ============================================ */
 
 #waveform {
     width: 100%;
-    height: 120px;
-    background-color: var(--color-fondo);
-    border-radius: var(--borde-radio-md);
-    margin-bottom: var(--espaciado-md);
+    min-height: 380px;
+    background-color: #FFFFFF;
+    border-radius: var(--borde-radio-md, 8px);
+    margin-bottom: 0.5rem;
+    position: relative;
 }
 
 #waveform-timeline {
     width: 100%;
-    height: 30px;
-    background-color: var(--color-fondo);
-    border-radius: var(--borde-radio-sm);
+    height: 25px;
+    background-color: #FFFFFF;
+    border-radius: var(--borde-radio-sm, 4px);
+    border-top: 1px solid #E2E8F0;
 }
 
-.wavesurfer-region {
-    background-color: rgba(255, 145, 0, 0.3) !important;
-    border: 2px solid var(--color-primario) !important;
+/* ============================================
+   RECORTADOR SOBRE MINI-FORMA DE ONDA
+   ============================================ */
+#trimmer-contenedor {
+    position: relative;
+    width: 100%;
+    height: 85px;
+    background: #1E293B;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0.6rem 0;
+    user-select: none;
+    border: 1.5px solid #334155;
 }
 
-.wavesurfer-handle {
-    background-color: var(--color-primario) !important;
-    width: 10px !important;
+#tirador-inicio,
+#tirador-fin {
+    transition: transform 0.1s, background-color 0.15s, box-shadow 0.15s;
 }
 
-.wavesurfer-play-button {
-    background-color: var(--color-primario);
-    color: var(--color-blanco);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    margin: 0 auto;
+#tirador-inicio:hover,
+#tirador-fin:hover {
+    background-color: #F59E0B !important;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8) !important;
 }
 
-.wavesurfer-play-button:hover {
-    background-color: var(--color-primario-hover);
+#tirador-inicio:active,
+#tirador-fin:active {
+    background-color: #D97706 !important;
+    cursor: grabbing !important;
+}
+
+/* Botón Play redondo y azul */
+#btn-play-fragmento:hover {
+    transform: scale(1.08);
+    background-color: #0369A1 !important;
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.5) !important;
+}
+
+#btn-play-fragmento:active {
+    transform: scale(0.95);
+    background-color: #0C4A6E !important;
 }

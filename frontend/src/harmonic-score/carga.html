@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmonic Score - Carga Transcripción</title>
+    <title>Harmonic Score - Transcribir</title>
     <link rel="stylesheet" href="css/estilos.css">
+    <!-- 2026-09-01: Estilos dedicados de WaveSurfer y botón play redondo -->
+    <link rel="stylesheet" href="css/wavesurfer-custom.css?v=10">
     <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
-    <!-- Wavesurfer.js CDN -->
-    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <!-- 2026-09-01: WaveSurfer v7 + Plugins -->
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/timeline.min.js"></script>
     <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+    <!-- 2026-09-01: Howler.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
 </head>
-<body>
+<body style="background-color: #FFFFFF;">
 <!-- HEADER -->
 <header class="header">
     <div class="header-contenido">
@@ -31,90 +36,158 @@
 </header>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="main" style="max-width: 100%; padding: 0; margin: 0; background: var(--color-fondo); min-height: calc(100vh - 70px); display: flex;">
-        <div class="workspace-container" style="display: flex; flex-wrap: wrap; width: 100%; height: 100%;">
+    <main class="main" style="max-width: 100%; padding: 0; margin: 0; background: #FFFFFF; min-height: calc(100vh - 70px); display: flex;">
+        <div class="workspace-container" style="display: flex; flex-wrap: wrap; width: 100%; height: 100%; background: #FFFFFF;">
             
-            <!-- PANEL IZQUIERDO: VISUALIZACIÓN Y ONDAS (70%) -->
-            <div class="workspace-left" style="flex: 7; min-width: 600px; padding: 3rem; display: flex; flex-direction: column;">
-                <h2 style="font-size: 2.2rem; font-weight: 700; color: var(--color-header); margin-bottom: 2rem;">Visualización de Audio</h2>
+            <!-- PANEL IZQUIERDO: ESPECTROGRAMA ALTO + RECORTADOR (70%) -->
+            <div class="workspace-left" style="flex: 7; min-width: 600px; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; background: #FFFFFF;">
                 
-                <!-- Contenedor Wavesurfer gigante -->
-                <div class="waveform-contenedor" style="background: #F8FAFC; padding: 2rem; border-radius: 16px; border: 2px solid #E2E8F0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 450px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);">
-                    <div id="waveform" style="width: 100%;"></div>
-                    <div id="waveform-timeline" style="margin-top: 1rem; width: 100%;"></div>
-                    <!-- Placeholder visual si no hay audio -->
-                    <div id="waveform-placeholder" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #94A3B8; font-size: 1.6rem; font-weight: 500;">
-                        El espectrograma aparecerá aquí
+                <!-- 1. BLOQUE ESPECTROGRAMA (FONDO BLANCO Y GRAN ALTURA) -->
+                <div class="card" style="background: #FFFFFF; padding: 1.5rem 2rem; border-radius: 16px; border: 1.5px solid #E2E8F0; box-shadow: var(--sombra-suave); display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="font-size: 1.6rem; font-weight: 700; color: var(--color-primario); margin: 0;">
+                            Espectrograma / Forma de Onda
+                        </h2>
+                        <span id="badge-estado-audio" style="font-size: 0.9rem; background: #F1F5F9; color: #475569; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 600;">
+                            Sin archivo cargado
+                        </span>
                     </div>
-                </div>
-
-                <!-- Barra de edición/reproducción debajo de las ondas -->
-                <div class="controles-reproduccion" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: var(--sombra-suave);">
-                    <button class="btn btn-secundario" id="btn-play" type="button" style="border-radius: 50px; padding: 1rem 3rem; font-size: 1.3rem;">
-                        <span style="font-size: 1.3rem; margin-right: 8px;">▶</span> Reproducir / Pausar
-                    </button>
-                    <!-- Espacio para futuros controles: zoom, volumen, etc. -->
-                </div>
-            </div>
-
-            <!-- PANEL DERECHO: CARGA, ESTADÍSTICAS Y ACCIÓN (30%) -->
-            <div class="workspace-right" style="flex: 3; min-width: 400px; background: #E0F2FE; border-left: 2px solid #BAE6FD; padding: 3rem 2.5rem; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(2, 62, 138, 0.05);">
-                
-                <!-- Área de Carga -->
-                <div class="card" style="background: white; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; border-radius: 16px;">
-                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">1. Cargar Archivo</h3>
-                    <div class="carga-archivo-area" id="drop-zone" style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #7DD3FC; background: #F0F9FF; border-radius: 12px; margin-top: 1rem;">
-                        <div id="drop-icono" class="carga-archivo-icono" style="font-size: 3.5rem; margin-bottom: 0.5rem; color: #0284C7;">📁</div>
-                        <p id="drop-texto-1" class="carga-archivo-texto" style="font-size: 1.2rem; font-weight: 600; margin: 0.5rem 0; color: #0369A1;">Arrastra tu audio aquí</p>
-                        <p id="drop-texto-3" class="carga-archivo-texto" style="font-size: 1rem; color: #0EA5E9;">(MP3 o WAV, máx 50 MB)</p>
-                        <input type="file" id="file-input" accept=".mp3,.wav,audio/mpeg,audio/wav" style="display: none;">
-                        <div style="text-align: center; margin-top: 1rem;">
-                            <button class="btn btn-secundario" id="btn-examinar" type="button" style="padding: 0.8rem 2rem; font-size: 1.1rem; border-color: #0284C7; color: #0284C7;">Examinar</button>
+                    
+                    <div class="waveform-contenedor" style="background: #FFFFFF; padding: 1rem; border-radius: 12px; border: 1.5px solid #CBD5E1; min-height: 420px; position: relative; display: flex; flex-direction: column; justify-content: center;">
+                        <div id="waveform" style="width: 100%;"></div>
+                        <div id="waveform-timeline" style="width: 100%;"></div>
+                        
+                        <div id="waveform-placeholder" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #94A3B8; font-size: 1.3rem; font-weight: 500;">
+                            El espectrograma del audio aparecerá aquí al seleccionar un archivo
                         </div>
                     </div>
                 </div>
 
-                <!-- Información -->
-                <div class="card" style="background: white; flex-grow: 1; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; display: flex; flex-direction: column; border-radius: 16px;">
-                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">2. Estadísticas del Audio</h3>
+                <!-- 2. BLOQUE INDEPENDIENTE: ZONA DE ACOTACIÓN CON BOTÓN PLAY REDONDO -->
+                <div class="card" id="panel-acotacion" style="background: #FFFFFF; padding: 1.5rem 2rem; border-radius: 16px; border: 1.5px solid #E2E8F0; box-shadow: var(--sombra-suave);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 700; color: #0F172A; margin: 0;">
+                            Zona de Acotación de Audio
+                        </h3>
+                        <p id="lbl-seleccion" style="font-size: 1rem; color: #0284C7; font-weight: 700; margin: 0;">
+                            Fragmento: 00:00 - 00:00 (Duración: 00:00)
+                        </p>
+                    </div>
+
+                    <!-- Indicadores numéricos de inicio y fin -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 700; color: #334155; margin-bottom: 0.4rem;">
+                        <div>
+                            <span>Inicio: </span>
+                            <span id="txt-inicio" style="color: #2196F3;">00:00</span>
+                        </div>
+                        <div>
+                            <span>Fin: </span>
+                            <span id="txt-fin" style="color: #2196F3;">00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Recortador visual sobre forma de onda con 2 tiradores arrastrables (#FFC107) -->
+                    <div id="trimmer-contenedor" style="position: relative; width: 100%; height: 85px; background: #1E293B; border-radius: 8px; overflow: hidden; margin: 0.5rem 0; user-select: none; border: 1.5px solid #334155;">
+                        <!-- Mini-forma de onda base (Gris oscuro #64748B) -->
+                        <div id="trimmer-waveform" style="width: 100%; height: 100%; pointer-events: none;"></div>
+                        
+                        <!-- Máscara zona acotada (Azul #2196F3) -->
+                        <div id="trimmer-zona-activa" style="position: absolute; top: 0; bottom: 0; left: 0%; width: 100%; background: rgba(33, 150, 243, 0.45); border-top: 2px solid #2196F3; border-bottom: 2px solid #2196F3; pointer-events: none; z-index: 5;"></div>
+                        
+                        <!-- Máscara exterior izquierda (Oscurecida) -->
+                        <div id="trimmer-mask-left" style="position: absolute; top: 0; bottom: 0; left: 0; width: 0%; background: rgba(15, 23, 42, 0.7); pointer-events: none; z-index: 4;"></div>
+                        
+                        <!-- Máscara exterior derecha (Oscurecida) -->
+                        <div id="trimmer-mask-right" style="position: absolute; top: 0; bottom: 0; right: 0; width: 0%; background: rgba(15, 23, 42, 0.7); pointer-events: none; z-index: 4;"></div>
+
+                        <!-- Tirador Izquierdo (Inicio) - Amarillo #FFC107 -->
+                        <div id="tirador-inicio" style="position: absolute; top: 0; bottom: 0; width: 16px; left: 0%; background: #FFC107; cursor: ew-resize; z-index: 20; border-radius: 4px 0 0 4px; box-shadow: 0 0 8px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; transform: translateX(-50%); border: 1.5px solid #FFA000;">
+                            <span style="font-size: 10px; font-weight: 900; color: #1E293B; pointer-events: none; user-select: none;">||</span>
+                        </div>
+
+                        <!-- Tirador Derecho (Fin) - Amarillo #FFC107 -->
+                        <div id="tirador-fin" style="position: absolute; top: 0; bottom: 0; width: 16px; left: 100%; background: #FFC107; cursor: ew-resize; z-index: 20; border-radius: 0 4px 4px 0; box-shadow: 0 0 8px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; transform: translateX(-50%); border: 1.5px solid #FFA000;">
+                            <span style="font-size: 10px; font-weight: 900; color: #1E293B; pointer-events: none; user-select: none;">||</span>
+                        </div>
+
+                        <!-- 2026-09-01: Barra delgada roja que avanza con la música -->
+                        <div id="trimmer-cursor-play" style="position: absolute; top: 0; bottom: 0; width: 2.5px; background: #EF4444; z-index: 25; pointer-events: none; display: none; transform: translateX(-50%); box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);"></div>
+                    </div>
+
+                    <!-- 2026-09-01: Único botón en la parte media baja: Redondo y azul para Pausar/Reproducir la zona acotada -->
+                    <div style="display: flex; justify-content: center; align-items: center; margin-top: 1.2rem;">
+                        <button id="btn-play-fragmento" type="button" title="Reproducir / Pausar fragmento acotado"
+                            style="width: 58px; height: 58px; border-radius: 50%; background: #0284C7; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
+                            <span id="icono-play-fragmento" style="font-size: 1.5rem; line-height: 1; margin-left: 3px;">▶</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANEL DERECHO: CARGA DE ARCHIVO + DATOS DE ARCHIVO + TRANSCRIBIR (30%) -->
+            <div class="workspace-right" style="flex: 3; min-width: 380px; background: #F8FAFC; border-left: 1.5px solid #E2E8F0; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; box-shadow: -4px 0 10px rgba(0, 0, 0, 0.03);">
+                
+                <!-- BLOQUE 1: CARGA DE ARCHIVO -->
+                <div class="card" style="background: white; padding: 1.5rem; box-shadow: var(--sombra-suave); border: 1px solid #E2E8F0; border-radius: 16px;">
+                    <h3 class="card-titulo" style="font-size: 1.3rem; text-align: center; color: var(--color-primario); margin-bottom: 0.8rem;">
+                        Carga de Archivo
+                    </h3>
+                    <div class="carga-archivo-area" id="drop-zone" style="min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #94A3B8; background: #F8FAFC; border-radius: 12px; padding: 1rem; cursor: pointer;">
+                        <p id="drop-texto-1" class="carga-archivo-texto" style="font-size: 1.1rem; font-weight: 700; margin: 0.3rem 0; color: #1E293B;">Arrastra tu audio aquí</p>
+                        <p id="drop-texto-3" class="carga-archivo-texto" style="font-size: 0.9rem; color: #64748B; margin: 0;">(Formatos MP3 o WAV, max 50 MB)</p>
+                        <input type="file" id="file-input" accept=".mp3,.wav,audio/mpeg,audio/wav" style="display: none;">
+                        <div style="text-align: center; margin-top: 0.8rem;">
+                            <button class="btn btn-secundario" id="btn-examinar" type="button" style="padding: 0.5rem 1.6rem; font-size: 0.95rem; border-color: #0284C7; color: #0284C7; font-weight: 600;">
+                                Seleccionar archivo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOQUE 2: DATOS DE ARCHIVO -->
+                <div class="card" style="background: white; flex-grow: 1; padding: 1.5rem; box-shadow: var(--sombra-suave); border: 1px solid #E2E8F0; display: flex; flex-direction: column; border-radius: 16px;">
+                    <h3 class="card-titulo" style="font-size: 1.3rem; text-align: center; color: var(--color-primario); margin-bottom: 1rem;">
+                        Datos de Archivo
+                    </h3>
                     
-                    <div id="detalles-vacio" style="text-align: center; padding: 3rem 1rem; color: #94A3B8; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 500;">
+                    <div id="detalles-vacio" style="text-align: center; padding: 2rem 1rem; color: #94A3B8; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; font-weight: 500;">
                         Sube un archivo para ver sus propiedades.
                     </div>
 
-                    <div class="archivo-info" id="archivo-info" style="display: none; padding: 1.5rem; background: #F8FAFC; border-radius: 12px; flex-grow: 1; border: 1px solid #E2E8F0;">
-                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                    <div class="archivo-info" id="archivo-info" style="display: none; padding: 1rem; background: #F8FAFC; border-radius: 12px; flex-grow: 1; border: 1px solid #E2E8F0;">
+                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.05rem;">
                             <span style="color: var(--color-texto-secundario);">Nombre:</span>
-                            <strong id="info-nombre" style="word-break: break-all; color: var(--color-texto-principal);">--</strong>
+                            <strong id="info-nombre" style="word-break: break-all; color: var(--color-texto-principal); display: block; margin-top: 2px;">--</strong>
                         </div>
-                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.05rem;">
                             <span style="color: var(--color-texto-secundario);">Peso:</span>
                             <strong id="info-peso" style="color: var(--color-texto-principal);">--</strong>
                         </div>
-                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
-                            <span style="color: var(--color-texto-secundario);">Duración:</span>
+                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.05rem;">
+                            <span style="color: var(--color-texto-secundario);">Duración total:</span>
                             <strong id="info-duracion" style="color: var(--color-texto-principal);">--</strong>
                         </div>
-                        <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
+                        <div class="archivo-info-item" style="margin-bottom: 0.8rem; font-size: 1.05rem;">
                             <span style="color: var(--color-texto-secundario);">Formato:</span>
                             <strong id="info-formato" style="color: var(--color-texto-principal);">--</strong>
                         </div>
-                        <div class="archivo-info-item" style="font-size: 1.25rem; margin-top: 2rem; border-top: 2px solid #E2E8F0; padding-top: 1.5rem;">
+                        <div class="archivo-info-item" style="font-size: 1.05rem; margin-top: 1rem; border-top: 1.5px solid #E2E8F0; padding-top: 0.8rem;">
                             <span style="color: var(--color-texto-secundario);">Predicción IA:</span>
-                            <strong id="info-clasificacion" style="color: var(--color-primario); font-size: 1.4rem;">--</strong>
+                            <strong id="info-clasificacion" style="color: var(--color-primario); font-size: 1.2rem; display: block; margin-top: 2px;">--</strong>
                         </div>
                     </div>
                 </div>
 
-                <!-- Botón de Acción -->
-                <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button" style="width: 100%; padding: 1.5rem; font-size: 1.6rem; border-radius: 16px; box-shadow: var(--sombra-media);">
-                    ✨ ¡Transcribir!
+                <!-- BLOQUE 3: BOTÓN TRANSCRIBIR -->
+                <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button" style="width: 100%; padding: 1.3rem; font-size: 1.4rem; border-radius: 16px; box-shadow: var(--sombra-media); font-weight: 700;">
+                    Transcribir
                 </button>
                 
-                <!-- Barra de progreso mini (oculta inicialmente) -->
-                <div id="mini-barra-progreso" style="display: none; margin-top: 1.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #BAE6FD; box-shadow: var(--sombra-suave);">
-                    <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-align: center; color: var(--color-primario);">Progreso IA:</p>
-                    <div class="barra-progreso-contenedor" style="margin: 0; height: 25px; border-radius: 50px;">
+                <!-- Barra de progreso mini -->
+                <div id="mini-barra-progreso" style="display: none; background: white; padding: 1.2rem; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: var(--sombra-suave);">
+                    <p style="font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; text-align: center; color: var(--color-primario);">Progreso de Transcripción:</p>
+                    <div class="barra-progreso-contenedor" style="margin: 0; height: 22px; border-radius: 50px;">
                         <div id="mini-barra-relleno" class="barra-progreso-relleno" style="border-radius: 50px;">0%</div>
                     </div>
                 </div>
@@ -123,11 +196,11 @@
         </div>
     </main>
 
-    <!-- MODAL DE PROGRESO (POP-UP) -->
+    <!-- MODAL DE PROGRESO -->
     <div id="modal-progreso" class="modal-fondo">
         <div class="modal-contenido">
             <button class="modal-cerrar" id="cerrar-modal-progreso" type="button">&times;</button>
-            <h3 class="modal-titulo">Transcribiendo...</h3>
+            <h3 class="modal-titulo">Transcribiendo</h3>
             <p style="text-align: center; font-size: 1.1rem; margin: 1rem 0;">Por favor espera mientras procesamos tu audio.</p>
             
             <div class="barra-progreso-contenedor" style="margin: 2rem 0;">
@@ -135,7 +208,7 @@
             </div>
             
             <p style="text-align: center; font-size: 0.9rem; color: var(--color-texto-secundario); margin-bottom: 1.5rem;">
-                Esto puede tomar hasta 1 minuto.
+                Esto puede tomar unos segundos.
             </p>
             
             <div style="text-align: center;">
@@ -188,12 +261,14 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="js/api.js?v=3"></script>
-    <script src="js/sesion.js?v=3"></script>
-    <script src="js/config.js?v=3"></script>
-    <script src="js/navigation.js?v=3"></script>
-    <script src="js/wavesurfer-setup.js?v=3"></script>
-    <script src="js/transcripcion.js?v=3"></script>
-    <script src="js/main.js?v=3"></script>
+    <!-- 2026-09-01: v=11 para barra roja de progreso en recortador -->
+    <script src="js/api.js?v=11"></script>
+    <script src="js/sesion.js?v=11"></script>
+    <script src="js/config.js?v=11"></script>
+    <script src="js/navigation.js?v=11"></script>
+    <script src="js/wavesurfer-setup.js?v=11"></script>
+    <script src="js/region-controls.js?v=11"></script>
+    <script src="js/transcripcion.js?v=11"></script>
+    <script src="js/main.js?v=11"></script>
 </body>
 </html>

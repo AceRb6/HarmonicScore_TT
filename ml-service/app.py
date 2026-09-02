@@ -45,15 +45,66 @@ def pipeline_yourmt3(audio_path: str):
     return "notas_transcritas"
 
 def pipeline_verovio(notas, pdf_path: str, username: str, original_filename: str):
-    """Simula el renderizado final con Verovio, generando un PDF de prueba"""
-    print(f"-> [PIPELINE] Generando PDF final con Verovio...")
-    # 2026-08-29: Generar un PDF de prueba usando reportlab
-    c = canvas.Canvas(pdf_path)
-    c.drawString(100, 750, f"Archivo recibido: {original_filename} -- Harmonic Score")
-    c.drawString(100, 730, f"Usuario: {username}")
-    c.drawString(100, 710, "Este PDF fue generado por el Orquestador FastAPI.")
-    c.drawString(100, 680, "Pipeline ejecutado: CQT -> Clasificacion -> YourMT3+ -> Verovio")
-    c.save()
+    """
+    2026-09-01: Genera un PDF de confirmacion que acredita que la comunicacion
+    Frontend -> FastAPI -> Django fue exitosa. Mientras el modelo YourMT3+ no este
+    integrado, este PDF sirve como prueba de que el sistema funciona correctamente.
+    """
+    from datetime import datetime
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+    from reportlab.lib.units import cm
+
+    doc = SimpleDocTemplate(pdf_path, pagesize=letter)
+    story = []
+    styles = getSampleStyleSheet()
+
+    titulo_style = ParagraphStyle('titulo', parent=styles['Heading1'],
+        fontSize=20, textColor=colors.HexColor('#1A237E'), spaceAfter=6)
+    ok_style = ParagraphStyle('ok', parent=styles['Normal'],
+        fontSize=14, textColor=colors.HexColor('#2E7D32'), spaceAfter=4)
+    campo_style = ParagraphStyle('campo', parent=styles['Normal'],
+        fontSize=12, textColor=colors.HexColor('#37474F'), spaceAfter=6)
+    nota_style = ParagraphStyle('nota', parent=styles['Normal'],
+        fontSize=10, textColor=colors.HexColor('#795548'), spaceAfter=4)
+
+    story.append(Paragraph("Harmonic Score — Comprobante de Recepción", titulo_style))
+    story.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor('#1A237E')))
+    story.append(Spacer(1, 0.4*cm))
+
+    story.append(Paragraph("✔  SISTEMA OPERATIVO — API Funcionando Correctamente", ok_style))
+    story.append(Spacer(1, 0.3*cm))
+
+    now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    story.append(Paragraph(f"<b>Archivo recibido:</b> {original_filename}", campo_style))
+    story.append(Paragraph(f"<b>Usuario:</b> {username}", campo_style))
+    story.append(Paragraph(f"<b>Fecha y hora:</b> {now}", campo_style))
+    story.append(Paragraph("<b>Estado:</b> LISTO PARA TRANSCRIPCIÓN", campo_style))
+    story.append(Spacer(1, 0.5*cm))
+
+    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#CFD8DC')))
+    story.append(Spacer(1, 0.3*cm))
+
+    story.append(Paragraph("<b>Pipeline ejecutado (simulado):</b>", campo_style))
+    story.append(Paragraph("  1. Carga de audio", campo_style))
+    story.append(Paragraph("  2. Preprocesamiento CQT", campo_style))
+    story.append(Paragraph("  3. Clasificación mono/polifónico", campo_style))
+    story.append(Paragraph("  4. Inferencia YourMT3+  ← pendiente de integración", campo_style))
+    story.append(Paragraph("  5. Post-procesamiento → MusicXML", campo_style))
+    story.append(Paragraph("  6. Renderizado PDF con Verovio", campo_style))
+    story.append(Spacer(1, 0.5*cm))
+
+    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#CFD8DC')))
+    story.append(Spacer(1, 0.3*cm))
+    story.append(Paragraph(
+        "<i>Nota: El modelo de transcripción (YourMT3+) aún no está conectado. "
+        "Este PDF confirma que la comunicación Frontend → FastAPI (puerto 8001) → "
+        "Django (puerto 8000) es exitosa y el archivo llegó listo para procesarse.</i>",
+        nota_style))
+
+    doc.build(story)
 
 
 @app.get("/")

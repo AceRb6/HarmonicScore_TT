@@ -113,11 +113,23 @@ async function iniciarSimulacionTranscripcion() {
         miniBaraProgreso.style.display = 'none';
     }
 
-    // 2026-08-21: Llamada al backend — incluye el username del usuario de sesión
-    // El backend usa este campo porque el login todavía es simulado (no hay sesión real)
+    // 2026-09-01: Obtener el fragmento recortado (Blob WAV) según la región seleccionada.
+    // Si el usuario no acotó nada (región = audio completo), se envía el archivo original.
+    let audioParaEnviar = archivoActual;
+    if (window.obtenerBlobFragmento) {
+        const blob = await window.obtenerBlobFragmento();
+        if (blob) audioParaEnviar = blob;
+    }
+
+    const nombreAudio = archivoActual ? archivoActual.name : 'fragmento.wav';
+    const archivoBlob = audioParaEnviar instanceof File
+        ? audioParaEnviar
+        : new File([audioParaEnviar], nombreAudio.replace(/\.[^.]+$/, '_fragmento.wav'), { type: 'audio/wav' });
+
+    // 2026-08-29 / 2026-09-01: Llamada al backend FastAPI — incluye el username de sesión
     const formData = new FormData();
-    formData.append('audio', archivoActual);
-    formData.append('username', Sesion.obtenerUsuario()); // nombre del usuario actual
+    formData.append('audio', archivoBlob);
+    formData.append('username', Sesion.obtenerUsuario());
 
     try {
         console.log('--- ENVIANDO PETICIÓN AL BACKEND ---', formData.get('username'));
