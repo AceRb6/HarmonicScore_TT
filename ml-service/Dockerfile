@@ -6,6 +6,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    # Agregado para la instalación de git
+    git \ 
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar dependencias
