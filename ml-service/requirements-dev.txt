@@ -1,0 +1,15 @@
+-r requirements.txt
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Evaluación de modelos (RF-07, RNF-07)
+mir_eval==0.7
+
+# Desarrollo
+ipython==8.19.0
+jupyter==1.0.0
+black==24.1.1
+ruff==0.1.14

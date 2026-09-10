@@ -1,0 +1,183 @@
+"""
+Etapa 3: Inferencia con YourMT3+ MoE (checkpoint local).
+Cadena oficial verificada contra el repo de entrenamiento:
+  model/ymt3.py:459,508 | utils/task_manager.py:346 | utils/event2note.py:157
+Incluye fallback baseline (peak-picking) conmutado por config.MODEL_BACKEND
+para garantizar el cierre del Entregable 1 si el checkpoint diera problemas.
+"""
+import sys
+import inspect
+import logging
+from pathlib import Path
+
+import numpy as np
+import torch
+
+ML = Path(__file__).resolve().parents[1]
+SRC = ML / "models" / "amt" / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+import settings as config 
+from utils.audio import load_audio_file, slice_padded_array
+from utils.event2note import note_event2note
+
+log = logging.getLogger("harmonic.model_stage")
+
+SEG = config.MODEL_AUDIO["window"]          # 32767 muestras
+SR = config.MODEL_AUDIO["sr"]               # 16000 Hz
+SEG_SEC = SEG / SR                          # ~2.048 s por ventana
+
+
+# ---------------------------------------------------------------------
+# Carga del modelo (clase descubierta dinámicamente: no asumimos nombre)
+# ---------------------------------------------------------------------
+def _find_model_class():
+    """Descubre la clase del modelo por duck typing, no por identidad de paquete.
+
+    En Lightning 2.x, `lightning` y `pytorch_lightning` son paquetes espejo con
+    objetos de clase DISTINTOS; un issubclass cruzado falla. Por eso buscamos
+    la clase definida en model/ymt3.py que exponga la API de LightningModule
+    (load_from_checkpoint) y la del repo (inference_file).
+    """
+    import model.ymt3 as ymt3_mod
+    candidates = [
+        obj for _, obj in inspect.getmembers(ymt3_mod, inspect.isclass)
+        if obj.__module__ == ymt3_mod.__name__
+        and callable(getattr(obj, "inference_file", None))
+        and callable(getattr(obj, "load_from_checkpoint", None))
+    ]
+    if not candidates:
+        raise RuntimeError("No se encontró la clase del modelo en model/ymt3.py")
+    log.info("Clase del modelo detectada: %s (MRO: %s)",
+             candidates[0].__name__,
+             " -> ".join(c.__name__ for c in candidates[0].__mro__[1:4]))
+    return candidates[0]
+
+
+class RealModel:
+    _instance = None
+
+    @classmethod
+    def get(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+            cls._instance._load()
+        return cls._instance
+
+    def _load(self):
+        # Workaround: torch.compile no está soportado en Windows (PyTorch 2.1.2)
+        import platform
+        if platform.system() == "Windows":
+            import torch
+            original_compile = torch.compile
+            torch.compile = lambda *args, **kwargs: (lambda f: f)  # no-op decorator
+            log.info("torch.compile deshabilitado (Windows)")
+        
+        log.info("Cargando checkpoint real: %s", config.CHECKPOINT_PATH)
+        cls = _find_model_class()
+        self.model = cls.load_from_checkpoint(str(config.CHECKPOINT_PATH),
+                                              map_location="cpu")
+        self.model.eval()
+        self.model.to(config.DEVICE)
+        
+        # El TaskManager ya está montado en el modelo por __init__
+        # (ver model/ymt3.py línea ~107: self.task_manager = task_manager)
+        if not hasattr(self.model, 'task_manager'):
+            raise RuntimeError("El modelo cargado no tiene task_manager. "
+                             "El checkpoint puede estar corrupto.")
+        self.task_manager = self.model.task_manager
+        
+        n = sum(p.numel() for p in self.model.parameters())
+        log.info("Modelo real listo: %.1fM params en %s", n / 1e6, config.DEVICE)
+
+    @torch.no_grad()
+    def transcribe(self, audio_path: Path):
+        """
+        Transcribe audio a notas musicales usando YourMT3+ MoE.
+        
+        Flujo:
+        1. Carga audio a 16 kHz (formato del entrenamiento)
+        2. Segmenta en ventanas de ~2.05 s sin solapamiento
+        3. Inferencia autoregresiva por batch
+        4. Decodificación de tokens a eventos por canal de instrumento
+        5. Conversión a notas estructuradas
+        
+        Returns:
+            Lista de objetos Note con: pitch, onset, offset, velocity, program, is_drum
+        """
+        # 1) Audio 16 kHz (formato del entrenamiento)
+        raw = load_audio_file(str(audio_path), dtype=np.int16)
+        x = (raw.astype(np.float32) / 32768.0).reshape(1, -1)
+
+        # 2) Ventanas de 32767 muestras sin solapamiento
+        segs = slice_padded_array(x, slice_length=SEG, slice_hop=SEG, pad=True)
+        segs_t = torch.from_numpy(segs).unsqueeze(1)          # (n_seg, 1, SEG)
+        log.info("Ventanas: %d x %.3f s", segs_t.shape[0], SEG_SEC)
+
+        # 3) Inferencia autoregresiva oficial
+        # inference_file hace batching internamente con bsz=1
+        preds_list, _ = self.model.inference_file(bsz=1, audio_segments=segs_t)
+        tokens = np.concatenate(preds_list, axis=0)           # (n_seg, C, L)
+        log.info("Tokens predichos: shape %s", tokens.shape)
+
+        # 4) Decodificación por ventana y por canal de instrumento
+        notes = []
+        for i in range(tokens.shape[0]):
+            t0 = i * SEG_SEC
+            for c in range(tokens.shape[1]):
+                tok = [int(t) for t in tokens[i, c]]
+                out = self.task_manager.detokenize(tok, start_time=t0)
+                # Docstring ambiguo (4 o 5 elementos): desempaque defensivo
+                note_events, tie_events = out[0], out[1]
+                seg_notes, err_cnt = note_event2note(note_events, tie_events)
+                if err_cnt:
+                    log.debug("canal %d seg %d: %s", c, i, dict(err_cnt))
+                notes.extend(seg_notes)
+
+        notes.sort(key=lambda n: n.onset)
+        log.info("Notas detectadas: %d", len(notes))
+        return notes
+
+
+# ---------------------------------------------------------------------
+# Fallback baseline Ciclo 1 (peak-picking sobre CQT) — seguro de entrega
+# ---------------------------------------------------------------------
+def _baseline_notes(audio_path: Path):
+    from pipeline import cqt_stage
+    import librosa
+    from scipy.signal import find_peaks
+    y, _ = librosa.load(str(audio_path), sr=config.CQT_PARAMS["sr"], mono=True)
+    mag = cqt_stage.compute_cqt(y)
+    mag_n = mag / (mag.max() + 1e-10)
+    freqs = config.CQT_PARAMS["fmin"] * (2 ** (np.arange(mag.shape[1]) / 12.0))
+    midis = np.round(librosa.hz_to_midi(freqs)).astype(int)
+    notes = []
+    for t in range(mag_n.shape[0]):
+        peaks, props = find_peaks(mag_n[t], height=0.35, distance=2, prominence=0.1)
+        for pk, h in zip(peaks, props["heights"]):
+            notes.append(type("N", (), dict(
+                is_drum=False, program=0, onset=t / config.FRAME_RATE,
+                offset=(t + 1) / config.FRAME_RATE,
+                pitch=int(midis[pk]), velocity=int(min(127, h * 127))))())
+    return notes
+
+
+# ---------------------------------------------------------------------
+# API única para el orquestador
+# ---------------------------------------------------------------------
+def infer_notes(audio_path: Path):
+    """Retorna lista de dicts estándar para post_stage y score_stage."""
+    if config.MODEL_BACKEND == "real":
+        raw = RealModel.get().transcribe(audio_path)
+    else:
+        raw = _baseline_notes(audio_path)
+    return [{
+        "pitch": int(n.pitch),
+        "onset": float(n.onset),
+        "offset": float(n.offset),
+        "velocity": int(n.velocity),
+        "instrument": int(n.program),
+        "is_drum": bool(n.is_drum),
+        "confidence": 1.0,
+    } for n in raw]

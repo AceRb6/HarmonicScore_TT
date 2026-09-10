@@ -1,33 +1,66 @@
-# Core científico
-numpy>=1.26.0,<2.0.0
-scipy>=1.11.0
-pandas>=2.0.0
+# =============================================================================
+# HARMONIC SCORE — requirements.txt
+# Alineado con Reporte Técnico 2026-B115, Sección 4.2.4 y Tabla 21
+# Python: 3.10.13 (validado en Sección 4.2.4)
+# Gestor: uv (recomendado) o pip
+# =============================================================================
 
-# Audio y DSP
+# --- Núcleo científico (versiones fijas por reproducibilidad) ---
+numpy==1.26.4
+scipy==1.11.4
+pandas==2.1.4
+
+# --- Audio y DSP (RF-09, Sección 4.3.1) ---
 librosa==0.11.0
-soundfile>=0.12.0
-sox>=1.4.1
+soundfile==0.12.1
+audioread==3.0.1
+# sox eliminado: librosa cubre todas las transformaciones necesarias
+# y sox requiere binario del sistema (dependencia externa no portable)
 
-# Deep Learning (versión compatible con Python 3.10)
-torch>=2.1.0,<2.5.0
-torchaudio>=2.1.0,<2.5.0
+# --- Deep Learning (Sección 4.3.2, validado en 4.2.4) ---
+torch==2.1.2+cu118
+torchvision==0.16.2+cu118
+torchaudio==2.1.2+cu118
 transformers==4.45.1
-lightning>=2.2.1
-einops>=0.7.0
+einops==0.7.0
+# lightning ELIMINADO: YourMT3+ usa PyTorch puro (Sección 4.3.2)
+# Si lo necesitan para fine-tuning en Ciclo 2, reintroducir como:
+# lightning==2.2.1  # <-- descomentar solo si se usa
 
-# Git dependencies (formato compatible con uv)
-mir_eval @ git+https://github.com/craffel/mir_eval.git@8db0b38
-cosine-annealing-warmup @ git+https://github.com/katsura-jp/pytorch-cosine-annealing-with-warmup.git@12d03c0
+# --- Plan de contingencia R21 (Tabla 22) ---
+basic-pitch==0.4.0
+# Fallback si el bucket S3 de YourMT3+ no está disponible.
+# Impacto cuantificado: +35 ms latencia, -0.03 F1-score (Sección 3.5.10)
 
-# Backend y utilidades
-fastapi>=0.100.0
-uvicorn[standard]>=0.24.0
-python-multipart>=0.0.6
-pydantic>=2.4.0
-APScheduler>=3.10.0
-tqdm>=4.66.0
-python-dotenv>=1.0.0
+# --- Orquestación distribuida (Sección 4.3.3) ---
+ray==2.9.3
+# Paralelización del preprocesamiento CQT (RF-09)
+# Acelera 4.7× en clusters vs secuencial
 
-# Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
+# --- Backend API (Sección 4.3.4, RF-01 a RF-07) ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+pydantic==2.9.0
+pydantic-settings==2.5.0
+
+# --- Generación de partitura (RF-12, RF-13, Sección 4.3.5) ---
+music21==9.1.0
+verovio==4.3.1
+cairosvg==2.7.1
+# cairosvg necesario para conversión SVG → PDF en score_generator.py
+
+# --- Gestión y seguridad (RF-14, RF-15) ---
+APScheduler==3.10.4
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# --- Utilidades ---
+tqdm==4.66.4
+python-dotenv==1.0.1
+
+# --- Evaluación (solo para pruebas, NO en producción) ---
+# Descomentar solo en entorno de desarrollo/testing
+# mir_eval==0.7  # <-- usar versión PyPI en lugar de git
+# pytest==7.4.4
+# pytest-asyncio==0.21.1
