@@ -1,11 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonic Score - Carga Transcripción</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
     <!-- Wavesurfer.js CDN -->
     <script src="https://unpkg.com/wavesurfer.js@7"></script>
     <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
@@ -188,11 +189,11 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="js/sesion.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/navigation.js"></script>
-    <script src="js/wavesurfer-setup.js"></script>
-    <script src="js/transcripcion.js"></script>
-    <script src="js/main.js"></script>
+    <script src="{% static 'js/sesion.js' %}"></script>
+    <script src="{% static 'js/config.js' %}"></script>
+    <script src="{% static 'js/navigation.js' %}"></script>
+    <script src="{% static 'js/wavesurfer-setup.js' %}"></script>
+    <script src="{% static 'js/transcripcion.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

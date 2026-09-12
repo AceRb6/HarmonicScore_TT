@@ -7,6 +7,25 @@ from django.views.decorators.http import require_http_methods
 
 # #--nuevo--
 RECAPTCHA_SECRET_KEY = '6LedhbksAAAAAHAegKlmuLZgwT-G2VohfM4YV25F'
+from django.shortcuts import render
+
+def home(request):
+    return render(request, 'index.html')
+
+def carga(request):
+    return render(request, 'carga.html')
+
+def consultas(request):
+    return render(request, 'consultas.html')
+
+def login_view(request):
+    return render(request, 'login.html')
+
+def registro(request):
+    return render(request, 'registro.html')
+
+def recuperar_page(request):
+    return render(request, 'recuperar-contrasena.html')
 
 def verificar_recaptcha(token):
     """
@@ -112,8 +131,8 @@ import time
 def subir_transcripcion(request):
     """
     CU-04 / CU-05: Subir archivo y transcribir.
-    Esta vista valida el archivo subido y simula el tiempo de procesamiento
-    mientras se integra la solución real de ML.
+    Django actúa como orquestador: recibe el audio del frontend,
+    lo reenvía al ml-service (FastAPI), espera el resultado y lo devuelve al frontend.
     """
     try:
         # 1. Validaciones básicas de recepción
@@ -121,30 +140,65 @@ def subir_transcripcion(request):
             return JsonResponse({'error': 'No se recibió ningún archivo de audio'}, status=400)
             
         archivo = request.FILES['audio']
-        # Validar tamaño y formato (redundante por seguridad)
+        
+        # Validar tamaño y formato
         tamanio_mb = archivo.size / (1024 * 1024)
         if tamanio_mb > 50:
             return JsonResponse({'error': 'Tamaño excedido. El archivo no debe superar los 50 MB'}, status=400)
+        
+        # 2. Reenviar al ml-service (FastAPI en puerto 8000)
+        ml_service_url = 'http://127.0.0.1:8000/api/transcribe'
+        
+        # Preparar el archivo para enviar al ml-service
+        files = {'audio': (archivo.name, archivo.read(), archivo.content_type)}
+        
+        # Llamar al ml-service
+        respuesta_ml = http_requests.post(ml_service_url, files=files)
+        
+        if respuesta_ml.status_code != 202:
+            return JsonResponse({
+                'error': f'Error en el servicio de ML: {respuesta_ml.text}'
+            }, status=500)
+        
+        # El ml-service devuelve un job_id
+        resultado = respuesta_ml.json()
+        job_id = resultado.get('job_id')
+        
+        # 3. Polling: esperar a que el job complete
+        import time
+        max_intentos = 120  # 2 minutos máximo
+        intentos = 0
+        
+        while intentos < max_intentos:
+            time.sleep(1)
+            intentos += 1
             
-        # TODO: Validar MIME type y cabecera binaria real (Pendiente)
-        # TODO: Guardar temporalmente con permisos restringidos (Pendiente)
+            status_url = f'http://127.0.0.1:8000/api/transcribe/{job_id}'
+            status_response = http_requests.get(status_url)
+            
+            if status_response.status_code != 200:
+                continue
+                
+            status_data = status_response.json()
+            
+            if status_data.get('status') == 'completed':
+                # Transcripción completada
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Transcripción completada',
+                    'pdf_url': status_data.get('pdf_url'),
+                    'metrics': status_data.get('metrics', {})
+                }, status=200)
+            
+            elif status_data.get('status') == 'failed':
+                return JsonResponse({
+                    'error': f'Error en el procesamiento: {status_data.get("detail", "Error desconocido")}'
+                }, status=500)
         
-        # 2. Scaffolding para Lógica de Transcripción (CU-05)
-        # ----------------------------------------------------
-        # TODO: Clasificar audio (Monofónico/Polifónico) por entropía espectral.
-        # TODO: Generar representación CQT (Librosa).
-        # TODO: Ejecutar modelo YourMT3-YPTF-MoE-M (PyTorch).
-        # TODO: Aplicar post-procesamiento (Cuantización, Fusión, Armónicos).
-        # TODO: Latencia objetivo: <15 ms por segundo de audio (Medir).
-        # ----------------------------------------------------
-        
-        # Simular delay de procesamiento ML temporalmente
-        time.sleep(2)
-        
+        # Timeout
         return JsonResponse({
-            'success': True,
-            'message': 'Transcripción completada'
-        }, status=200)
+            'error': 'Tiempo de procesamiento excedido'
+        }, status=508)
 
     except Exception as e:
         return JsonResponse({'error': f'Error en el procesamiento: {str(e)}'}, status=500)

@@ -1,16 +1,16 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonic Score - Transcripción Automática de Música con IA</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="css/landing-mejorada.css">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'css/landing-mejorada.css' %}">
 </head>
 <body>
     <!-- HEADER -->
-<!-- HEADER -->
 <header class="header">
     <div class="header-contenido">
         <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
@@ -161,7 +161,7 @@
                 <div class="piano-key white" style="--kd:0.5s"></div>
                 <div class="piano-key white" style="--kd:0.55s"></div>
                 <div class="piano-key black" style="--kd:0.6s"></div>
-                <div class="piano-key white" style="--kd:0.65s"></div>
+                <div class="piano-key black" style="--kd:0.65s"></div>
             </div>
             
             <div class="features-grid">
@@ -350,9 +350,9 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="js/sesion.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/navigation.js"></script>
-    <script src="js/main.js"></script>
+    <script src="{% static 'js/sesion.js' %}"></script>
+    <script src="{% static 'js/config.js' %}"></script>
+    <script src="{% static 'js/navigation.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

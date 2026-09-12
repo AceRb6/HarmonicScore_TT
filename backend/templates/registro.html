@@ -1,14 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonic Score - Registro</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
 </head>
 <body>
-<!-- HEADER -->
 <header class="header">
     <div class="header-contenido">
         <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
@@ -23,51 +23,42 @@
     </div>
 </header>
 
-    <!-- CONTENIDO PRINCIPAL - PANTALLA DIVIDIDA INVERSA -->
     <main class="main" style="max-width: 100%; padding: 0; margin: 0; min-height: calc(100vh - 70px);">
         <div class="login-split" style="border-radius: 0; border: none; box-shadow: none; min-height: calc(100vh - 70px);">
-            <!-- MITAD IZQUIERDA: IMAGEN / BRANDING -->
-            <div class="login-image-side" style="background-image: url('assets/img/registro.png'); background-size: cover; background-position: center; position: relative;">
-                <!-- Opcional: overlay oscuro -->
+            <div class="login-image-side" style="background-image: url('{% static "assets/img/registro.png" %}'); background-size: cover; background-position: center; position: relative;">
                 <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 62, 138, 0.2);"></div>
             </div>
 
-            <!-- MITAD DERECHA: FORMULARIO -->
             <div class="login-form-side" style="padding: 4rem;">
                 <div class="formulario-contenedor" style="box-shadow: none; border: none; padding: 0; max-width: 650px;">
                     <h2 class="formulario-titulo" style="font-size: 3.2rem; text-align: left; margin-bottom: 1rem;">Crea tu cuenta</h2>
                     <p style="color: var(--color-texto-secundario); font-size: 1.25rem; margin-bottom: 2.5rem;">Únete a Harmonic Score y comienza a transcribir.</p>
                     
                     <form id="formulario-registro" class="formulario">
-                        <!-- Nombres -->
                         <div class="formulario-grupo">
                             <label for="nombres" class="formulario-label">Nombres:</label>
                             <input type="text" id="nombres" name="nombres" class="formulario-input" 
                                    placeholder="Ingresa tus nombres" required>
                         </div>
 
-                        <!-- Apellidos -->
                         <div class="formulario-grupo">
                             <label for="apellidos" class="formulario-label">Apellidos:</label>
                             <input type="text" id="apellidos" name="apellidos" class="formulario-input" 
                                    placeholder="Ingresa tus apellidos" required>
                         </div>
 
-                        <!-- Correo -->
                         <div class="formulario-grupo">
                             <label for="correo" class="formulario-label">Correo:</label>
                             <input type="email" id="correo" name="correo" class="formulario-input" 
                                    placeholder="ejemplo@correo.com" required>
                         </div>
 
-                        <!-- Nombre de Usuario -->
                         <div class="formulario-grupo">
                             <label for="nombre-usuario" class="formulario-label">Nombre de Usuario:</label>
                             <input type="text" id="nombre-usuario" name="nombre-usuario" class="formulario-input" 
                                    placeholder="Elige un nombre de usuario" required>
                         </div>
 
-                        <!-- Contraseña -->
                         <div class="formulario-grupo">
                             <label for="contrasena" class="formulario-label">Contraseña:</label>
                             <div class="password-contenedor">
@@ -80,7 +71,6 @@
                             </small>
                         </div>
 
-                        <!-- Confirmar Contraseña -->
                         <div class="formulario-grupo">
                             <label for="confirmar-contrasena" class="formulario-label">Confirmar Contraseña:</label>
                             <div class="password-contenedor">
@@ -90,7 +80,6 @@
                             </div>
                         </div>
 
-                        <!-- reCAPTCHA de Google -->
                         <div class="formulario-grupo">
                             <label class="formulario-label">Verificación:</label>
                             <div id="recaptcha-contenedor">
@@ -104,7 +93,6 @@
                             <small id="captcha-error" style="display:none; color:#EF4444; font-size:0.85em;">Por favor, completa el captcha.</small>
                         </div>
 
-                        <!-- Términos y Condiciones -->
                         <div class="terminos-checkbox-container">
                             <input type="checkbox" id="checkbox-terminos" required>
                             <label for="checkbox-terminos" class="terminos-link" id="label-terminos">
@@ -112,10 +100,8 @@
                             </label>
                         </div>
 
-                        <!-- Contenedor de mensajes (msn1, msn2, msn3) -->
                         <div id="mensaje-registro" class="mensaje-alerta" style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;"></div>
 
-                        <!-- Botón de Registro - DESHABILITADO POR DEFECTO -->
                         <button type="submit" class="btn btn-primario btn-grande btn-deshabilitado" id="btn-registrar" style="width: 100%;" disabled>
                             Registrarse
                         </button>
@@ -129,7 +115,6 @@
         </div>
     </main>
 
-    <!-- MODAL DE TÉRMINOS Y CONDICIONES -->
     <div id="modal-terminos" class="modal-fondo">
         <div class="modal-contenido">
             <button class="modal-cerrar" id="cerrar-terminos">&times;</button>
@@ -176,7 +161,6 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
     <footer class="footer">
         <div class="footer-contenido">
             <div class="footer-seccion">
@@ -200,14 +184,12 @@
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script src="js/sesion.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/navigation.js"></script>
-    <script src="js/validacion.js"></script>
-    <script src="js/main.js"></script>
-    <!-- Google reCAPTCHA API - cargado al final para no bloquear el render -->
+    <script src="{% static 'js/sesion.js' %}"></script>
+    <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'js/config.js' %}"></script>
+    <script src="{% static 'js/navigation.js' %}"></script>
+    <script src="{% static 'js/validacion.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>
