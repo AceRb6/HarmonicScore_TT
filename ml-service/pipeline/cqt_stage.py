@@ -1,51 +1,90 @@
-"""Etapa 2: representación espectral CQT + clasificación de polifonía (RF-08, RF-09)."""
+"""
+Etapa 2: Representación CQT (RF-09) y clasificación de polifonía (RF-08).
+
+Nota de ingeniería (para el TT-II): el TT-I (§3.5.2, Tabla 2) reporta
+n_bins=264 ("22 octavas"), pero con fmin=32.7 Hz y bins_per_octave=12 eso
+produce fmax = 32.7 * 2^(264/12) ≈ 137 MHz, violando el teorema de Nyquist
+para sr=44.1 kHz (22.05 kHz). Se corrige a n_bins=96 (8 octavas), que es
+consistente con el fmax=8372 Hz que el mismo reporte declara en su Tabla 3
+y cubre el rango completo del piano (A0=27.5 Hz a C8=4186 Hz).
+"""
+import logging
+
 import numpy as np
-import torch
 import librosa
+
 import settings as config
 
+log = logging.getLogger("harmonic.cqt_stage")
 
-def compute_cqt(y):
-    """Magnitud CQT (T, 264) con parámetros exactos del reporte."""
+P = config.CQT_PARAMS
+
+
+# ---------------------------------------------------------------------
+# RF-09: Representación espectral CQT
+# ---------------------------------------------------------------------
+def compute_cqt(y: np.ndarray) -> np.ndarray:
+    """Magnitud CQT alineada con percepción musical (relación Δf/f constante)."""
     cqt = librosa.cqt(
-        y=y, sr=config.CQT_PARAMS["sr"],
-        hop_length=config.CQT_PARAMS["hop_length"],
-        fmin=config.CQT_PARAMS["fmin"], n_bins=config.CQT_PARAMS["n_bins"],
-        bins_per_octave=config.CQT_PARAMS["bins_per_octave"],
-        filter_scale=config.CQT_PARAMS["filter_scale"],
-        norm=config.CQT_PARAMS["norm"], sparsity=config.CQT_PARAMS["sparsity"],
-        window=config.CQT_PARAMS["window"],
+        y=y,
+        sr=P["sr"],
+        hop_length=P["hop_length"],
+        fmin=P["fmin"],
+        n_bins=P["n_bins"],
+        bins_per_octave=P["bins_per_octave"],
+        filter_scale=P["filter_scale"],
+        norm=P["norm"],
+        sparsity=P["sparsity"],
+        window=P["window"],
     )
-    return np.abs(cqt).T                      # (T, 264)
+    mag = np.abs(cqt)
+    log.info("CQT computada: shape %s (n_bins=%d, sr=%d Hz)",
+             mag.shape, P["n_bins"], P["sr"])
+    return mag
 
 
-def classify_polyphony(mag):
+# ---------------------------------------------------------------------
+# RF-08: Clasificación monofónico/polifónico por entropía espectral
+# ---------------------------------------------------------------------
+def classify_polyphony(mag: np.ndarray):
     """
-    Entropía espectral (Ilustración 23).
-    DECISIÓN DOCUMENTADA: normalizamos la entropía entre [0,1] dividiendo por
-    log2(n_bins) para que los umbrales 0.35/0.65/0.85/0.95 del reporte sean
-    matemáticamente consistentes (la entropía cruda de 264 bins llega a ~8).
+    Entropía espectral normalizada por frame (0 = tono puro, 1 = ruido blanco),
+    promediada sobre los frames con energía audible.
+
+    Umbrales RF-08 / Ilustración 23 del TT-I:
+        entropía < 0.35  → señal monofónica (flauta, voz solista)
+        entropía ≥ 0.35  → señal polifónica (piano, guitarra)
+
+    Returns:
+        (entropy_mean, level) con level en {'monofonico', 'polifonico'}
     """
-    ents = []
-    for frame in mag:
-        total = frame.sum()
-        if total < 1e-10:
-            continue
-        p = frame / total
-        ents.append(-np.sum(p * np.log2(p + 1e-10)))
-    entropy = float(np.mean(ents)) if ents else 0.0
-    norm_ent = entropy / np.log2(config.CQT_PARAMS["n_bins"])
+    n_bins = mag.shape[0]
+    energy = mag ** 2                                    # potencia por bin
+    prob = energy / (energy.sum(axis=0, keepdims=True) + 1e-10)   # distribución por frame
+    entropy = -np.sum(prob * np.log2(prob + 1e-10), axis=0)       # (T,)
+    entropy_norm = entropy / np.log2(n_bins)                     # normalizada a [0, 1]
 
-    if norm_ent < 0.35:   level = "mono"
-    elif norm_ent < 0.65: level = "low"
-    elif norm_ent < 0.85: level = "medium"
-    elif norm_ent < 0.95: level = "high"
-    else:                 level = "extreme"
-    return norm_ent, level
+    # Excluir frames casi silenciosos para no sesgar con silencio digital
+    frame_energy = energy.sum(axis=0)
+    voiced = frame_energy > (frame_energy.max() * 1e-3)
+    if not voiced.any():
+        voiced = np.ones_like(voiced)
+
+    e = float(entropy_norm[voiced].mean())
+    level = "monofonico" if e < 0.35 else "polifonico"
+    log.info("Polifonía: entropía=%.3f (%s) -> %s", e, entropy_detail(e), level)
+    return e, level
 
 
-def to_tensor(mag):
-    """Tensor de entrada (1, 1, T, 264) normalizado, §3.5.1."""
-    db = librosa.amplitude_to_db(mag, ref=np.max)
-    norm = ((db - db.mean()) / (db.std() + 1e-8)).astype(np.float32)
-    return torch.from_numpy(norm).unsqueeze(0).unsqueeze(0)
+def entropy_detail(e: float) -> str:
+    """Granularidad de 5 niveles (Ilustración 23 TT-I).
+    Reservada para el ruteo dinámico de expertos MoE en Ciclo 3."""
+    if e < 0.35:
+        return "mono"
+    if e < 0.65:
+        return "low"
+    if e < 0.85:
+        return "medium"
+    if e < 0.95:
+        return "high"
+    return "extreme"

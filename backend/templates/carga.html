@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
     <!-- Wavesurfer.js CDN -->
-    <script src="https://unpkg.com/wavesurfer.js@7"></script>
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+    {% comment %} <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script> {% endcomment %}
 </head>
 <body>
 <!-- HEADER -->
@@ -190,9 +190,14 @@
 
     <!-- JavaScript -->
     <script src="{% static 'js/sesion.js' %}"></script>
+    <script src="{% static 'js/api.js' %}"></script>
     <script src="{% static 'js/config.js' %}"></script>
     <script src="{% static 'js/navigation.js' %}"></script>
-    <script src="{% static 'js/wavesurfer-setup.js' %}"></script>
+    <script type="importmap">
+    { "imports": { "wavesurfer.js": "/static/js/vendor/dist/wavesurfer.esm.js" } }
+    </script>
+    <script type="module" src="{% static 'js/wavesurfer-setup.js' %}"></script>
+    <script type="module" src="{% static 'js/wavesurfer-setup.js' %}"></script>
     <script src="{% static 'js/transcripcion.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 </body>

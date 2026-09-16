@@ -1,0 +1,19 @@
+{"job_id": "5db7eb72b9f14f66a2a2e1c8bb7658f6", "status": "failed", "error": "Wavelet basis with max frequency=129455892.82932314 would exceed the Nyquist frequency=22050.0. Try reducing the number of frequency bins."}
+{"job_id": "b201dff80f084036bfccfec4d27e0b96", "status": "failed", "error": "module 'pipeline.cqt_stage' has no attribute 'classify_polyphony'"}
+{"job_id": "23c704bdcd4244d995bab3c6c6225588", "status": "failed", "error": "module 'pipeline.cqt_stage' has no attribute 'to_tensor'"}
+{"job_id": "2f8c2f5c39af4b64a005c091a5d1c1f1", "status": "failed", "error": "module 'pipeline.audio_stage' has no attribute 'load_for_analysis'"}
+{"job_id": "88f07dc835754c13a9d7ad390d2ff7f0", "status": "failed", "error": "module 'pipeline.audio_stage' has no attribute 'load_for_analysis'"}
+{"job_id": "60dc13247c17417c80ef93c8c4fedfc2", "status": "failed", "error": "Unsupported file extension: mp3"}
+{"job_id": "0f5adbd3a23445e78638fb35e9f9b71e", "status": "failed", "error": "Unsupported file extension: mp3"}
+{"job_id": "ff83ef4255fe4edfa2cd9f56848595da", "status": "failed", "error": "Input type (torch.cuda.DoubleTensor) and weight type (torch.cuda.FloatTensor) should be the same"}
+{"job_id": "0db5d1ff561d47b0a87830c0917fd14e", "status": "failed", "error": "name '_convert_to_wav_if_needed' is not defined"}
+{"job_id": "ced19bb1ae0a4f68be18ed3b5853adef", "status": "failed", "error": "name '_convert_to_wav_if_needed' is not defined"}
+{"job_id": "089168462dfe4fa5af56f83e80709795", "status": "failed", "error": "Input type (torch.cuda.DoubleTensor) and weight type (torch.cuda.FloatTensor) should be the same"}
+{"job_id": "32bf99e501e042279a37fd04e1ec16ab", "status": "failed", "error": "all the input array dimensions except for the concatenation axis must match exactly, but along dimension 2, the array at index 0 has size 2 and the array at index 18 has size 10"}
+{"job_id": "0da42ebd6e604bdfa066d71b02e43202", "status": "failed", "error": "unsupported operand type(s) for -: 'float' and 'NoneType'"}
+{"job_id": "a43974dae2e34ed7bb469d2078ebc816", "status": "failed", "error": "local variable 'x' referenced before assignment"}
+{"job_id": "3a2646ad332042f992a0ee8f0a93b6c9", "status": "failed", "error": "'RealModel' object has no attribute 'transcribe'"}
+{"job_id": "65e0bef825c040b1b8f767deed280d58", "status": "failed", "error": "In part (None), measure (20): Cannot convert inexpressible durations to MusicXML."}
+{"job_id": "b6f1764d950049e0951ef863cdbeefd8", "file": "Prefabricated love [sdr64StueDs]", "status": "completed", "audio_load_ms": 1757.9, "duration_s": 194.17, "cqt_ms": 434.0, "polyphony_ms": 17.9, "spectral_entropy": 0.688, "polyphony_level": "polifonico", "model_ms": 109212.4, "post_ms": 0.0, "n_notes": 1783, "score_pdf_ms": 2923.1, "total_ms": 114345.3, "vram_peak_mb": 409.3}
+{"job_id": "097ae786f55942b48937afd766af8348", "file": "Prefabricated love [sdr64StueDs]", "status": "completed", "audio_load_ms": 1633.6, "duration_s": 194.17, "cqt_ms": 448.8, "polyphony_ms": 19.9, "spectral_entropy": 0.688, "polyphony_level": "polifonico", "model_ms": 136299.9, "post_ms": 0.0, "n_notes": 1783, "score_pdf_ms": 3357.2, "total_ms": 141759.6, "vram_peak_mb": 409.3}
+{"job_id": "67c1b9c5497a4bd781d665c982d60aeb", "file": "Prefabricated love [sdr64StueDs]", "status": "completed", "audio_load_ms": 2016.9, "duration_s": 194.17, "cqt_ms": 585.5, "polyphony_ms": 21.6, "spectral_entropy": 0.688, "polyphony_level": "polifonico", "model_ms": 150018.7, "post_ms": 0.0, "n_notes": 1783, "score_pdf_ms": 3360.6, "total_ms": 156003.4, "vram_peak_mb": 409.3}

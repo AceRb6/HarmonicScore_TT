@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import librosa
 
 ML = Path(__file__).resolve().parents[1]
 SRC = ML / "models" / "amt" / "src"
@@ -19,7 +20,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 import settings as config 
-from utils.audio import load_audio_file, slice_padded_array
+from utils.audio import slice_padded_array
 from utils.event2note import note_event2note
 
 log = logging.getLogger("harmonic.model_stage")
@@ -95,48 +96,62 @@ class RealModel:
     def transcribe(self, audio_path: Path):
         """
         Transcribe audio a notas musicales usando YourMT3+ MoE.
-        
-        Flujo:
-        1. Carga audio a 16 kHz (formato del entrenamiento)
-        2. Segmenta en ventanas de ~2.05 s sin solapamiento
-        3. Inferencia autoregresiva por batch
-        4. Decodificación de tokens a eventos por canal de instrumento
-        5. Conversión a notas estructuradas
-        
-        Returns:
-            Lista de objetos Note con: pitch, onset, offset, velocity, program, is_drum
         """
-        # 1) Audio 16 kHz (formato del entrenamiento)
-        raw = load_audio_file(str(audio_path), dtype=np.int16)
-        x = (raw.astype(np.float32) / 32768.0).reshape(1, -1)
+        # 1) Audio 16 kHz usando librosa (maneja MP3/WAV nativamente, devuelve float32)
+        y, sr = librosa.load(str(audio_path), sr=SR, mono=True)
+        
+        # Normalizar a rango [-1, 1] y asegurar float32
+        x = y.astype(np.float32).reshape(1, -1)
+        
+        # 0) Diagnóstico de la entrada (evidencia para root-cause)
+        log.info("Entrada: %d muestras | RMS=%.4f | pico=%.4f",
+                 x.shape[-1], float(np.sqrt(np.mean(x ** 2))), float(np.max(np.abs(x))))
 
         # 2) Ventanas de 32767 muestras sin solapamiento
         segs = slice_padded_array(x, slice_length=SEG, slice_hop=SEG, pad=True)
+        segs = segs.astype(np.float32)
         segs_t = torch.from_numpy(segs).unsqueeze(1)          # (n_seg, 1, SEG)
         log.info("Ventanas: %d x %.3f s", segs_t.shape[0], SEG_SEC)
-
+        
         # 3) Inferencia autoregresiva oficial
-        # inference_file hace batching internamente con bsz=1
         preds_list, _ = self.model.inference_file(bsz=1, audio_segments=segs_t)
-        tokens = np.concatenate(preds_list, axis=0)           # (n_seg, C, L)
-        log.info("Tokens predichos: shape %s", tokens.shape)
+        log.info("preds_list: %d elementos | shape[0]=%s | shape[-1]=%s",
+                 len(preds_list),
+                 np.asarray(preds_list[0]).shape,
+                 np.asarray(preds_list[-1]).shape)
 
-        # 4) Decodificación por ventana y por canal de instrumento
+        # 4) Decodificación por ventana y por canal, con contención de eventos huérfanos
         notes = []
-        for i in range(tokens.shape[0]):
-            t0 = i * SEG_SEC
-            for c in range(tokens.shape[1]):
-                tok = [int(t) for t in tokens[i, c]]
-                out = self.task_manager.detokenize(tok, start_time=t0)
-                # Docstring ambiguo (4 o 5 elementos): desempaque defensivo
-                note_events, tie_events = out[0], out[1]
-                seg_notes, err_cnt = note_event2note(note_events, tie_events)
-                if err_cnt:
-                    log.debug("canal %d seg %d: %s", c, i, dict(err_cnt))
-                notes.extend(seg_notes)
+        skipped = 0
+        seg_idx = 0
+        for pred in preds_list:
+            pred = np.asarray(pred)
+            if pred.ndim == 2:
+                pred = pred[None, ...]
+            for s in range(pred.shape[0]):
+                t0 = seg_idx * SEG_SEC
+                for c in range(pred.shape[1]):
+                    tok = [int(t) for t in pred[s, c]]
+                    if seg_idx < 3 and c < 3:                  # testigo: primeras ventanas
+                        log.info("seg %d canal %d tokens: %s", seg_idx, c, tok[:24])
+                    out = self.task_manager.detokenize(tok, start_time=t0)
+                    note_events, tie_events = out[0], out[1]
+                    try:
+                        seg_notes, err_cnt = note_event2note(note_events, tie_events)
+                    except TypeError as e:
+                        # note-off huérfano (onset=None) en secuencia degenerada:
+                        # se omite el canal sin abortar el job (fragilidad del repo oficial)
+                        skipped += 1
+                        log.debug("seg %d canal %d omitido por eventos malformados: %s",
+                                  seg_idx, c, e)
+                        continue
+                    if err_cnt:
+                        log.debug("canal %d seg %d: %s", c, seg_idx, dict(err_cnt))
+                    notes.extend(seg_notes)
+                seg_idx += 1
 
         notes.sort(key=lambda n: n.onset)
-        log.info("Notas detectadas: %d", len(notes))
+        log.info("Notas detectadas: %d | canales omitidos: %d", len(notes), skipped)
         return notes
 
 
@@ -172,6 +187,7 @@ def infer_notes(audio_path: Path):
         raw = RealModel.get().transcribe(audio_path)
     else:
         raw = _baseline_notes(audio_path)
+    
     return [{
         "pitch": int(n.pitch),
         "onset": float(n.onset),

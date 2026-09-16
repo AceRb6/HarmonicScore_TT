@@ -11,6 +11,7 @@ STORAGE = BASE_DIR / "storage"
 UPLOAD_DIR = STORAGE / "uploads"
 OUTPUT_DIR = STORAGE / "outputs"
 LOG_DIR = STORAGE / "logs"
+VEROVIO_RESOURCE_PATH = r"C:\verovio_data"
 for _d in (UPLOAD_DIR, OUTPUT_DIR, LOG_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
@@ -18,8 +19,8 @@ for _d in (UPLOAD_DIR, OUTPUT_DIR, LOG_DIR):
 CQT_PARAMS = {
     "sr": 44100,
     "hop_length": 512,
-    "fmin": 32.7,
-    "n_bins": 264,
+    "fmin": 32.7,          # Do0
+    "n_bins": 96,          # ← 8 octavas (C0–C8); NO 264 (viola Nyquist, ver docstring)
     "bins_per_octave": 12,
     "filter_scale": 1.0,
     "norm": 1,
