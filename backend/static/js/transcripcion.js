@@ -1,4 +1,9 @@
-/* LÓGICA DE TRANSCRIPCIÓN — CU-05: flujo real vía Django orquestador */
+/* ============================================
+   TRANSCRIPCIÓN — CU-05 (flujo real vía Django orquestador)
+   Contrato: POST {origen}/api/transcripciones/subir/  (multipart, campo 'audio')
+   Respuesta 200: { success, pdf_url, metrics }  (Django proxyea y polea al ml-service)
+   Descarga:      {CONFIG.API_ML}{pdf_url}
+   ============================================ */
 let transcripcionActiva = false;
 let intervaloProgreso = null;
 
@@ -21,8 +26,8 @@ function setProgreso(pct, texto) {
     if (mini) { mini.style.width = pct + '%'; mini.textContent = texto; }
 }
 
-/* Barra estimada (el proxy Django es síncrono: no hay etapas que pollear
-   desde el front en Ciclo 1; se documenta como limitación CU-05/RNF-02) */
+/* Barra estimada: el proxy Django es síncrono; el progreso real por etapas
+   llega en Ciclo 2 (polling async del contrato Ilustración 39). */
 function iniciarBarraEstimada() {
     const t0 = Date.now();
     intervaloProgreso = setInterval(() => {
@@ -37,6 +42,11 @@ async function iniciarTranscripcionReal() {
         mostrarError('No hay ningún archivo válido seleccionado para transcribir.');
         return;
     }
+    if (typeof DjangoAPI === 'undefined') {
+        mostrarError('Falta cargar api.js en esta página.');
+        return;
+    }
+
     transcripcionActiva = true;
     setProgreso(5, 'Enviando audio...');
     document.getElementById('modal-progreso').classList.add('activo');
@@ -48,12 +58,13 @@ async function iniciarTranscripcionReal() {
     try {
         const r = await DjangoAPI.peticion('/transcripciones/subir/', 'POST', formData);
         clearInterval(intervaloProgreso);
-        if (r.ok) {
+
+        if (r.ok && r.data && r.data.success) {
             setProgreso(100, '100%');
             guardarJobLocal(r.data);
-            setTimeout(() => finalizarTranscripcion(true), 3000);
+            finalizarTranscripcion(true);          // msn1 + redirección (CU-05 pasos 8-9)
         } else {
-            throw new Error(r.data.error || 'Error en el procesamiento');
+            throw new Error((r.data && r.data.error) || 'Error en el procesamiento');
         }
     } catch (e) {
         clearInterval(intervaloProgreso);
@@ -69,7 +80,7 @@ function guardarJobLocal(data) {
         titulo: archivoActual.name,
         fecha: new Date().toLocaleDateString('es-MX'),
         estado: 'completado',
-        url_descarga: CONFIG.API_ML_URL + (data.pdf_url || ''),
+        url_descarga: CONFIG.API_ML + (data.pdf_url || ''),   // artefacto desde FastAPI
         metrics: data.metrics || null
     });
     localStorage.setItem('hs_jobs', JSON.stringify(jobs.slice(0, 20)));
@@ -78,9 +89,12 @@ function guardarJobLocal(data) {
 function finalizarTranscripcion(esExito) {
     if (!esExito) return;
     transcripcionActiva = false;
+    const titulo = document.querySelector('#modal-progreso .modal-titulo');
+    if (titulo) titulo.textContent = 'Transcripción completada';
+    const nota = document.querySelector('#modal-progreso p');
+    if (nota) nota.textContent = 'Redirigiendo a consultas…';
     setTimeout(() => {
         document.getElementById('modal-progreso').classList.remove('activo');
-        alert('Transcripción completada. Redirigiendo a consultas...');   // msn1 CU-05
         window.location.href = 'consultas.html';
-    }, 500);
+    }, 2000);
 }

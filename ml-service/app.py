@@ -14,6 +14,21 @@ from jobs import JobManager, JobStatus
 from pipeline.orchestrator import Orchestrator
 from pipeline import model_stage
 
+import librosa
+
+def validar_duracion(path: Path, max_segundos: int = 360):
+    try:
+        duracion = librosa.get_duration(path=str(path))
+        if duracion > max_segundos:
+            raise HTTPException(
+                400, 
+                f"Duración excedida. El archivo no debe superar los {max_segundos//60} minutos."
+            )
+    except Exception as e:
+        if "duration" in str(e).lower():
+            raise HTTPException(400, "No se pudo determinar la duración del audio")
+        raise
+
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s | %(levelname)s | %(message)s")
 log = logging.getLogger("ml-service")
@@ -38,7 +53,12 @@ app = FastAPI(title="Harmonic Score ML Service", version="0.3.0", lifespan=lifes
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:8001",  # Django dev server
+        "http://127.0.0.1:8001",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
