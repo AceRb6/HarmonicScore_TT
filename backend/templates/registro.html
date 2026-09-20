@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de registro -->
     <title>Harmonic Score - Registro</title>
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
@@ -17,7 +18,7 @@
         </div>
         <nav class="header-nav">
             <ul>
-                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Registro de Usuario</span></li>
+                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Registro de usuario</span></li>
             </ul>
         </nav>
     </div>
@@ -54,7 +55,7 @@
                         </div>
 
                         <div class="formulario-grupo">
-                            <label for="nombre-usuario" class="formulario-label">Nombre de Usuario:</label>
+                            <label for="nombre-usuario" class="formulario-label">Nombre de usuario:</label>
                             <input type="text" id="nombre-usuario" name="nombre-usuario" class="formulario-input" 
                                    placeholder="Elige un nombre de usuario" required>
                         </div>
@@ -72,7 +73,7 @@
                         </div>
 
                         <div class="formulario-grupo">
-                            <label for="confirmar-contrasena" class="formulario-label">Confirmar Contraseña:</label>
+                            <label for="confirmar-contrasena" class="formulario-label">Confirmar contraseña:</label>
                             <div class="password-contenedor">
                                 <input type="password" id="confirmar-contrasena" name="confirmar-contrasena" 
                                        class="formulario-input" placeholder="Confirma tu contraseña" required>
@@ -96,7 +97,7 @@
                         <div class="terminos-checkbox-container">
                             <input type="checkbox" id="checkbox-terminos" required>
                             <label for="checkbox-terminos" class="terminos-link" id="label-terminos">
-                                He leído y acepto los Términos y Condiciones
+                                He leído y acepto los términos y condiciones
                             </label>
                         </div>
 
@@ -118,7 +119,7 @@
     <div id="modal-terminos" class="modal-fondo">
         <div class="modal-contenido">
             <button class="modal-cerrar" id="cerrar-terminos">&times;</button>
-            <h3 class="modal-titulo">Términos y Condiciones</h3>
+            <h3 class="modal-titulo">Términos y condiciones</h3>
             
             <div class="terminos-contenido" id="terminos-scroll">
                 <div class="terminos-texto">
@@ -176,7 +177,7 @@
             <div class="footer-seccion">
                 <h3>Institución</h3>
                 <p>ESCOM</p>
-                <p>Proyecto Académico 2026-B115</p>
+                <p>Proyecto académico 2026-B115</p>
             </div>
         </div>
         <div class="footer-inferior">

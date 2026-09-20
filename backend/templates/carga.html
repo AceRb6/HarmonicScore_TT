@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmonic Score - Carga Transcripción</title>
+<!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de carga -->
+    <title>Harmonic Score - Carga de transcripción</title>
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
     <!-- Wavesurfer.js CDN -->
@@ -25,7 +26,7 @@
                 <li><a href="carga.html" class="activo">Transcribir</a></li>
                 <li><a href="consultas.html">Transcripciones</a></li>
                 <li><a href="registro.html">Registrarse</a></li>
-                <li><a href="login.html">Iniciar Sesión</a></li>
+                <li><a href="login.html">Iniciar sesión</a></li>
             </ul>
         </nav>
     </div>
@@ -35,26 +36,65 @@
     <main class="main" style="max-width: 100%; padding: 0; margin: 0; background: var(--color-fondo); min-height: calc(100vh - 70px); display: flex;">
         <div class="workspace-container" style="display: flex; flex-wrap: wrap; width: 100%; height: 100%;">
             
-            <!-- PANEL IZQUIERDO: VISUALIZACIÓN Y ONDAS (70%) -->
-            <div class="workspace-left" style="flex: 7; min-width: 600px; padding: 3rem; display: flex; flex-direction: column;">
-                <h2 style="font-size: 2.2rem; font-weight: 700; color: var(--color-header); margin-bottom: 2rem;">Visualización de Audio</h2>
+            <!-- #2026-09-19 + PANEL IZQUIERDO: VISUALIZACIÓN, DELIMITACIÓN Y REPRODUCCIÓN (70%) -->
+            <div class="workspace-left" style="flex: 7; min-width: 600px; padding: 2.5rem 3rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-size: 2rem; font-weight: 700; color: var(--color-header); margin: 0;">Área de trabajo de audio</h2>
+                    <span id="badge-estado-audio" style="font-size: 0.95rem; font-weight: 600; color: #0284C7; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 0.35rem 1rem; border-radius: 20px;">Sin audio cargado</span>
+                </div>
                 
-                <!-- Contenedor Wavesurfer gigante -->
-                <div class="waveform-contenedor" style="background: #F8FAFC; padding: 2rem; border-radius: 16px; border: 2px solid #E2E8F0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 450px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);">
-                    <div id="waveform" style="width: 100%;"></div>
-                    <div id="waveform-timeline" style="margin-top: 1rem; width: 100%;"></div>
-                    <!-- Placeholder visual si no hay audio -->
-                    <div id="waveform-placeholder" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #94A3B8; font-size: 1.6rem; font-weight: 500;">
-                        El espectrograma aparecerá aquí
+                <!-- #2026-09-19 + MÓDULO 1: Espectrograma grande del archivo de audio -->
+                <div class="spectrogram-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--color-primario); margin: 0;">1. Espectrograma de onda principal</h3>
+                        <span style="font-size: 0.9rem; color: var(--color-texto-secundario);">Visualización en alta resolución</span>
+                    </div>
+                    <div style="position: relative;">
+                        <div id="waveform" style="width: 100%;"></div>
+                        <!-- Placeholder visual si no hay audio -->
+                        <div id="waveform-placeholder">
+                            <div style="font-size: 3rem; margin-bottom: 0.5rem; color: #7DD3FC;">🎵</div>
+                            <p style="font-size: 1.3rem; font-weight: 600; margin: 0 0 0.4rem 0; color: #0369A1;">Espectrograma de audio</p>
+                            <p style="font-size: 0.95rem; margin: 0; color: #64748B;">Carga un archivo de audio para visualizar su espectrograma completo.</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Barra de edición/reproducción debajo de las ondas -->
-                <div class="controles-reproduccion" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: var(--sombra-suave);">
-                    <button class="btn btn-secundario" id="btn-play" type="button" style="border-radius: 50px; padding: 1rem 3rem; font-size: 1.3rem;">
-                        <span style="font-size: 1.3rem; margin-right: 8px;">▶</span> Reproducir / Pausar
+                <!-- #2026-09-19 + MÓDULO 2: Delimitación de Audio con Línea Fina e Inicio/Fin -->
+                <div class="delimitation-card">
+                    <div class="delimitation-header">
+                        <div class="delimitation-info-left">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--color-header); margin: 0 0 0.5rem 0;">2. Delimitación y recorte de segmento</h3>
+                            <!-- #2026-09-19 + Indicadores formales monocromáticos del lado izquierdo -->
+                            <div class="delimitacion-indicadores-formales">
+                                <span class="indicador-formal"><strong>Inicio:</strong> <span id="tiempo-inicio">00:00.0</span></span>
+                                <span class="indicador-formal"><strong>Fin:</strong> <span id="tiempo-fin">00:00.0</span></span>
+                                <span class="indicador-formal"><strong>Segmento:</strong> <span id="tiempo-seleccion">00:00.0</span></span>
+                                <span class="indicador-formal limites-texto">Mín: 01:00 | Máx: 06:00</span>
+                            </div>
+                        </div>
+                        <div class="delimitation-actions-right">
+                            <!-- #2026-09-19 + Botón con colores destacados para restaurar audio al rango permitido -->
+                            <button type="button" id="btn-reset-region" class="btn-restaurar-audio" title="Restaurar delimitación al rango permitido">
+                                <span class="icono-restaurar">↺</span> Restaurar audio
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="waveform-minimap" style="width: 100%;"></div>
+                    <div id="waveform-timeline" style="width: 100%;"></div>
+                </div>
+
+                <!-- #2026-09-19 + MÓDULO DE CONTROL: Botón Circular de Play para reproducir la música acotada -->
+                <div class="controles-reproduccion-circular">
+                    <button class="btn-play-circular" id="btn-play-circular" type="button" disabled title="Reproducir / pausar fragmento acotado" aria-label="Reproducir fragmento">
+                        <span id="icono-play-circular">▶</span>
                     </button>
-                    <!-- Espacio para futuros controles: zoom, volumen, etc. -->
+                    <div class="texto-reproduccion-info">
+                        <span id="estado-reproduccion-texto">Reproducir fragmento delimitado</span>
+                        <span style="color: #94A3B8;">|</span>
+                        <span id="tiempo-reproduccion-actual" style="font-weight: 700; color: var(--color-primario);">00:00.0</span> / <span id="tiempo-reproduccion-total">00:00.0</span>
+                    </div>
                 </div>
             </div>
 
@@ -63,7 +103,7 @@
                 
                 <!-- Área de Carga -->
                 <div class="card" style="background: white; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; border-radius: 16px;">
-                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">1. Cargar Archivo</h3>
+                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">1. Cargar archivo</h3>
                     <div class="carga-archivo-area" id="drop-zone" style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #7DD3FC; background: #F0F9FF; border-radius: 12px; margin-top: 1rem;">
                         <div id="drop-icono" class="carga-archivo-icono" style="font-size: 3.5rem; margin-bottom: 0.5rem; color: #0284C7;">📁</div>
                         <p id="drop-texto-1" class="carga-archivo-texto" style="font-size: 1.2rem; font-weight: 600; margin: 0.5rem 0; color: #0369A1;">Arrastra tu audio aquí</p>
@@ -77,7 +117,7 @@
 
                 <!-- Información -->
                 <div class="card" style="background: white; flex-grow: 1; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; display: flex; flex-direction: column; border-radius: 16px;">
-                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">2. Estadísticas del Audio</h3>
+                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">2. Estadísticas del audio</h3>
                     
                     <div id="detalles-vacio" style="text-align: center; padding: 3rem 1rem; color: #94A3B8; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 500;">
                         Sube un archivo para ver sus propiedades.
@@ -174,13 +214,13 @@
             <div class="footer-seccion">
                 <h3>Institución</h3>
                 <p>ESCOM</p>
-                <p>Proyecto Académico 2026-B115</p>
+                <p>Proyecto académico 2026-B115</p>
             </div>
             <div class="footer-seccion">
                 <h3>Contacto</h3>
                 <p>Email: harmonic.score@escom.ipn.mx</p>
-                <p><a href="#" id="footer-terminos">Términos y Condiciones</a></p>
-                <p><a href="#">Aviso de Privacidad</a></p>
+                <p><a href="#" id="footer-terminos">Términos y condiciones</a></p>
+                <p><a href="#">Aviso de privacidad</a></p>
             </div>
         </div>
         <div class="footer-inferior">

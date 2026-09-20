@@ -1,45 +1,282 @@
 /* ============================================
    WAVESURFER.JS - Estilos personalizados
+   Harmonic Score - Transcripción y Delimitación
    ============================================ */
+
+/* #2026-09-19 + Contenedor del espectrograma mayor */
+.spectrogram-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--sombra-suave);
+    position: relative;
+}
 
 #waveform {
     width: 100%;
-    height: 120px;
-    background-color: var(--color-fondo);
-    border-radius: var(--borde-radio-md);
-    margin-bottom: var(--espaciado-md);
+    height: 200px;
+    background: linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%);
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* #2026-09-19 + Placeholder visual mientras no hay audio cargado */
+#waveform-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #94A3B8;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* #2026-09-19 + Módulo de delimitación y recorte de audio */
+.delimitation-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #BAE6FD;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--sombra-suave);
+    position: relative;
+}
+
+.delimitation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.delimitation-info-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* #2026-09-19 + Botón destacado y colorido para restaurar audio */
+.btn-restaurar-audio {
+    background: linear-gradient(135deg, #0284C7 0%, #024E8A 100%);
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    padding: 0.6rem 1.3rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(2, 78, 138, 0.3);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    user-select: none;
+}
+
+.btn-restaurar-audio:hover {
+    background: linear-gradient(135deg, #0369A1 0%, #03366E 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(2, 78, 138, 0.45);
+}
+
+.btn-restaurar-audio:active {
+    transform: translateY(0);
+}
+
+.btn-restaurar-audio .icono-restaurar {
+    font-size: 1.15rem;
+    font-weight: 900;
+    display: inline-block;
+    transition: transform 0.35s ease;
+}
+
+.btn-restaurar-audio:hover .icono-restaurar {
+    transform: rotate(-180deg);
+}
+
+/* #2026-09-19 + Indicadores formales monocromáticos alineados a la izquierda */
+.delimitacion-indicadores-formales {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+}
+
+.indicador-formal {
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    color: #1E293B;
+    font-size: 0.92rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.indicador-formal strong {
+    color: #475569;
+    font-weight: 600;
+}
+
+.indicador-formal span {
+    color: #0F172A;
+    font-weight: 700;
+}
+
+.indicador-formal.limites-texto {
+    background: #F1F5F9;
+    border-color: #E2E8F0;
+    color: #64748B;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* #2026-09-19 + Contenedor de línea fina para el minimapa/timeline */
+#waveform-minimap {
+    width: 100%;
+    height: 70px;
+    background: #F8FAFC;
+    border-radius: 8px;
+    border: 1px solid #CBD5E1;
+    position: relative;
+    overflow: visible;
 }
 
 #waveform-timeline {
     width: 100%;
-    height: 30px;
-    background-color: var(--color-fondo);
-    border-radius: var(--borde-radio-sm);
+    height: 25px;
+    margin-top: 0.4rem;
 }
 
-.wavesurfer-region {
-    background-color: rgba(255, 145, 0, 0.3) !important;
-    border: 2px solid var(--color-primario) !important;
+/* #2026-09-19 + Estilos de la región de selección y delimitadores de inicio y fin */
+.wavesurfer-region,
+[part~="region"] {
+    background-color: rgba(2, 132, 199, 0.2) !important;
+    border-top: 2px solid #0284C7 !important;
+    border-bottom: 2px solid #0284C7 !important;
+    border-radius: 4px;
 }
 
-.wavesurfer-handle {
-    background-color: var(--color-primario) !important;
-    width: 10px !important;
+/* #2026-09-19 + Barras de arrastre de inicio (izquierda a derecha) y fin (derecha a izquierda) */
+[part~="region-handle-left"],
+[part~="region-handle-right"] {
+    width: 16px !important;
+    background: #0284C7 !important;
+    cursor: ew-resize !important;
+    transition: background 0.15s, transform 0.15s !important;
+    box-shadow: 0 0 10px rgba(2, 62, 138, 0.4) !important;
+    top: -4px !important;
+    bottom: -4px !important;
+    z-index: 20 !important;
+    border-radius: 4px !important;
+    border: 2px solid #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-.wavesurfer-play-button {
-    background-color: var(--color-primario);
-    color: var(--color-blanco);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
+[part~="region-handle-left"]:hover,
+[part~="region-handle-right"]:hover {
+    background: #0369A1 !important;
+    transform: scaleX(1.15);
+}
+
+[part~="region-handle-left"]::after {
+    content: '◀';
+    font-size: 8px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+[part~="region-handle-right"]::after {
+    content: '▶';
+    font-size: 8px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* #2026-09-19 + Botón circular de reproducción del segmento acotado */
+.controles-reproduccion-circular {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    margin: 0 auto;
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    box-shadow: var(--sombra-suave);
+    gap: 0.8rem;
 }
 
-.wavesurfer-play-button:hover {
-    background-color: var(--color-primario-hover);
+.btn-play-circular {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284C7 0%, #023E8A 100%);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 4px 18px rgba(2, 62, 138, 0.35);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    user-select: none;
 }
+
+.btn-play-circular:hover:not(:disabled) {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(2, 62, 138, 0.45);
+    background: linear-gradient(135deg, #0369A1 0%, #03045E 100%);
+}
+
+.btn-play-circular:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.btn-play-circular:disabled {
+    background: #CBD5E1;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-play-circular.reproduciendo {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.2), 0 4px 18px rgba(4, 120, 87, 0.35);
+    animation: pulsoReproduccion 1.8s infinite;
+}
+
+@keyframes pulsoReproduccion {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4), 0 4px 18px rgba(4, 120, 87, 0.35);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(16, 185, 129, 0), 0 4px 18px rgba(4, 120, 87, 0.35);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 4px 18px rgba(4, 120, 87, 0.35);
+    }
+}
+
+.texto-reproduccion-info {
+    font-size: 1rem;
+    color: var(--color-texto-secundario);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

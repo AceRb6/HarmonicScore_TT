@@ -2,9 +2,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de recuperar contraseña -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmonic Score - Recuperar Contraseña</title>
+    <title>Harmonic Score - Recuperar contraseña</title>
     <meta name="description" content="Recupera el acceso a tu cuenta de Harmonic Score ingresando tu correo registrado.">
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
@@ -18,7 +19,7 @@
         </div>
         <nav class="header-nav">
             <ul>
-                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Recuperar Contraseña</span></li>
+                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Recuperar contraseña</span></li>
             </ul>
         </nav>
     </div>
@@ -29,7 +30,7 @@
 
             <div style="text-align: center; margin-bottom: 1rem;">
                 <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🔑</div>
-                <h2 class="formulario-titulo">Recuperar Contraseña</h2>
+                <h2 class="formulario-titulo">Recuperar contraseña</h2>
                 <p style="color: var(--color-texto-secundario); font-size: 0.97rem; margin-top: -0.5rem; margin-bottom: 1.5rem;">
                     Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
@@ -73,7 +74,8 @@
             <div class="footer-seccion">
                 <h3>Institución</h3>
                 <p>ESCOM</p>
-                <p>Proyecto Académico 2026-B115</p>
+                <!-- #2026-09-19 + Normalización de mayúsculas en footer -->
+                <p>Proyecto académico 2026-B115</p>
             </div>
         </div>
         <div class="footer-inferior">

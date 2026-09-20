@@ -85,15 +85,27 @@ function renderizarWidgetSesion() {
         Sesion.cerrar();
     });
 
-    // Mostrar/ocultar dropdown al hacer hover con mouse
+    // #2026-09-19 + Mostrar/ocultar menú de cerrar sesión únicamente al hacer clic en el botón/icono de usuario
     const btn = document.getElementById('sesion-usuario-btn');
     const dropdown = document.getElementById('sesion-dropdown');
 
-    widget.addEventListener('mouseenter', () => {
-        dropdown.classList.add('visible');
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('visible');
     });
-    widget.addEventListener('mouseleave', () => {
-        dropdown.classList.remove('visible');
+
+    // #2026-09-19 + Cierre del menú desplegable al hacer clic fuera del widget
+    document.addEventListener('click', (e) => {
+        if (!widget.contains(e.target)) {
+            dropdown.classList.remove('visible');
+        }
+    });
+
+    // #2026-09-19 + Cierre del menú desplegable al presionar la tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            dropdown.classList.remove('visible');
+        }
     });
 }
 
@@ -169,7 +181,7 @@ function inyectarEstilosSesion() {
             white-space: nowrap;
         }
 
-        /* Dropdown (oculto por defecto, visible al hacer hover) */
+        /* #2026-09-19 + Dropdown (oculto por defecto, visible únicamente al hacer clic en el botón de usuario) */
         .sesion-dropdown {
             position: absolute;
             top: calc(100% + 5px);
@@ -245,8 +257,9 @@ function protegerBotonesInvitado() {
     bloquear('#btn-examinar', true);
     // Drop zone (arrastrar archivo)
     bloquear('#drop-zone', true);
-    // Botón "Reproducir Selección"
+    // #2026-09-19 + Botones de reproducción (estándar y circular)
     bloquear('#btn-play', true);
+    bloquear('#btn-play-circular', true);
     // Botón "Transcribir"
     bloquear('#btn-transcribir', true);
 

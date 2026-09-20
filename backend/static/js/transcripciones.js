@@ -111,7 +111,8 @@ const Transcripciones = {
                     descargaHtml = `<td><span style="color:var(--color-error);font-weight:bold;">Error</span></td>`;
                     break;
                 case 'proceso':
-                    estadoHtml   = `<td class="estado-proceso">⊖ En Proceso</td>`;
+                    // #2026-09-19 + Normalización de mayúsculas a texto formal tipo oración
+                    estadoHtml   = `<td class="estado-proceso">⊖ En proceso</td>`;
                     descargaHtml = `<td><span style="color:var(--color-proceso);">--</span></td>`;
                     break;
                 default:
