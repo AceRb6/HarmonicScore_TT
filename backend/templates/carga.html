@@ -1,132 +1,179 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de carga -->
+    <!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de carga -->
     <title>Harmonic Score - Carga de transcripción</title>
     <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
     <!-- Wavesurfer.js CDN -->
-    {% comment %} <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    {% comment %}
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
     <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script> {% endcomment %}
 </head>
+
 <body>
-<!-- HEADER -->
-<header class="header">
-    <div class="header-contenido">
-        <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
-            <div class="header-logo-img">HS</div>
-            <h1 class="header-titulo">Harmonic Score</h1>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-contenido">
+            <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+                <div class="header-logo-img">HS</div>
+                <h1 class="header-titulo">Harmonic Score</h1>
+            </div>
+            <nav class="header-nav">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="carga.html" class="activo">Transcribir</a></li>
+                    <li><a href="consultas.html">Transcripciones</a></li>
+                    <li><a href="registro.html">Registrarse</a></li>
+                    <li><a href="login.html">Iniciar sesión</a></li>
+                </ul>
+            </nav>
         </div>
-        <nav class="header-nav">
-            <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="carga.html" class="activo">Transcribir</a></li>
-                <li><a href="consultas.html">Transcripciones</a></li>
-                <li><a href="registro.html">Registrarse</a></li>
-                <li><a href="login.html">Iniciar sesión</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
+    </header>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="main" style="max-width: 100%; padding: 0; margin: 0; background: var(--color-fondo); min-height: calc(100vh - 70px); display: flex;">
+    <main class="main"
+        style="max-width: 100%; padding: 0; margin: 0; background: var(--color-fondo); min-height: calc(100vh - 70px); display: flex;">
         <div class="workspace-container" style="display: flex; flex-wrap: wrap; width: 100%; height: 100%;">
-            
+
             <!-- #2026-09-19 + PANEL IZQUIERDO: VISUALIZACIÓN, DELIMITACIÓN Y REPRODUCCIÓN (70%) -->
-            <div class="workspace-left" style="flex: 7; min-width: 600px; padding: 2.5rem 3rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="workspace-left"
+                style="flex: 7; min-width: 600px; padding: 2.5rem 3rem; display: flex; flex-direction: column; gap: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="font-size: 2rem; font-weight: 700; color: var(--color-header); margin: 0;">Área de trabajo de audio</h2>
-                    <span id="badge-estado-audio" style="font-size: 0.95rem; font-weight: 600; color: #0284C7; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 0.35rem 1rem; border-radius: 20px;">Sin audio cargado</span>
+                    <h2 style="font-size: 2.2rem; font-weight: 600; color: var(--color-header); margin: 0;">Área de
+                        trabajo de audio</h2>
+                    <span id="badge-estado-audio"
+                        style="font-size: 0.95rem; font-weight: 600; color: #0284C7; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 0.35rem 1rem; border-radius: 20px;">Sin
+                        audio cargado</span>
                 </div>
-                
-                <!-- #2026-09-19 + MÓDULO 1: Espectrograma grande del archivo de audio -->
-                <div class="spectrogram-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                        <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--color-primario); margin: 0;">1. Espectrograma de onda principal</h3>
-                        <span style="font-size: 0.9rem; color: var(--color-texto-secundario);">Visualización en alta resolución</span>
+
+                <!-- SECCION 1: Vista general de la pieza -->
+                <div class="spectrogram-card"
+                    style="border-top: 3px solid #0056b3; background: #fff; box-shadow: var(--sombra-suave); border-radius: 16px;">
+                    <div style="margin-bottom: 0.8rem;">
+                        <h3
+                            style="font-size: 1.25rem; font-weight: 600; color: #fff; background: #0056b3; margin: 0; padding: 0.5rem 1rem; border-radius: 8px; display: inline-block;">
+                            1. Vista general de la pieza</h3>
+                        <p style="font-size: 0.9rem; color: var(--color-texto-secundario); margin: 0.4rem 0 0 0;">
+                            Visualiza la forma de onda completa.</p>
                     </div>
                     <div style="position: relative;">
                         <div id="waveform" style="width: 100%;"></div>
                         <!-- Placeholder visual si no hay audio -->
                         <div id="waveform-placeholder">
-                            <div style="font-size: 3rem; margin-bottom: 0.5rem; color: #7DD3FC;">🎵</div>
-                            <p style="font-size: 1.3rem; font-weight: 600; margin: 0 0 0.4rem 0; color: #0369A1;">Espectrograma de audio</p>
-                            <p style="font-size: 0.95rem; margin: 0; color: #64748B;">Carga un archivo de audio para visualizar su espectrograma completo.</p>
+                            <p style="font-size: 1.3rem; font-weight: 600; margin: 0 0 0.4rem 0; color: #0369A1;">Forma
+                                de onda</p>
+                            <p style="font-size: 0.95rem; margin: 0; color: #64748B;">Carga un archivo de audio para
+                                visualizar su forma de onda completa.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- #2026-09-19 + MÓDULO 2: Delimitación de Audio con Línea Fina e Inicio/Fin -->
-                <div class="delimitation-card">
+                <!-- SECCION 2: Selecciona el fragmento a transcribir -->
+                <div class="delimitation-card"
+                    style="border-top: 3px solid #0056b3; background: #fff; box-shadow: var(--sombra-suave); border-radius: 16px;">
                     <div class="delimitation-header">
                         <div class="delimitation-info-left">
-                            <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--color-header); margin: 0 0 0.5rem 0;">2. Delimitación y recorte de segmento</h3>
-                            <!-- #2026-09-19 + Indicadores formales monocromáticos del lado izquierdo -->
-                            <div class="delimitacion-indicadores-formales">
-                                <span class="indicador-formal"><strong>Inicio:</strong> <span id="tiempo-inicio">00:00.0</span></span>
-                                <span class="indicador-formal"><strong>Fin:</strong> <span id="tiempo-fin">00:00.0</span></span>
-                                <span class="indicador-formal"><strong>Segmento:</strong> <span id="tiempo-seleccion">00:00.0</span></span>
-                                <span class="indicador-formal limites-texto">Mín: 01:00 | Máx: 06:00</span>
+                            <h3
+                                style="font-size: 1.2rem; font-weight: 600; color: #fff; background: #0056b3; margin: 0 0 0.3rem 0; padding: 0.5rem 1rem; border-radius: 8px; display: inline-block;">
+                                2. Selecciona el fragmento a transcribir</h3>
+                            <p style="font-size: 0.9rem; color: var(--color-texto-secundario); margin: 0 0 0.5rem 0;">
+                                Arrastra los marcadores para elegir el pasaje exacto.</p>
+                            <!-- Indicadores ocultos para JS (mantienen IDs intactos) -->
+                            <div class="delimitacion-indicadores-formales" style="display: none;">
+                                <span class="indicador-formal"><strong>Inicio:</strong> <span
+                                        id="tiempo-inicio">00:00.0</span></span>
+                                <span class="indicador-formal"><strong>Fin:</strong> <span
+                                        id="tiempo-fin">00:00.0</span></span>
+                                <span class="indicador-formal"><strong>Segmento:</strong> <span
+                                        id="tiempo-seleccion">00:00.0</span></span>
                             </div>
+                            <!-- Duracion seleccionada visible -->
+                            <p id="duracion-seleccionada"
+                                style="font-size: 0.85rem; color: #555; margin: 0.3rem 0 0 0; text-align: left;">
+                                Duracion seleccionada: <strong id="duracion-valor">--</strong></p>
                         </div>
                         <div class="delimitation-actions-right">
-                            <!-- #2026-09-19 + Botón con colores destacados para restaurar audio al rango permitido -->
-                            <button type="button" id="btn-reset-region" class="btn-restaurar-audio" title="Restaurar delimitación al rango permitido">
-                                <span class="icono-restaurar">↺</span> Restaurar audio
+                            <button type="button" id="btn-reset-region" class="btn-restaurar-audio"
+                                title="Restaurar delimitacion al rango permitido">
+                                <span class="icono-restaurar">&#8634;</span> Restaurar audio
                             </button>
                         </div>
                     </div>
-                    
+
                     <div id="waveform-minimap" style="width: 100%;"></div>
                     <div id="waveform-timeline" style="width: 100%;"></div>
                 </div>
 
-                <!-- #2026-09-19 + MÓDULO DE CONTROL: Botón Circular de Play para reproducir la música acotada -->
-                <div class="controles-reproduccion-circular">
-                    <button class="btn-play-circular" id="btn-play-circular" type="button" disabled title="Reproducir / pausar fragmento acotado" aria-label="Reproducir fragmento">
-                        <span id="icono-play-circular">▶</span>
+                <!-- MODULO DE CONTROL: Boton de reproduccion -->
+                <div class="controles-reproduccion-circular"
+                    style="border-top: 3px solid #0056b3; background: #fff; box-shadow: var(--sombra-suave); border-radius: 16px;">
+                    <button class="btn-play-circular" id="btn-play-circular" type="button" disabled
+                        title="Reproducir seleccion" aria-label="Reproducir seleccion"
+                        style="background: #0056b3; color: #fff; width: auto; border-radius: 12px; padding: 0.8rem 2rem; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span id="icono-play-circular">&#9654;</span> Reproducir seleccion
                     </button>
                     <div class="texto-reproduccion-info">
-                        <span id="estado-reproduccion-texto">Reproducir fragmento delimitado</span>
-                        <span style="color: #94A3B8;">|</span>
-                        <span id="tiempo-reproduccion-actual" style="font-weight: 700; color: var(--color-primario);">00:00.0</span> / <span id="tiempo-reproduccion-total">00:00.0</span>
+                        <span id="estado-reproduccion-texto" style="display: none;">Reproducir fragmento
+                            delimitado</span>
+                        <span id="tiempo-reproduccion-actual"
+                            style="font-weight: 700; color: var(--color-primario);">00:00.0</span> / <span
+                            id="tiempo-reproduccion-total">00:00.0</span>
                     </div>
+                    <p style="font-size: 0.85rem; color: #555; margin: 0.5rem 0 0 0;">Rango permitido: 01:00 - 06:00</p>
                 </div>
             </div>
 
             <!-- PANEL DERECHO: CARGA, ESTADÍSTICAS Y ACCIÓN (30%) -->
-            <div class="workspace-right" style="flex: 3; min-width: 400px; background: #E0F2FE; border-left: 2px solid #BAE6FD; padding: 3rem 2.5rem; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(2, 62, 138, 0.05);">
-                
+            <div class="workspace-right"
+                style="flex: 3; min-width: 400px; background: #E0F2FE; border-left: 2px solid #BAE6FD; padding: 3rem 2.5rem; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(2, 62, 138, 0.05);">
+
                 <!-- Área de Carga -->
-                <div class="card" style="background: white; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; border-radius: 16px;">
-                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">1. Cargar archivo</h3>
-                    <div class="carga-archivo-area" id="drop-zone" style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #7DD3FC; background: #F0F9FF; border-radius: 12px; margin-top: 1rem;">
-                        <div id="drop-icono" class="carga-archivo-icono" style="font-size: 3.5rem; margin-bottom: 0.5rem; color: #0284C7;">📁</div>
-                        <p id="drop-texto-1" class="carga-archivo-texto" style="font-size: 1.2rem; font-weight: 600; margin: 0.5rem 0; color: #0369A1;">Arrastra tu audio aquí</p>
-                        <p id="drop-texto-3" class="carga-archivo-texto" style="font-size: 1rem; color: #0EA5E9;">(MP3 o WAV, máx 50 MB)</p>
-                        <input type="file" id="file-input" accept=".mp3,.wav,audio/mpeg,audio/wav" style="display: none;">
+                <div class="card"
+                    style="background: white; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; border-radius: 16px;">
+                    <h3 class="card-titulo"
+                        style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">1. Cargar archivo
+                    </h3>
+                    <div class="carga-archivo-area" id="drop-zone"
+                        style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #7DD3FC; background: #F0F9FF; border-radius: 12px; margin-top: 1rem;">
+                        <div id="drop-icono" class="carga-archivo-icono"
+                            style="font-size: 3.5rem; margin-bottom: 0.5rem; color: #0284C7;">📁</div>
+                        <p id="drop-texto-1" class="carga-archivo-texto"
+                            style="font-size: 1.2rem; font-weight: 600; margin: 0.5rem 0; color: #0369A1;">Arrastra tu
+                            audio aquí</p>
+                        <p id="drop-texto-3" class="carga-archivo-texto" style="font-size: 1rem; color: #0EA5E9;">(MP3 o
+                            WAV, máx 50 MB)</p>
+                        <input type="file" id="file-input" accept=".mp3,.wav,audio/mpeg,audio/wav"
+                            style="display: none;">
                         <div style="text-align: center; margin-top: 1rem;">
-                            <button class="btn btn-secundario" id="btn-examinar" type="button" style="padding: 0.8rem 2rem; font-size: 1.1rem; border-color: #0284C7; color: #0284C7;">Examinar</button>
+                            <button class="btn btn-secundario" id="btn-examinar" type="button"
+                                style="padding: 0.8rem 2rem; font-size: 1.1rem; border-color: #0284C7; color: #0284C7;">Examinar</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Información -->
-                <div class="card" style="background: white; flex-grow: 1; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; display: flex; flex-direction: column; border-radius: 16px;">
-                    <h3 class="card-titulo" style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">2. Estadísticas del audio</h3>
-                    
-                    <div id="detalles-vacio" style="text-align: center; padding: 3rem 1rem; color: #94A3B8; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 500;">
+                <div class="card"
+                    style="background: white; flex-grow: 1; margin-bottom: 2rem; box-shadow: var(--sombra-suave); border: 1px solid #BAE6FD; display: flex; flex-direction: column; border-radius: 16px;">
+                    <h3 class="card-titulo"
+                        style="font-size: 1.6rem; text-align: center; color: var(--color-primario);">2. Estadísticas del
+                        audio</h3>
+
+                    <div id="detalles-vacio"
+                        style="text-align: center; padding: 3rem 1rem; color: #94A3B8; flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 500;">
                         Sube un archivo para ver sus propiedades.
                     </div>
 
-                    <div class="archivo-info" id="archivo-info" style="display: none; padding: 1.5rem; background: #F8FAFC; border-radius: 12px; flex-grow: 1; border: 1px solid #E2E8F0;">
+                    <div class="archivo-info" id="archivo-info"
+                        style="display: none; padding: 1.5rem; background: #F8FAFC; border-radius: 12px; flex-grow: 1; border: 1px solid #E2E8F0;">
                         <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
                             <span style="color: var(--color-texto-secundario);">Nombre:</span>
-                            <strong id="info-nombre" style="word-break: break-all; color: var(--color-texto-principal);">--</strong>
+                            <strong id="info-nombre"
+                                style="word-break: break-all; color: var(--color-texto-principal);">--</strong>
                         </div>
                         <div class="archivo-info-item" style="margin-bottom: 1.2rem; font-size: 1.25rem;">
                             <span style="color: var(--color-texto-secundario);">Peso:</span>
@@ -140,23 +187,30 @@
                             <span style="color: var(--color-texto-secundario);">Formato:</span>
                             <strong id="info-formato" style="color: var(--color-texto-principal);">--</strong>
                         </div>
-                        <div class="archivo-info-item" style="font-size: 1.25rem; margin-top: 2rem; border-top: 2px solid #E2E8F0; padding-top: 1.5rem;">
+                        <div class="archivo-info-item"
+                            style="font-size: 1.25rem; margin-top: 2rem; border-top: 2px solid #E2E8F0; padding-top: 1.5rem;">
                             <span style="color: var(--color-texto-secundario);">Predicción IA:</span>
-                            <strong id="info-clasificacion" style="color: var(--color-primario); font-size: 1.4rem;">--</strong>
+                            <strong id="info-clasificacion"
+                                style="color: var(--color-primario); font-size: 1.4rem;">--</strong>
                         </div>
                     </div>
                 </div>
 
                 <!-- Botón de Acción -->
-                <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button" style="width: 100%; padding: 1.5rem; font-size: 1.6rem; border-radius: 16px; box-shadow: var(--sombra-media);">
+                <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button"
+                    style="width: 100%; padding: 1.5rem; font-size: 1.6rem; border-radius: 16px; box-shadow: var(--sombra-media);">
                     ✨ ¡Transcribir!
                 </button>
-                
+
                 <!-- Barra de progreso mini (oculta inicialmente) -->
-                <div id="mini-barra-progreso" style="display: none; margin-top: 1.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #BAE6FD; box-shadow: var(--sombra-suave);">
-                    <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-align: center; color: var(--color-primario);">Progreso IA:</p>
+                <div id="mini-barra-progreso"
+                    style="display: none; margin-top: 1.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #BAE6FD; box-shadow: var(--sombra-suave);">
+                    <p
+                        style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; text-align: center; color: var(--color-primario);">
+                        Progreso IA:</p>
                     <div class="barra-progreso-contenedor" style="margin: 0; height: 25px; border-radius: 50px;">
-                        <div id="mini-barra-relleno" class="barra-progreso-relleno" style="border-radius: 50px;">0%</div>
+                        <div id="mini-barra-relleno" class="barra-progreso-relleno" style="border-radius: 50px;">0%
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,16 +223,18 @@
         <div class="modal-contenido">
             <button class="modal-cerrar" id="cerrar-modal-progreso" type="button">&times;</button>
             <h3 class="modal-titulo">Transcribiendo...</h3>
-            <p style="text-align: center; font-size: 1.1rem; margin: 1rem 0;">Por favor espera mientras procesamos tu audio.</p>
-            
+            <p style="text-align: center; font-size: 1.1rem; margin: 1rem 0;">Por favor espera mientras procesamos tu
+                audio.</p>
+
             <div class="barra-progreso-contenedor" style="margin: 2rem 0;">
                 <div id="modal-barra-relleno" class="barra-progreso-relleno">0%</div>
             </div>
-            
-            <p style="text-align: center; font-size: 0.9rem; color: var(--color-texto-secundario); margin-bottom: 1.5rem;">
+
+            <p
+                style="text-align: center; font-size: 0.9rem; color: var(--color-texto-secundario); margin-bottom: 1.5rem;">
                 Esto puede tomar hasta 1 minuto.
             </p>
-            
+
             <div style="text-align: center;">
                 <button class="btn btn-secundario" id="btn-minimizar-progreso" type="button">Minimizar</button>
             </div>
@@ -240,4 +296,5 @@
     <script src="{% static 'js/transcripcion.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 </body>
+
 </html>

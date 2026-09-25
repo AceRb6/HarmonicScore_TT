@@ -18,9 +18,9 @@ audioread==3.0.1
 # y sox requiere binario del sistema (dependencia externa no portable)
 
 # --- Deep Learning (Sección 4.3.2, validado en 4.2.4) ---
-torch==2.1.2+cu118
-torchvision==0.16.2+cu118
-torchaudio==2.1.2+cu118
+torch==2.2.0
+torchvision==0.17.0
+torchaudio==2.2.0
 transformers==4.45.1
 einops==0.7.0
 # lightning ELIMINADO: YourMT3+ usa PyTorch puro (Sección 4.3.2)
@@ -33,7 +33,7 @@ basic-pitch==0.4.0
 # Impacto cuantificado: +35 ms latencia, -0.03 F1-score (Sección 3.5.10)
 
 # --- Orquestación distribuida (Sección 4.3.3) ---
-ray==2.9.3
+# ray==2.9.3  # Commented out due to compatibility
 # Paralelización del preprocesamiento CQT (RF-09)
 # Acelera 4.7× en clusters vs secuencial
 

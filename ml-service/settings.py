@@ -3,7 +3,10 @@ Fuentes: Reporte Técnico 2026-B115 (§3.5.2, Ilustración 15) y
 ground truth del checkpoint (inspección de hyper_parameters).
 """
 from pathlib import Path
-import torch
+try:
+    import torch
+except ImportError:
+    torch = None
 
 # --- Directorios ---
 BASE_DIR = Path(__file__).resolve().parent
@@ -42,8 +45,12 @@ CHECKPOINT_PATH = BASE_DIR / "models" / "amt" / "logs" / "2024" / \
 MODEL_BACKEND = "real"
 
 # --- Hardware real: RTX 4050 6 GB VRAM / 16 GB RAM ---
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-USE_FP16 = DEVICE.type == "cuda"
+if torch is not None:
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    USE_FP16 = DEVICE.type == "cuda"
+else:
+    DEVICE = "cpu"
+    USE_FP16 = False
 
 # --- RF-02 / RF-03 / CU-04 ---
 ALLOWED_EXT = {".mp3", ".wav"}
