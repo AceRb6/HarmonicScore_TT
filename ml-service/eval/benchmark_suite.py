@@ -37,17 +37,22 @@ def _tempo_bpm(stream) -> float:
 
 
 def extract_notes(path: Path):
-    """Devuelve (intervals [n,2] en segundos, pitches MIDI [n])."""
+    """(intervals [n,2] en segundos, pitches MIDI). Excluye notas de adorno
+    (quarterLength==0): el vocabulario del modelo (shifts de 10 ms) no puede
+    representarlas; se documenta como decisión de protocolo (H-23)."""
     s = music21.converter.parse(str(path))
-    spq = 60.0 / _tempo_bpm(s)          # segundos por negra
+    spq = 60.0 / _tempo_bpm(s)
     intervals, pitches = [], []
-    flat = s.flatten()
-    for el in flat:
+    for el in s.flatten():
         if isinstance(el, music21.note.Note) and el.pitch is not None:
+            if el.quarterLength <= 0:      # gracia / adorno
+                continue
             o = el.offset * spq
             intervals.append([o, o + el.quarterLength * spq])
             pitches.append(int(el.pitch.midi))
         elif isinstance(el, music21.chord.Chord):
+            if el.quarterLength <= 0:
+                continue
             o = el.offset * spq
             for p in el.pitches:
                 intervals.append([o, o + el.quarterLength * spq])

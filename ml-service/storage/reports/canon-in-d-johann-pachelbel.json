@@ -1,0 +1,10 @@
+{
+  "n_ref": 1599,
+  "n_est": 7,
+  "f1_onsets": 0.0024906600249066002,
+  "precision_onsets": 0.2857142857142857,
+  "recall_onsets": 0.0012507817385866166,
+  "f1_onset_pitch": 0.0,
+  "f1_full": 0.0,
+  "pitch_acc": 0.0
+}
