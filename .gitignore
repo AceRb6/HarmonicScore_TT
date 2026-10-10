@@ -1,4 +1,13 @@
 
+# Python bytecode y cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de medios subidos y base de datos local SQLite antigua
+backend/media/
+backend/db.sqlite3
+
 # Modelos y datasets pesados (Se gestionan externamente)
 ml-service/models/
 ml-service/models/amt/

@@ -6,38 +6,73 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: harmonic_django
-    command: python manage.py runserver 0.0.0.0:8000
+    # 0.0.0.0 = escuchar en todas las interfaces (necesario para acceso desde otras maquinas)
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
     volumes:
       - ./backend:/app
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DEBUG=1
       - DB_HOST=db
       - DB_NAME=harmonic
       - DB_USER=admin
       - DB_PASSWORD=admin
-      - ML_SERVICE_URL=http://ml:5000
+      # IP de la MAQUINA ML en la red local (definida en .env). NO usar 127.0.0.1
+      - ML_SERVICE_URL=${ML_SERVICE_URL:-http://127.0.0.1:8000}
+      - CELERY_BROKER_URL=redis://redis:6379/0
     depends_on:
       - db
-      - ml
+      # - ml  # COMENTADO: Se deshabilita la dependencia para evitar errores de validación al tener el servicio 'ml' comentado abajo
+      - redis
 
-  ml:
+  worker:
     build:
-      context: ./ml-service
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: harmonic_ml
+    container_name: harmonic_celery_worker
+    command: celery -A app worker -l info
     volumes:
-      - ./ml-service:/app
-    ports:
-      - "5000:5000"
+      - ./backend:/app
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
+      - DEBUG=1
+      - DB_HOST=db
+      - DB_NAME=harmonic
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      # El worker es quien llama a la API de ML en la otra maquina
+      - ML_SERVICE_URL=${ML_SERVICE_URL:-http://127.0.0.1:8000}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  redis:
+    image: redis:7
+    container_name: harmonic_redis
+    ports:
+      - "6379:6379"
+
+  # =========================================================================
+  # SERVICIO ML: COMENTADO TEMPORALMENTE PARA PRUEBAS LOCALES EN WSL2 SIN GPU
+  # =========================================================================
+  # ml:
+  #   build:
+  #     context: ./ml-service
+  #     dockerfile: Dockerfile
+  #   container_name: harmonic_ml
+  #   volumes:
+  #     - ./ml-service:/app
+  #   ports:
+  #     - "5000:5000"
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - capabilities: [gpu]
+  # =========================================================================
 
   db:
     image: postgres:15

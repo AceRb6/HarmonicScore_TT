@@ -138,42 +138,47 @@ const Transcripciones = {
      * O muestra datos de demo si el usuario es INVITADO (sin sesión).
      */
     async cargarDesdeBackend() {
-        // INVITADO: sin sesión activa → mostrar tabla de ejemplo
-        if (!Sesion.estaActiva()) {
-            this.renderizar([
-                { titulo: '"1.mp3"',               fecha: '15/5/26',  estado: 'completado' },
-                { titulo: '"2.mp3"',               fecha: '10/6/26',  estado: 'error'       },
-                { titulo: '"3.mp3"',               fecha: '11/6/26',  estado: 'proceso'     },
-                { titulo: '"ejercicio_piano.wav"',  fecha: '12/6/26',  estado: 'completado' }
-            ]);
-            // (Los invitados ven la prueba, no disparamos historial cargado real)
+        if (typeof DjangoAPI === 'undefined') {
+            console.warn('DjangoAPI no disponible.');
             return;
         }
 
-        // USUARIO AUTENTICADO: cargar transcripciones reales del backend
-        /*
-        ---- Activar cuando el backend tenga el endpoint ----
         try {
             const respuesta = await DjangoAPI.peticion('/transcripciones/mis/', 'GET');
-            if (respuesta.ok && Array.isArray(respuesta.data)) {
-                this.renderizar(respuesta.data);
-            } else {
-                this.renderizar([]); // Vacío si falla
-            }
-        } catch (e) {
-            this.renderizar([]);
-        }
-        */
 
-        // Mientras el backend no tenga el endpoint:
-        // Simulamos que el backend devolvió el historial vacío o mock
-        const mockHistorial = localStorage.getItem('hs_mock_historial'); // por si quisieramos inyectarle uno
-        if (mockHistorial) {
-            this.renderizar(JSON.parse(mockHistorial));
-            this.mostrarPopup("Historial cargado", false);
-        } else {
+            // 1. Usuario autenticado con transcripciones en PostgreSQL
+            if (respuesta.ok && Array.isArray(respuesta.data)) {
+                if (respuesta.data.length > 0) {
+                    const lista = respuesta.data.map(t => ({
+                        ...t,
+                        fecha: t.fecha ? new Date(t.fecha).toLocaleDateString('es-MX') : '—'
+                    }));
+                    this.renderizar(lista);
+                } else {
+                    // Autenticado pero sin transcripciones aún
+                    this.renderizar([]);
+                }
+                return;
+            }
+
+            // 2. No autenticado (401)
+            if (respuesta.status === 401) {
+                // Si había una sesión falsa/antigua en localStorage, limpiarla
+                if (Sesion.estaActiva()) {
+                    Sesion.cerrar(false); // Limpiar sin bucle
+                }
+                this.renderizar([]);
+                this.mostrarPopup('Debes iniciar sesión con una cuenta registrada para ver tus transcripciones.', true);
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1800);
+                return;
+            }
+
             this.renderizar([]);
-            this.mostrarPopup("Historial cargado", false);
+        } catch (e) {
+            console.error('Error al cargar historial:', e);
+            this.renderizar([]);
         }
     }
 };

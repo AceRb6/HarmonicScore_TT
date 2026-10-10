@@ -70,10 +70,10 @@ function inicializarToggleContrasena() {
             const input = toggle.previousElementSibling;
             if (input && input.type === 'password') {
                 input.type = 'text';
-                toggle.textContent = '🔒';
+                toggle.textContent = 'Ocultar';
             } else if (input) {
                 input.type = 'password';
-                toggle.textContent = '👁️';
+                toggle.textContent = 'Mostrar';
             }
         });
     });
@@ -377,29 +377,19 @@ function inicializarValidacionLogin() {
                 recaptcha_token: captchaLoginToken
             };
 
-            /* 
-            Activar cuando el endpoint de Django esté listo:
             const respuesta = await DjangoAPI.loginUsuario(credenciales);
             if (respuesta.ok) {
                 const nombreUsuario = respuesta.data.username || '';
-                mostrarMensaje(`Bienvenido, ${nombreUsuario}`, false); // msn1
-                // Guardar sesión en localStorage usando el módulo Sesion
-                Sesion.iniciar(nombreUsuario, respuesta.data.token || '');
-                setTimeout(() => { window.location.href = 'index.html'; }, 1200); // Redirige al main
+                mostrarMensaje(respuesta.data.message || `Bienvenido, ${nombreUsuario}`, false);
+                Sesion.iniciar(nombreUsuario, respuesta.data.token || 'sesion-django');
+                setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+            } else if (respuesta.status === 404 || (respuesta.data && respuesta.data.error === 'usuario_no_encontrado')) {
+                mostrarMensaje('Usuario no existente, registrate porfavor', true);
+            } else if (respuesta.status === 401 || (respuesta.data && respuesta.data.error === 'credenciales_invalidas')) {
+                mostrarMensaje('Contraseña incorrecta. Verifica tus datos.', true);
             } else {
-                mostrarMensaje('Correo o contraseña inválidos', true); // msn2
+                mostrarMensaje((respuesta.data && (respuesta.data.message || respuesta.data.error)) || 'Correo o contraseña inválidos', true);
             }
-            */
-
-            // --- Simulación de bienvenida ---
-            // Usa primero el nombre registrado guardado para este correo, sino usa el prefijo del correo
-            let nombreSimulado = localStorage.getItem(`hs_demo_user_${loginCorreo}`);
-            if (!nombreSimulado) {
-                nombreSimulado = loginCorreo.split('@')[0];
-            }
-            Sesion.iniciar(nombreSimulado, 'token-simulado'); // Guardar sesión en localStorage
-            mostrarMensaje(`Bienvenido, ${nombreSimulado}`, false); // msn1
-            setTimeout(() => { window.location.href = 'index.html'; }, 1200); // Redirige al main
 
         } catch (error) {
             mostrarMensaje('Ups, tenemos un problema desde nuestro lado', true); // msn3
