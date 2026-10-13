@@ -3,7 +3,7 @@ Etapa 6 — Generación de partitura MusicXML 4.0 (RF-12) y delegación de RF-13
 
 Convierte la secuencia refinada de eventos (pitch, onset, offset, velocity)
 en MusicXML 4.0 mediante music21, con figuras rítmicas cuantizadas y silencios
-de relleno para cerrar cada compás 4/4.
+de relleno basados en el tempo y compás estimados dinámicamente.
 
 La conversión MusicXML → PDF (RF-13) NO vive aquí: se delega a
 pipeline.pdf_stage.render_musicxml_to_pdf (fuente única de verdad del render).
@@ -28,28 +28,33 @@ FIGURAS_MUSICALES = {
 
 
 def cuantizar_duracion(duracion_s: float, tempo_bpm: float = 120.0) -> float:
-    """Convierte segundos a la figura musical (quarterLength) más cercana."""
+    """Convierte segundos a la figura musical (quarterLength) más cercana según el tempo."""
     duracion_negras = duracion_s * (tempo_bpm / 60.0)
     figuras = sorted(FIGURAS_MUSICALES.keys())
     figura = min(figuras, key=lambda x: abs(x - duracion_negras))
     return max(0.0625, min(4.0, figura))
 
-
-def build_score(notes: list, pdf_path: Path) -> Path:
-    """Genera el MusicXML y delega el PDF. Devuelve la ruta del PDF final."""
+def build_score(notes: list, pdf_path: Path, bpm: float = 120.0, time_signature: str = "4/4") -> Path:
+    """
+    Genera el MusicXML usando el tempo y compás estimados dinámicamente, 
+    y delega el PDF. Devuelve la ruta del PDF final.
+    """
     if not notes:
         raise ValueError("No hay notas para generar la partitura")
 
     score = stream.Score()
     part = stream.Part()
     part.append(instrument.Piano())
-    part.append(tempo.MetronomeMark(number=120))
-    part.append(meter.TimeSignature('4/4'))
+    
+    # Usamos los valores dinámicos estimados para el tempo y compás
+    part.append(tempo.MetronomeMark(number=int(round(bpm))))
+    part.append(meter.TimeSignature(time_signature))
 
     current_time = 0.0
     for n in sorted(notes, key=lambda x: x['onset']):
         if n['onset'] > current_time:                      # silencio de relleno
-            gap_beats = cuantizar_duracion(n['onset'] - current_time)
+            # Pasamos el bpm dinámico a la función de cuantización
+            gap_beats = cuantizar_duracion(n['onset'] - current_time, tempo_bpm=bpm)
             if gap_beats >= 0.0625:
                 rest = note.Rest()
                 rest.quarterLength = gap_beats
@@ -57,7 +62,9 @@ def build_score(notes: list, pdf_path: Path) -> Path:
 
         nota = note.Note()
         nota.pitch.midi = n['pitch']
-        nota.quarterLength = cuantizar_duracion(n['offset'] - n['onset'])
+        # Pasamos el bpm dinámico a la función de cuantización
+        nota.quarterLength = cuantizar_duracion(n['offset'] - n['onset'], tempo_bpm=bpm)
+        
         velocity = n.get('velocity', 80)
         nota.volume.velocity = max(1, min(127, velocity))
         part.append(nota)
@@ -67,6 +74,6 @@ def build_score(notes: list, pdf_path: Path) -> Path:
 
     xml_path = Path(pdf_path).with_suffix('.musicxml')
     score.write("musicxml", fp=str(xml_path))
-    log.info("MusicXML generado: %s", xml_path)
+    log.info("MusicXML generado: %s (Tempo: %d, Compás: %s)", xml_path, int(round(bpm)), time_signature)
 
-    return render_musicxml_to_pdf(xml_path, pdf_path)      # RF-13 delegado
+    return render_musicxml_to_pdf(xml_path, pdf_path)
