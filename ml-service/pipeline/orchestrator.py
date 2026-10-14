@@ -27,11 +27,11 @@ class Orchestrator:
         metrics = {}
         t0 = time.perf_counter()
 
-        def time_it(name, fn, *args):
+        def time_it(name, fn, *args, **kwargs):
             if on_stage:
                 on_stage(name)                      # progreso real hacia el front
             ts = time.perf_counter()
-            out = fn(*args)
+            out = fn(*args, **kwargs)
             metrics[f"{name}_ms"] = round((time.perf_counter() - ts) * 1000, 1)
             return out
 
@@ -51,12 +51,20 @@ class Orchestrator:
         notes = time_it("model", model_stage.infer_notes, audio_path)
 
         # 5) Post-procesamiento con reglas musicales (RF-11)
-        notes = time_it("post", post_stage.refine, notes)
+        post_result = time_it("post", post_stage.refine, notes, mag_cqt=mag,
+                              sr=config.CQT_PARAMS["sr"], hop_length=config.CQT_PARAMS["hop_length"])
+        notes = post_result["notes"]
+        estimated_bpm = post_result["bpm"]
+        estimated_time_sig = post_result["time_signature"]
+        
         metrics["n_notes"] = len(notes)
+        metrics["estimated_bpm"] = estimated_bpm 
 
         # 6) Generación de partitura y PDF (RF-12/RF-13)
         pdf_path = config.OUTPUT_DIR / out_name
-        time_it("score_pdf", score_stage.build_score, notes, pdf_path)
+        # Pasamos los metadatos estimados al generador de partituras
+        time_it("score_pdf", score_stage.build_score, notes, pdf_path, 
+                bpm=estimated_bpm, time_signature=estimated_time_sig)
 
         # Métricas de hardware (evidencia TT-II vs RNF-01/02)
         metrics["total_ms"] = round((time.perf_counter() - t0) * 1000, 1)
