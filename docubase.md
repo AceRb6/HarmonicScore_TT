@@ -46,6 +46,49 @@ Existe una regla de oro en arquitectura de contenedores: **"Un contenedor, una r
 | **db** | `harmonic_db` | `postgres:15` | `5432:5432` | Motor de base de datos relacional PostgreSQL. Persistencia de usuarios y transcripciones. |
 | **ml** *(remoto/local)* | `harmonic_ml` *(o PC externa)* | Custom (`ml-service/Dockerfile`) | `8000:8000` / `5000:5000` | Servicio FastAPI que aloja el modelo de Deep Learning y orquesta la generación de partituras. |
 
+### 3.1. Proceso de Creación y Función de los Contenedores del Sistema
+
+La arquitectura del sistema se diseñó bajo una estrategia de **microservicios modulares**, dividiendo las responsabilidades en dos categorías de contenedores: **construcción personalizada** (servicios propietarios de aplicación e inferencia) y **despliegue de imágenes oficiales certificadas** (servicios estándar de datos y mensajería).
+
+#### 1. Contenedores de Aplicación Web y Procesamiento en Segundo Plano
+*(Contenedores: `harmonic_django` y `harmonic_celery_worker`)*
+
+Ambos servicios se crearon a partir de una **estrategia de compilación de imagen compartida**, optimizando el almacenamiento y el tiempo de despliegue:
+1. **Entorno Base Ligero:** Se utilizó una imagen del sistema operativo Linux (*Debian Slim*) con el entorno de **Python 3.11**, minimizando el consumo de memoria RAM y prescindiendo de paquetes innecesarios.
+2. **Instalación de Dependencias Nativas:** A nivel de sistema operativo, se instalaron compiladores (`gcc`) y las librerías de comunicación de PostgreSQL (`libpq-dev`), requeridas para que el lenguaje Python interactúe de forma binaria y de alto rendimiento con el motor relacional.
+3. **Ecosistema de Librerías:** Se instalaron las dependencias del proyecto: el framework web (Django), el gestor de tareas distribuidas (Celery), el conector en memoria (Redis) y los módulos de seguridad de red (CORS).
+4. **Transferencia de la Lógica Propietaria:** Se integró el código fuente del backend y se expuso el puerto `8001`.
+5. **Diferenciación de Roles en Ejecución:** En lugar de mantener dos imágenes redundantes en disco, se reutilizó la misma imagen asignándole una directiva de inicio diferente a cada contenedor:
+   * **`harmonic_django`:** Inicializa el servidor HTTP y gestiona las solicitudes de los usuarios, sesiones, autenticación y vistas web.
+   * **`harmonic_celery_worker`:** Inicializa el demonio de Celery en modo escucha pasiva, encargado de recibir los audios, enviarlos al servicio de IA y registrar los resultados.
+
+#### 2. Contenedor de Inferencia e Inteligencia Artificial
+*(Contenedor: `harmonic_ml`)*
+
+Este servicio se diseñó de manera completamente aislada para concentrar el cómputo intensivo del modelo:
+1. **Entorno Especializado:** Se creó sobre una imagen base Linux con soporte para librerías científicas, marcos de tensores matemáticos (**PyTorch**), procesamiento digital de señales de audio (**Librosa**) y el framework de APIs asíncronas **FastAPI** montado sobre el servidor **Uvicorn**.
+2. **Función Principal:** Aloja el pipeline completo del modelo de transcripción polifónica *YourMT3+ MoE* (*Mixture of Experts*). Su función consiste en:
+   * Recibir el archivo de audio digital y realizar la transformación espectro-temporal mediante la Transformada Q Constante (**CQT**).
+   * Ejecutar la inferencia neuronal para identificar eventos de notas musicales (tonalidad, silencios, inicios y duraciones simultáneas).
+   * Calcular las métricas de precisión y el indicador de calidad armónica (**Harmonic Score**).
+   * Orquestar la exportación de los datos a partituras en formato digital interoperable (**MusicXML**) y renderizado visual para impresión (**PDF**).
+3. **Aislamiento por Diseño:** Al estar encapsulado como un microservicio independiente, las operaciones pesadas de álgebra lineal y carga de parámetros en memoria se ejecutan sin interferir con la fluidez del servidor web ni bloquear las consultas a la base de datos.
+
+#### 3. Contenedor de Base de Datos Relacional
+*(Contenedor: `harmonic_db`)*
+
+Para la persistencia transaccional y la integridad referencial:
+1. Se desplegó la imagen oficial certificada de **PostgreSQL versión 15** directamente desde Docker Hub.
+2. Se aprovisionó automáticamente mediante variables de entorno para inicializar al instante las credenciales y la base de datos `harmonic`.
+3. Se enlazó a un **volumen persistente** (`postgres_data`), garantizando que la información de los usuarios registrados, el historial de audios y los estados de procesamiento queden resguardados en el disco físico de manera inmutable ante reinicios de los contenedores.
+
+#### 4. Contenedor del Broker de Mensajería
+*(Contenedor: `harmonic_redis`)*
+
+Para la comunicación desacoplada entre el servidor web y el worker:
+1. Se desplegó la imagen oficial de **Redis versión 7**.
+2. Opera como una cola en memoria RAM en su puerto estándar (`6379`), gestionando la recepción y entrega inmediata de tareas (*tickets* de procesamiento) entre Django y Celery con latencias de milisegundos.
+
 ---
 
 ## 4. Diagrama de Arquitectura del Sistema
