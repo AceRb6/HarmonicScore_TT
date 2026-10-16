@@ -78,7 +78,7 @@ class RealModel:
         log.info("Cargando checkpoint real: %s", config.CHECKPOINT_PATH)
         cls = _find_model_class()
         self.model = cls.load_from_checkpoint(str(config.CHECKPOINT_PATH),
-                                              map_location="cpu")
+                                              map_location=config.DEVICE)
         self.model.eval()
         self.model.to(config.DEVICE)
         
@@ -170,7 +170,7 @@ def _baseline_notes(audio_path: Path):
     notes = []
     for t in range(mag_n.shape[0]):
         peaks, props = find_peaks(mag_n[t], height=0.35, distance=2, prominence=0.1)
-        for pk, h in zip(peaks, props["heights"]):
+        for pk, h in zip(peaks, props["peak_heights"]):
             notes.append(type("N", (), dict(
                 is_drum=False, program=0, onset=t / config.FRAME_RATE,
                 offset=(t + 1) / config.FRAME_RATE,
