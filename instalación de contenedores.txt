@@ -1,0 +1,75 @@
+Guía de Despliegue y Replicación del Entorno — Harmonic Score
+Esta guía detalla los pasos necesarios para configurar y ejecutar la arquitectura de Harmonic Score en un entorno de desarrollo local (Windows 10/11 con WSL2).
+1. Requisitos Previos
+Sistema Operativo: Windows 10/11 con WSL2 habilitado.
+Docker Desktop: Instalado y configurado para usar el backend de WSL2.
+Python: Versión 3.11.x instalada en el sistema anfitrión (para el ml-service).
+GPU (Opcional pero recomendada): NVIDIA RTX con drivers actualizados y CUDA Toolkit para acelerar la inferencia.
+2. Estructura del Proyecto
+Asegúrate de que el repositorio tenga la siguiente estructura básica:
+harmonic-score-app/
+├── backend/                 # Aplicación Django + Celery
+├── ml-service/              # Servicio FastAPI + Modelo YourMT3+
+├── docker-compose.yml       # Orquestación de contenedores
+└── .env                     # Variables de entorno (NO subir a Git)
+
+3. Configuración de Variables de Entorno (.env)
+En la raíz del proyecto (harmonic-score-app/), crea un archivo llamado .env con la siguiente configuración.
+⚠️ CRÍTICO: Reemplaza 192.168.1.XX con la dirección IPv4 real de tu máquina Windows (obtenida ejecutando ipconfig en PowerShell).
+
+# URL del servicio de Machine Learning (FastAPI)
+# Debe apuntar a la IP de tu máquina host, NO a localhost ni 127.0.0.1
+ML_SERVICE_URL=http://192.168.1.XX:8000
+
+# Intervalo de sondeo del worker (en segundos)
+ML_POLL_INTERVAL=5
+
+# Tiempo máximo de espera para una transcripción (en segundos)
+ML_TIMEOUT=1800
+
+4. Despliegue de la Infraestructura Backend (Docker)
+Abre una terminal de PowerShell en la raíz del proyecto y ejecuta:
+
+# 1. Construir y levantar los contenedores en segundo plano
+docker compose up -d --build
+
+# 2. Verificar que todos los servicios estén saludables
+docker compose ps
+
+Deberías ver harmonic_db y harmonic_redis con estado Up (healthy).
+5. Configuración del Servicio de Machine Learning (ml-service)
+Este servicio debe correr nativamente en Windows (fuera de Docker) para aprovechar la GPU y evitar conflictos de red con el contenedor.
+
+# 1. Navegar a la carpeta del servicio
+cd ml-service
+
+# 2. Crear y activar un entorno virtual de Python
+python -m venv .venv
+.venv\Scripts\Activate
+
+# 3. Instalar dependencias (asegúrate de tener un archivo requirements.txt o Pipfile)
+pip install -r requirements.txt  
+# Nota: Si usas GPU, asegúrate de instalar la versión de PyTorch con soporte CUDA.
+
+# 4. Iniciar el servidor FastAPI
+py app.py
+
+Al iniciar, deberías ver en los logs: INFO | Modelo precargado exitosamente y Uvicorn running on http://0.0.0.0:8000.
+6. Configuración de Red (Firewall de Windows)
+Para permitir que el contenedor de Docker (Worker) se comunique con el ml-service en Windows, debes abrir el puerto 8000. Ejecuta PowerShell como Administrador:
+New-NetFirewallRule -DisplayName "Harmonic Score ML Service" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow -Profile Any
+
+
+7. Verificación del Sistema
+Abre tu navegador y accede a la interfaz web: http://localhost:8001 (o la IP de red, ej. http://192.168.1.XX:8001).
+Inicia sesión con una cuenta registrada.
+Sube un archivo de audio (MP3/WAV, máx. 50 MB).
+Abre una nueva terminal y monitorea el procesamiento en tiempo real:
+
+   docker compose logs -f worker
+
+Si el proceso es exitoso, el estado cambiará a "Completado" y podrás descargar los archivos PDF y MusicXML.
+8. Solución de Problemas Comunes
+Error Name or service not known: Verifica que la IP en el archivo .env sea correcta y que el Firewall permita el puerto 8000.
+El modelo no carga (fallback a baseline): Asegúrate de que la ruta del CHECKPOINT_PATH en ml-service/settings.py apunte correctamente al archivo .ckpt descargado.
+Error de Cairo en PDF: En Windows, el sistema degrada automáticamente a edge-headless para generar el PDF. Este comportamiento es esperado y no afecta la funcionalidad.

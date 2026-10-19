@@ -2,3 +2,5 @@ Django
 psycopg2-binary
 requests
 django-cors-headers
+celery
+redis

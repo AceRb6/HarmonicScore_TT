@@ -7,28 +7,24 @@ from pathlib import Path
 from typing import Dict, Optional
 from dataclasses import dataclass, field
 
-import settings as config  # ← renombrado para evitar colisión con models/amt/src/config
-
+import settings as config
 
 class JobStatus(str, Enum):
-    PROCESSING = "processing"     # "En proceso"
-    COMPLETED = "completed"       # "Finalizado"
-    FAILED = "failed"             # "Error en el procesamiento"
-
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 @dataclass
 class Job:
-    # 1) Campos SIN default primero (obligatorio en dataclasses)
     job_id: str
     original_name: str
-    # 2) Campos CON default después
     status: JobStatus = JobStatus.PROCESSING
     pdf_path: Optional[Path] = None
+    xml_path: Optional[Path] = None  # <-- AGREGADO: Para guardar la ruta del MusicXML
     metrics: Dict = field(default_factory=dict)
     error: Optional[str] = None
-    stage: str = "queued"                       # etapa actual para el progreso real
+    stage: str = "queued"
     created_at: float = field(default_factory=time.time)
-
 
 class JobManager:
     def __init__(self):
@@ -45,16 +41,17 @@ class JobManager:
         return self._jobs.get(job_id)
 
     def set_stage(self, job_id: str, stage: str) -> None:
-        """Publica la etapa actual del pipeline (progreso real del front)."""
         with self._lock:
             if job_id in self._jobs:
                 self._jobs[job_id].stage = stage
 
-    def complete(self, job_id: str, pdf_path: Path, metrics: Dict) -> None:
+    # <-- ACTUALIZADO: Ahora recibe y guarda también la ruta del XML
+    def complete(self, job_id: str, pdf_path: Path, xml_path: Path, metrics: Dict) -> None:
         with self._lock:
             j = self._jobs[job_id]
             j.status = JobStatus.COMPLETED
             j.pdf_path = pdf_path
+            j.xml_path = xml_path
             j.metrics = metrics
 
     def fail(self, job_id: str, error: str) -> None:

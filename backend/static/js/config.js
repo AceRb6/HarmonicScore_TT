@@ -4,6 +4,8 @@
 const CONFIG = {
     // Servicios
     // La base de la API Django vive en api.js (mismo origen). NO usar para ml-service.
+    // NOTA: el navegador ya NO llama al ml-service; lo hace el worker de Celery
+    // (ver ML_SERVICE_URL en .env). Se conserva solo por compatibilidad.
     API_ML: 'http://127.0.0.1:8000',   // ml-service (FastAPI): descarga de artefactos
 
     // Límites (RF-02, RF-03, CU-04)

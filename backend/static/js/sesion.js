@@ -21,11 +21,18 @@ const Sesion = {
     },
 
     /** Elimina todos los datos y redirige al login */
-    cerrar() {
+    async cerrar(redirigir = true) {
+        try {
+            if (typeof DjangoAPI !== 'undefined') {
+                await DjangoAPI.peticion('/auth/logout/', 'POST');
+            }
+        } catch(e) {}
         localStorage.removeItem(this.KEYS.USERNAME);
         localStorage.removeItem(this.KEYS.TOKEN);
         localStorage.removeItem(this.KEYS.LOGGEDIN);
-        window.location.href = 'login.html';
+        if (redirigir) {
+            window.location.href = 'login.html';
+        }
     },
 
     /** Devuelve true si hay sesión activa */

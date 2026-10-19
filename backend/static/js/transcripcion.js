@@ -148,18 +148,28 @@ async function iniciarTranscripcionReal() {
         const r = await DjangoAPI.peticion('/transcripciones/subir/', 'POST', formData);
         clearInterval(intervaloProgreso);
 
+        if (r.status === 401) {
+            clearInterval(intervaloProgreso);
+            document.getElementById('modal-progreso').classList.remove('activo');
+            transcripcionActiva = false;
+            if (Sesion.estaActiva()) Sesion.cerrar(false);
+            mostrarError('Debes iniciar sesión con una cuenta registrada para transcribir.');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+            return;
+        }
+
         if (r.ok && r.data && r.data.success) {
             setProgreso(100, '100%');
             guardarJobLocal(r.data, archivoParaSubir.name);
             finalizarTranscripcion(true);
         } else {
-            throw new Error((r.data && r.data.error) || 'Error en el procesamiento');
+            throw new Error((r.data && (r.data.message || r.data.error)) || 'Error en el procesamiento');
         }
     } catch (e) {
         clearInterval(intervaloProgreso);
         document.getElementById('modal-progreso').classList.remove('activo');
         transcripcionActiva = false;
-        mostrarError('Error en el procesamiento. Verifica tu conexión con el servidor. (' + e.message + ')');
+        mostrarError('Error en el procesamiento: ' + e.message);
     }
 }
 
@@ -169,7 +179,8 @@ function guardarJobLocal(data, nombreArchivo) {
         titulo: nombreArchivo || archivoActual.name,
         fecha: new Date().toLocaleDateString('es-MX'),
         estado: 'completado',
-        url_descarga: CONFIG.API_ML + (data.pdf_url || ''),
+        // El PDF lo sirve Django (/media/...) una vez que el worker lo descarga del ml-service
+        url_descarga: data.pdf_url || '',
         metrics: data.metrics || null
     });
     localStorage.setItem('hs_jobs', JSON.stringify(jobs.slice(0, 20)));

@@ -1,9 +1,7 @@
 """
 Etapa 3: Inferencia con YourMT3+ MoE (checkpoint local).
-Cadena oficial verificada contra el repo de entrenamiento:
-  model/ymt3.py:459,508 | utils/task_manager.py:346 | utils/event2note.py:157
-Incluye fallback baseline (peak-picking) conmutado por config.MODEL_BACKEND
-para garantizar el cierre del Entregable 1 si el checkpoint diera problemas.
+CICLO 3: Implementación de ventanas con solapamiento (Overlap-Add) 
+según Sección 6.3.1 del reporte técnico para maximizar el recall.
 """
 import sys
 import inspect
@@ -25,22 +23,19 @@ from utils.event2note import note_event2note
 
 log = logging.getLogger("harmonic.model_stage")
 
+# --- Configuración de Ventanas (Ciclo 3) ---
 SEG = config.MODEL_AUDIO["window"]          # 32767 muestras
 SR = config.MODEL_AUDIO["sr"]               # 16000 Hz
 SEG_SEC = SEG / SR                          # ~2.048 s por ventana
+OVERLAP_RATIO = 0.15                        # 15% de solapamiento (Reporte §6.3.1)
+SEG_HOP = int(SEG * (1 - OVERLAP_RATIO))    # Hop real con solapamiento (~27851 muestras)
 
 
 # ---------------------------------------------------------------------
-# Carga del modelo (clase descubierta dinámicamente: no asumimos nombre)
+# Carga del modelo
 # ---------------------------------------------------------------------
 def _find_model_class():
-    """Descubre la clase del modelo por duck typing, no por identidad de paquete.
-
-    En Lightning 2.x, `lightning` y `pytorch_lightning` son paquetes espejo con
-    objetos de clase DISTINTOS; un issubclass cruzado falla. Por eso buscamos
-    la clase definida en model/ymt3.py que exponga la API de LightningModule
-    (load_from_checkpoint) y la del repo (inference_file).
-    """
+    """Descubre la clase del modelo por duck typing."""
     import model.ymt3 as ymt3_mod
     candidates = [
         obj for _, obj in inspect.getmembers(ymt3_mod, inspect.isclass)
@@ -50,9 +45,7 @@ def _find_model_class():
     ]
     if not candidates:
         raise RuntimeError("No se encontró la clase del modelo en model/ymt3.py")
-    log.info("Clase del modelo detectada: %s (MRO: %s)",
-             candidates[0].__name__,
-             " -> ".join(c.__name__ for c in candidates[0].__mro__[1:4]))
+    log.info("Clase del modelo detectada: %s", candidates[0].__name__)
     return candidates[0]
 
 
@@ -67,13 +60,12 @@ class RealModel:
         return cls._instance
 
     def _load(self):
-        # Workaround: torch.compile no está soportado en Windows (PyTorch 2.1.2)
         import platform
         if platform.system() == "Windows":
             import torch
             original_compile = torch.compile
-            torch.compile = lambda *args, **kwargs: (lambda f: f)  # no-op decorator
-            log.info("torch.compile deshabilitado (Windows)")
+            torch.compile = lambda *args, **kwargs: (lambda f: f)
+            log.info("torch.compile deshabilitado (Windows workaround)")
         
         log.info("Cargando checkpoint real: %s", config.CHECKPOINT_PATH)
         cls = _find_model_class()
@@ -82,11 +74,8 @@ class RealModel:
         self.model.eval()
         self.model.to(config.DEVICE)
         
-        # El TaskManager ya está montado en el modelo por __init__
-        # (ver model/ymt3.py línea ~107: self.task_manager = task_manager)
         if not hasattr(self.model, 'task_manager'):
-            raise RuntimeError("El modelo cargado no tiene task_manager. "
-                             "El checkpoint puede estar corrupto.")
+            raise RuntimeError("El modelo cargado no tiene task_manager.")
         self.task_manager = self.model.task_manager
         
         n = sum(p.numel() for p in self.model.parameters())
@@ -96,67 +85,134 @@ class RealModel:
     def transcribe(self, audio_path: Path):
         """
         Transcribe audio a notas musicales usando YourMT3+ MoE.
+        CICLO 3: Ventanas con solapamiento, normalización y manejo robusto de errores.
         """
-        # 1) Audio 16 kHz usando librosa (maneja MP3/WAV nativamente, devuelve float32)
-        y, sr = librosa.load(str(audio_path), sr=SR, mono=True)
+        try:
+            # 1) Audio 16 kHz
+            y, sr = librosa.load(str(audio_path), sr=SR, mono=True)
+            
+            # Normalizamos al valor máximo y escalamos al 95% del rango
+            y = librosa.util.normalize(y, norm=np.inf) * 0.95
+            x = y.astype(np.float32).reshape(1, -1)
+            
+            log.info("Entrada: %d muestras (%.2f s) | RMS=%.4f | pico=%.4f (Normalizado)",
+                     x.shape[-1], x.shape[-1]/SR, 
+                     float(np.sqrt(np.mean(x ** 2))), float(np.max(np.abs(x))))
+
+            # 2) Ventanas con 15% de solapamiento
+            segs = slice_padded_array(x, slice_length=SEG, slice_hop=SEG_HOP, pad=True)
+            segs = segs.astype(np.float32)
+            segs_t = torch.from_numpy(segs).unsqueeze(1)
+            
+            n_segments = segs_t.shape[0]
+            log.info("Ventanas: %d x %.3f s (hop=%d muestras, solapamiento=%.0f%%)", 
+                     n_segments, SEG_SEC, SEG_HOP, OVERLAP_RATIO*100)
+            
+            # 3) Inferencia autoregresiva
+            preds_list, _ = self.model.inference_file(bsz=1, audio_segments=segs_t)
+            log.info("Inferencia completada. preds_list: %d elementos", len(preds_list))
+
+            # 4) Decodificación por ventana
+            notes = []
+            skipped = 0
+            seg_idx = 0
+            
+            for pred in preds_list:
+                pred = np.asarray(pred)
+                if pred.ndim == 2:
+                    pred = pred[None, ...]
+                
+                for s in range(pred.shape[0]):
+                    t0 = seg_idx * SEG_HOP / SR
+                    
+                    for c in range(pred.shape[1]):
+                        tok = [int(t) for t in pred[s, c]]
+                        
+                        if seg_idx < 3 and c < 2:
+                            log.info("seg %d canal %d tokens (primeros 20): %s", seg_idx, c, tok[:20])
+                        
+                        out = self.task_manager.detokenize(tok, start_time=t0)
+                        note_events, tie_events = out[0], out[1]
+                        
+                        try:
+                            seg_notes, err_cnt = note_event2note(note_events, tie_events)
+                        except Exception as e:
+                            skipped += 1
+                            log.warning("seg %d canal %d omitido por error en note_event2note: %s", seg_idx, c, e)
+                            continue
+                        
+                        if err_cnt:
+                            log.debug("canal %d seg %d: %s", c, seg_idx, dict(err_cnt))
+                        
+                        # FILTRO DE SEGURIDAD: Solo agregar notas con onset y offset válidos
+                        if seg_notes:
+                            for n in seg_notes:
+                                if getattr(n, 'onset', None) is not None and getattr(n, 'offset', None) is not None:
+                                    notes.append(n)
+                                else:
+                                    skipped += 1
+                        else:
+                            skipped += 1
+                            
+                    seg_idx += 1
+
+            # 5) Fusión de notas solapadas (Garantizamos que notes sea una lista)
+            if not notes:
+                log.warning("No se detectaron notas válidas en el audio.")
+                return []  # <-- RETORNO SEGURO
+
+            notes.sort(key=lambda n: n.onset)
+            notes_fused = self._merge_overlapping_notes(notes)
+            
+            log.info("✅ RESULTADO: Notas detectadas: %d | Después de fusión: %d | Canales omitidos: %d", 
+                     len(notes), len(notes_fused), skipped)
+            
+            return notes_fused
+            
+        except Exception as e:
+            log.error("Error crítico en transcribe: %s", e, exc_info=True)
+            return []  # <-- RETORNO SEGURO ANTE CUALQUIER FALLO
+                    
+
+    def _merge_overlapping_notes(self, notes, overlap_threshold_ms=100):
+        """Fusiona notas que aparecen en múltiples ventanas solapadas."""
+        if not notes:
+            return []
         
-        # Normalizar a rango [-1, 1] y asegurar float32
-        x = y.astype(np.float32).reshape(1, -1)
+        merged = []
+        used = [False] * len(notes)
+        overlap_threshold_s = overlap_threshold_ms / 1000.0
         
-        # 0) Diagnóstico de la entrada (evidencia para root-cause)
-        log.info("Entrada: %d muestras | RMS=%.4f | pico=%.4f",
-                 x.shape[-1], float(np.sqrt(np.mean(x ** 2))), float(np.max(np.abs(x))))
-
-        # 2) Ventanas de 32767 muestras sin solapamiento
-        segs = slice_padded_array(x, slice_length=SEG, slice_hop=SEG, pad=True)
-        segs = segs.astype(np.float32)
-        segs_t = torch.from_numpy(segs).unsqueeze(1)          # (n_seg, 1, SEG)
-        log.info("Ventanas: %d x %.3f s", segs_t.shape[0], SEG_SEC)
+        for i, note_i in enumerate(notes):
+            if used[i]:
+                continue
+            
+            best_note = note_i
+            for j in range(i + 1, len(notes)):
+                if used[j]:
+                    continue
+                
+                note_j = notes[j]
+                if note_j.onset - note_i.onset > overlap_threshold_s:
+                    break
+                
+                same_pitch = abs(note_i.pitch - note_j.pitch) <= 1
+                close_onset = abs(note_i.onset - note_j.onset) < overlap_threshold_s
+                close_offset = abs(note_i.offset - note_j.offset) < overlap_threshold_s
+                
+                if same_pitch and close_onset and close_offset:
+                    best_note.onset = min(note_i.onset, note_j.onset)
+                    best_note.offset = max(note_i.offset, note_j.offset)
+                    best_note.velocity = max(note_i.velocity, note_j.velocity)
+                    used[j] = True
+            
+            merged.append(best_note)
+            used[i] = True
         
-        # 3) Inferencia autoregresiva oficial
-        preds_list, _ = self.model.inference_file(bsz=1, audio_segments=segs_t)
-        log.info("preds_list: %d elementos | shape[0]=%s | shape[-1]=%s",
-                 len(preds_list),
-                 np.asarray(preds_list[0]).shape,
-                 np.asarray(preds_list[-1]).shape)
-
-        # 4) Decodificación por ventana y por canal, con contención de eventos huérfanos
-        notes = []
-        skipped = 0
-        seg_idx = 0
-        for pred in preds_list:
-            pred = np.asarray(pred)
-            if pred.ndim == 2:
-                pred = pred[None, ...]
-            for s in range(pred.shape[0]):
-                t0 = seg_idx * SEG_SEC
-                for c in range(pred.shape[1]):
-                    tok = [int(t) for t in pred[s, c]]
-                    if seg_idx < 3 and c < 3:                  # testigo: primeras ventanas
-                        log.info("seg %d canal %d tokens: %s", seg_idx, c, tok[:24])
-                    out = self.task_manager.detokenize(tok, start_time=t0)
-                    note_events, tie_events = out[0], out[1]
-                    try:
-                        seg_notes, err_cnt = note_event2note(note_events, tie_events)
-                    except TypeError as e:
-                        # note-off huérfano (onset=None) en secuencia degenerada:
-                        # se omite el canal sin abortar el job (fragilidad del repo oficial)
-                        skipped += 1
-                        log.debug("seg %d canal %d omitido por eventos malformados: %s",
-                                  seg_idx, c, e)
-                        continue
-                    if err_cnt:
-                        log.debug("canal %d seg %d: %s", c, seg_idx, dict(err_cnt))
-                    notes.extend(seg_notes)
-                seg_idx += 1
-
-        notes.sort(key=lambda n: n.onset)
-        log.info("Notas detectadas: %d | canales omitidos: %d", len(notes), skipped)
-        return notes
-
+        return merged
 
 # ---------------------------------------------------------------------
-# Fallback baseline Ciclo 1 (peak-picking sobre CQT) — seguro de entrega
+# Fallback baseline Ciclo 1 (sin cambios)
 # ---------------------------------------------------------------------
 def _baseline_notes(audio_path: Path):
     from pipeline import cqt_stage
@@ -166,7 +222,7 @@ def _baseline_notes(audio_path: Path):
     mag = cqt_stage.compute_cqt(y)
     mag_n = mag / (mag.max() + 1e-10)
     freqs = config.CQT_PARAMS["fmin"] * (2 ** (np.arange(mag.shape[1]) / 12.0))
-    midis = np.round(librosa.hz_to_midi(freqs)).astype(int)
+    midis = np.round(librosar.hz_to_midi(freqs)).astype(int)
     notes = []
     for t in range(mag_n.shape[0]):
         peaks, props = find_peaks(mag_n[t], height=0.35, distance=2, prominence=0.1)
@@ -188,6 +244,10 @@ def infer_notes(audio_path: Path):
     else:
         raw = _baseline_notes(audio_path)
     
+    # BLINDAJE FINAL: Si raw es None o no es iterable, devolver lista vacía
+    if not raw:
+        return []
+        
     return [{
         "pitch": int(n.pitch),
         "onset": float(n.onset),

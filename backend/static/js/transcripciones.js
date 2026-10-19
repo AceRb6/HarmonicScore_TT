@@ -26,64 +26,19 @@ const Transcripciones = {
         modal.style.display = 'flex';
 
         const cerrarModal = () => modal.style.display = 'none';
-        document.getElementById('cerrar-modal-mensaje').onclick = cerrarModal;
-        document.getElementById('btn-cerrar-mensaje').onclick = cerrarModal;
+        const btnCerrar = document.getElementById('cerrar-modal-mensaje');
+        const btnAceptar = document.getElementById('btn-cerrar-mensaje');
+        
+        if (btnCerrar) btnCerrar.onclick = cerrarModal;
+        if (btnAceptar) btnAceptar.onclick = cerrarModal;
         modal.onclick = (e) => { if (e.target === modal) cerrarModal(); };
     },
 
     /**
-     * Simula la descarga de un PDF para el CU-06
-     */
-    descargarPDF(event, exito) {
-        event.preventDefault();
-        
-        // Redirigir a login si es invitado
-        if (!Sesion.estaActiva()) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        if (exito) {
-            this.mostrarPopup("Descarga iniciada", false);
-        } else {
-            this.mostrarPopup("Error al generar PDF", true);
-        }
-    },
-
-    /**
-     * Actualiza la vista según si hay filas en el tbody.
-     * - Sin filas → muestra estado vacío
-     * - Con filas → muestra tabla y leyenda
-     */
-    actualizarVista() {
-        const vacio   = document.getElementById('transcripciones-vacio');
-        const wrapper = document.getElementById('transcripciones-tabla-wrapper');
-        const leyenda = document.getElementById('transcripciones-leyenda');
-        const tbody   = document.getElementById('transcripciones-tbody');
-
-        if (!vacio || !wrapper || !tbody) return;
-
-        const tieneFilas = tbody.querySelectorAll('tr').length > 0;
-
-        if (tieneFilas) {
-            // Hay transcripciones: mostrar tabla y leyenda
-            vacio.style.display   = 'none';
-            wrapper.style.display = 'block';
-            if (leyenda) leyenda.style.display = 'block';
-        } else {
-            // Historial vacío: mostrar estado vacío
-            vacio.style.display   = 'flex';
-            wrapper.style.display = 'none';
-            if (leyenda) leyenda.style.display = 'none';
-        }
-    },
-
-    /**
      * Renderiza una lista de objetos de transcripción en la tabla.
-     * Listo para recibir datos del backend cuando el endpoint esté disponible.
+     * Incluye dos botones reales y directos para descargar PDF y MusicXML.
      *
-     * @param {Array} lista - Array de objetos { titulo, fecha, estado, url_descarga }
-     *   estado puede ser: 'completado' | 'error' | 'proceso'
+     * @param {Array} lista - Array de objetos { job_id, titulo, fecha, estado }
      */
     renderizar(lista = []) {
         const tbody = document.getElementById('transcripciones-tbody');
@@ -93,30 +48,42 @@ const Transcripciones = {
 
         lista.forEach(item => {
             const tr = document.createElement('tr');
+            const jobId = item.job_id || item.id; // Asegurar compatibilidad de nombres
 
             let estadoHtml = '';
             let descargaHtml = '';
 
             switch (item.estado) {
                 case 'completado':
-                    estadoHtml   = `<td class="estado-exito">✓ Completado</td>`;
-                    // Simulación 80% éxito, 20% error para demo del CU-06
-                    const exitoVisual = Math.random() > 0.2;
-                    descargaHtml = `<td><a href="#" onclick="Transcripciones.descargarPDF(event, ${exitoVisual})" class="btn btn-primario"
-                                        style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">
-                                        PDF/XML ↓</a></td>`;
+                case 'EXITO': 
+                    estadoHtml = `<td class="estado-exito">✓ Completado</td>`;
+                    // Dos botones de descarga reales (sin depender de Bootstrap JS)
+                    descargaHtml = `
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+                                <a href="/api/transcripciones/${jobId}/descargar-pdf/" target="_blank" class="btn btn-primario" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; text-decoration: none; text-align: center; width: 100%; max-width: 130px;">
+                                    📄 Partitura (PDF)
+                                </a>
+                                <a href="/api/transcripciones/${jobId}/descargar-mxl/" target="_blank" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; text-decoration: none; text-align: center; width: 100%; max-width: 130px; background-color: var(--color-fondo-secundario); color: var(--color-texto); border: 1px solid var(--color-borde);">
+                                    🎼 Archivo MusicXML
+                                </a>
+                            </div>
+                        </td>
+                    `;
                     break;
                 case 'error':
-                    estadoHtml   = `<td class="estado-error">✗ Error</td>`;
-                    descargaHtml = `<td><span style="color:var(--color-error);font-weight:bold;">Error</span></td>`;
+                case 'ERROR':
+                    estadoHtml = `<td class="estado-error">✗ Error</td>`;
+                    descargaHtml = `<td><span style="color:var(--color-error); font-weight:bold; font-size: 0.85rem;">Falló</span></td>`;
                     break;
                 case 'proceso':
-                    // #2026-09-19 + Normalización de mayúsculas a texto formal tipo oración
-                    estadoHtml   = `<td class="estado-proceso">⊖ En proceso</td>`;
-                    descargaHtml = `<td><span style="color:var(--color-proceso);">--</span></td>`;
+                case 'PENDIENTE':
+                case 'PROCESANDO':
+                    estadoHtml = `<td class="estado-proceso">⊖ En proceso</td>`;
+                    descargaHtml = `<td><span style="color:var(--color-proceso); font-size: 0.85rem;">--</span></td>`;
                     break;
                 default:
-                    estadoHtml   = `<td>—</td>`;
+                    estadoHtml = `<td>—</td>`;
                     descargaHtml = `<td>—</td>`;
             }
 
@@ -134,55 +101,87 @@ const Transcripciones = {
     },
 
     /**
-     * Carga las transcripciones del usuario desde el backend,
-     * O muestra datos de demo si el usuario es INVITADO (sin sesión).
+     * Actualiza la vista según si hay filas en el tbody.
+     */
+    actualizarVista() {
+        const vacio   = document.getElementById('transcripciones-vacio');
+        const wrapper = document.getElementById('transcripciones-tabla-wrapper');
+        const leyenda = document.getElementById('transcripciones-leyenda');
+        const tbody   = document.getElementById('transcripciones-tbody');
+
+        if (!vacio || !wrapper || !tbody) return;
+
+        const tieneFilas = tbody.querySelectorAll('tr').length > 0;
+
+        if (tieneFilas) {
+            vacio.style.display   = 'none';
+            wrapper.style.display = 'block';
+            if (leyenda) leyenda.style.display = 'block';
+        } else {
+            vacio.style.display   = 'flex';
+            wrapper.style.display = 'none';
+            if (leyenda) leyenda.style.display = 'none';
+        }
+    },
+
+    /**
+     * Carga las transcripciones del usuario desde el backend.
      */
     async cargarDesdeBackend() {
-        // INVITADO: sin sesión activa → mostrar tabla de ejemplo
-        if (!Sesion.estaActiva()) {
-            this.renderizar([
-                { titulo: '"1.mp3"',               fecha: '15/5/26',  estado: 'completado' },
-                { titulo: '"2.mp3"',               fecha: '10/6/26',  estado: 'error'       },
-                { titulo: '"3.mp3"',               fecha: '11/6/26',  estado: 'proceso'     },
-                { titulo: '"ejercicio_piano.wav"',  fecha: '12/6/26',  estado: 'completado' }
-            ]);
-            // (Los invitados ven la prueba, no disparamos historial cargado real)
+        if (typeof DjangoAPI === 'undefined') {
+            console.warn('DjangoAPI no disponible.');
             return;
         }
 
-        // USUARIO AUTENTICADO: cargar transcripciones reales del backend
-        /*
-        ---- Activar cuando el backend tenga el endpoint ----
         try {
             const respuesta = await DjangoAPI.peticion('/transcripciones/mis/', 'GET');
-            if (respuesta.ok && Array.isArray(respuesta.data)) {
-                this.renderizar(respuesta.data);
-            } else {
-                this.renderizar([]); // Vacío si falla
-            }
-        } catch (e) {
-            this.renderizar([]);
-        }
-        */
 
-        // Mientras el backend no tenga el endpoint:
-        // Simulamos que el backend devolvió el historial vacío o mock
-        const mockHistorial = localStorage.getItem('hs_mock_historial'); // por si quisieramos inyectarle uno
-        if (mockHistorial) {
-            this.renderizar(JSON.parse(mockHistorial));
-            this.mostrarPopup("Historial cargado", false);
-        } else {
+            // 1. Usuario autenticado con transcripciones en PostgreSQL
+            if (respuesta.ok && Array.isArray(respuesta.data)) {
+                const lista = respuesta.data.map(t => ({
+                    ...t,
+                    fecha: t.fecha ? new Date(t.fecha).toLocaleDateString('es-MX', { 
+                        year: 'numeric', month: '2-digit', day: '2-digit', 
+                        hour: '2-digit', minute: '2-digit' 
+                    }) : '—'
+                }));
+                this.renderizar(lista);
+                return;
+            }
+
+            // 2. No autenticado (401)
+            if (respuesta.status === 401) {
+                if (typeof Sesion !== 'undefined' && Sesion.estaActiva()) {
+                    Sesion.cerrar(false);
+                }
+                this.renderizar([]);
+                this.mostrarPopup('Debes iniciar sesión para ver tus transcripciones.', true);
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1800);
+                return;
+            }
+
             this.renderizar([]);
-            this.mostrarPopup("Historial cargado", false);
+        } catch (e) {
+            console.error('Error al cargar historial:', e);
+            this.renderizar([]);
         }
     }
 };
 
 /* ------------------------------------------------
    INICIALIZACIÓN AUTOMÁTICA
-   Solo aplica si estamos en la página de consultas
 ------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('transcripciones-tbody')) return;
     Transcripciones.cargarDesdeBackend();
+    
+    // Polling cada 10 segundos para actualizar estados "En proceso" automáticamente
+    setInterval(() => {
+        const enProceso = document.querySelectorAll('.estado-proceso').length > 0;
+        if (enProceso) {
+            Transcripciones.cargarDesdeBackend();
+        }
+    }, 10000);
 });

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,15 +25,20 @@ SECRET_KEY = 'django-insecure-j&+-lgykml^_2xq4(h46tpg6b9glhq$w7gxv4f@mp7&&gqat#z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Permitir cualquier Host / IP de servidor
 ALLOWED_HOSTS = ['*']
 
-# CORS para permitir que el frontend (puerto 5500) haga peticiones a Django (puerto 8001)
-CORS_ALLOWED_ORIGINS = [
+# Permitir CORS desde cualquier origen (Modo Servidor para acceso desde red local o externa)
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# Orígenes confiables para CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
 ]
-
-CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
@@ -46,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'transcripciones',
 ]
 
 MIDDLEWARE = [
@@ -64,7 +70,7 @@ ROOT_URLCONF = 'app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # ← agregar esto
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,12 +88,23 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+##CONFIGURACION DOCKER: PostgreSQL + Celery/Redis
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'harmonic'),
+        'USER': os.environ.get('DB_USER', 'admin'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'admin'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
+# Celery - Message Broker (Redis)
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 
 
 # Password validation
@@ -126,3 +143,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Archivos subidos por usuarios (audios, PDFs, MXL)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
