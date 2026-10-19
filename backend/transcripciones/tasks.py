@@ -88,14 +88,25 @@ def procesar_audio(self, transcripcion_id: str):
             break
 
     # 3. Descargar el PDF y guardarlo en media/audios/pdf/
+    # 3. Descargar el PDF y el MusicXML y guardarlos en media/
     try:
-        pdf = requests.get(f"{ML_SERVICE_URL}{estado.get('pdf_url', f'/api/download/{ml_job_id}')}", timeout=120)
+        # Descargar PDF
+        pdf = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=pdf", timeout=120)
         pdf.raise_for_status()
+        
+        # Descargar MusicXML
+        xml = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=xml", timeout=120)
+        xml.raise_for_status()
     except requests.RequestException as e:
-        return _marcar_error(t, f'No se pudo descargar el PDF: {e}')
+        return _marcar_error(t, f'No se pudo descargar los archivos: {e}')
 
     base = os.path.splitext(t.titulo_audio)[0]
+    
+    # Guardar PDF en el modelo de Django
     t.ruta_archivo_pdf.save(f'{base}_harmonic_score.pdf', ContentFile(pdf.content), save=False)
+    
+    # Guardar MusicXML en el modelo de Django
+    t.ruta_archivo_mxl.save(f'{base}_harmonic_score.musicxml', ContentFile(xml.content), save=False)
 
     metrics = estado.get('metrics') or {}
     score = metrics.get('harmonic_score')
@@ -105,4 +116,4 @@ def procesar_audio(self, transcripcion_id: str):
     t.estado = 'EXITO'
     t.detalles_error = None
     t.save()
-    log.info("Transcripcion %s completada", t.id)
+    log.info("Transcripcion %s completada exitosamente con PDF y MusicXML", t.id)

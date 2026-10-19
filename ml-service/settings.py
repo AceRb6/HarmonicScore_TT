@@ -7,7 +7,8 @@ try:
     import torch
 except ImportError:
     torch = None
-
+NORMALIZE_INPUT = False
+NORMALIZE_TARGET = 0.95
 # --- Directorios ---
 BASE_DIR = Path(__file__).resolve().parent
 STORAGE = BASE_DIR / "storage"
@@ -42,7 +43,7 @@ CHECKPOINT_PATH = BASE_DIR / "models" / "amt" / "logs" / "2024" / \
     "checkpoints" / "last.ckpt"
 
 # --- Backend de inferencia: "real" | "baseline" (seguro del Entregable 1) ---
-MODEL_BACKEND = "real"
+MODEL_BACKEND = "real"    # ← "real" para el checkpoint YourMT3+ MoE
 
 # --- Hardware real: RTX 4050 6 GB VRAM / 16 GB RAM ---
 if torch is not None:

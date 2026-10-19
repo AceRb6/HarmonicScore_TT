@@ -1,7 +1,8 @@
 import json
+from django.http import FileResponse, JsonResponse, Http404
+from django.shortcuts import get_object_or_404
 import os
 import requests as http_requests
-from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
@@ -326,3 +327,85 @@ def mis_transcripciones(request):
         'url_descarga': t.ruta_archivo_pdf.url if t.ruta_archivo_pdf else None,
     } for t in jobs]
     return JsonResponse(data, safe=False)
+
+# ─── API: Descargas ─────────────────────────────────────────────────────────────
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def descargar_pdf(request, transcripcion_id):
+    """Descarga la partitura en formato PDF usando ruta absoluta del sistema."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'no_autenticado'}, status=401)
+        
+    try:
+        transcripcion = Transcripcion.objects.get(id=transcripcion_id, usuario=request.user)
+    except Transcripcion.DoesNotExist:
+        return JsonResponse({'error': 'transcripcion_no_encontrada'}, status=404)
+
+    if transcripcion.estado not in ['EXITO', 'COMPLETADO', 'completado']:
+        return JsonResponse({'error': 'transcripcion_no_lista'}, status=400)
+        
+    # Usar la ruta absoluta del archivo PDF
+    ruta_pdf = transcripcion.ruta_archivo_pdf
+    
+    if not ruta_pdf:
+        return JsonResponse({'error': 'ruta_pdf_no_definida'}, status=404)
+    
+    # Convertir a string si es un objeto FileField
+    ruta_pdf_str = str(ruta_pdf)
+    
+    # Si la ruta es relativa, convertirla a absoluta
+    if not os.path.isabs(ruta_pdf_str):
+        # Asumir que está en el directorio de medios de Django
+        from django.conf import settings
+        ruta_pdf_str = os.path.join(settings.MEDIA_ROOT, ruta_pdf_str)
+    
+    if not os.path.exists(ruta_pdf_str):
+        return JsonResponse({'error': 'archivo_no_encontrado', 'ruta': ruta_pdf_str}, status=404)
+    
+    return FileResponse(
+        open(ruta_pdf_str, 'rb'),
+        content_type='application/pdf',
+        as_attachment=True,
+        filename=os.path.basename(ruta_pdf_str)
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def descargar_mxl(request, transcripcion_id):
+    """Descarga la partitura en formato MusicXML usando ruta absoluta del sistema."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'no_autenticado'}, status=401)
+        
+    try:
+        transcripcion = Transcripcion.objects.get(id=transcripcion_id, usuario=request.user)
+    except Transcripcion.DoesNotExist:
+        return JsonResponse({'error': 'transcripcion_no_encontrada'}, status=404)
+
+    if transcripcion.estado not in ['EXITO', 'COMPLETADO', 'completado']:
+        return JsonResponse({'error': 'transcripcion_no_lista'}, status=400)
+        
+    # Usar la ruta absoluta del archivo MusicXML
+    ruta_mxl = transcripcion.ruta_archivo_mxl
+    
+    if not ruta_mxl:
+        return JsonResponse({'error': 'ruta_mxl_no_definida'}, status=404)
+    
+    # Convertir a string si es un objeto FileField
+    ruta_mxl_str = str(ruta_mxl)
+    
+    # Si la ruta es relativa, convertirla a absoluta
+    if not os.path.isabs(ruta_mxl_str):
+        from django.conf import settings
+        ruta_mxl_str = os.path.join(settings.MEDIA_ROOT, ruta_mxl_str)
+    
+    if not os.path.exists(ruta_mxl_str):
+        return JsonResponse({'error': 'archivo_no_encontrado', 'ruta': ruta_mxl_str}, status=404)
+    
+    return FileResponse(
+        open(ruta_mxl_str, 'rb'),
+        content_type='application/xml',
+        as_attachment=True,
+        filename=os.path.basename(ruta_mxl_str)
+    )

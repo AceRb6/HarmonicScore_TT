@@ -1,0 +1,77 @@
+    def inference_file(
+        self,
+        bsz: int,
+        audio_segments: torch.FloatTensor,  # (n_items, 1, segment_len): from a single file
+        note_token_array: Optional[torch.LongTensor] = None,
+        task_token_array: Optional[torch.LongTensor] = None,
+        # subtask_key: Optional[str] = "default"
+    ) -> Tuple[List[np.ndarray], Optional[torch.Tensor]]:
+        """ Inference from audio batch by autoregressive decoding:
+        Args:
+            bsz: batch size
+            audio_segments: (n_items, 1, segment_len): segmented audio from a single file
+            note_token_array: (n_items, max_token_len): Optional. If token_array is None, will not return loss.
+            subtask_key: (str): If None, not using subtask prefix. By default, using "default" defined in task manager.
+        """
+        # if subtask_key is not None:
+        #     _subtask_token = torch.LongTensor(
+        #         self.task_manager.get_eval_subtask_prefix_dict()[subtask_key]).to(self.device)
+
+        n_items = audio_segments.shape[0]
+        loss = 0.
+        pred_token_array_file = []  # each element is (B, C, L) np.ndarray
+        x_ps_concat = []
+
+        for i in range(0, n_items, bsz):
+            if i + bsz > n_items:  # last batch can be smaller
+                x = audio_segments[i:n_items].to(self.device)
+                # if subtask_key is not None:
+                #     b = n_items - i  # bsz for the last batch
+                #     task_tokens = _subtask_token.expand((b, -1))  # (b, task_len)
+                if note_token_array is not None:
+                    target_tokens = note_token_array[i:n_items].to(self.device)
+                if task_token_array is not None and task_token_array.numel() > 0:
+                    task_tokens = task_token_array[i:n_items].to(self.device)
+                else:
+                    task_tokens = None
+            else:
+                x = audio_segments[i:i + bsz].to(self.device)  # (bsz, 1, segment_len)
+                # if subtask_key is not None:
+                #     task_tokens = _subtask_token.expand((bsz, -1))  # (bsz, task_len)
+                if note_token_array is not None:
+                    target_tokens = note_token_array[i:i + bsz].to(self.device)  # (bsz, token_len)
+                if task_token_array is not None and task_token_array.numel() > 0:
+                    task_tokens = task_token_array[i:i + bsz].to(self.device)
+                else:
+                    task_tokens = None
+
+            # token prediction (fast-autoregressive decoding)
+            # if subtask_key is not None:
+            #     preds = self.inference(x, task_tokens).detach().cpu().numpy()
+            # else:
+            #     preds = self.inference(x).detach().cpu().numpy()
+
+            if self.test_pitch_shift_layer is not None:  # debug only
+                preds, x_ps = self.inference(x, task_tokens)
+                preds = preds.detach().cpu().numpy()
+                x_ps_concat.append(x_ps.detach().cpu())
+            else:
+                preds = self.inference(x, task_tokens).detach().cpu().numpy()
+            if len(preds) != len(x):
+                raise ValueError(f'preds: {len(preds)}, x: {len(x)}')
+            pred_token_array_file.append(preds)
+
+            # validation loss (by teacher forcing)
+            if note_token_array is not None:
+                loss_weight = x.shape[0] / n_items
+                loss += self(x, target_tokens)['loss'] * loss_weight
+                # loss += self(x, target_tokens, task_tokens)['loss'] * loss_weight
+            else:
+                loss = None
+
+        if self.test_pitch_shift_layer is not None:  # debug only
+            if self.hparams.write_output_dir is not None:
+                x_ps_concat = torch.cat(x_ps_concat, dim=0)
+                return pred_token_array_file, loss, x_ps_concat.flatten().unsqueeze(0)
+        else:
+            return pred_token_array_file, loss
