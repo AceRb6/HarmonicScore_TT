@@ -5,22 +5,19 @@ Flujo: audio (RF-01/02/03) → CQT análisis (RF-09) → polifonía por entropí
      → inferencia YourMT3+ MoE (RF-10) → post-procesamiento (RF-11)
      → partitura PDF (RF-12/RF-13).
 
-Nota de arquitectura (documentar en TT-II): el checkpoint YourMT3+ computa su
-propia representación interna (mel, sr=16 kHz) desde la forma de onda cruda;
-por eso el modelo recibe la RUTA del audio y no un tensor de CQT. La CQT cumple
-el rol de análisis espectral (RF-08/RF-09). No existe etapa `to_tensor`.
+Nota de arquitectura: el checkpoint YourMT3+ computa su propia representación interna 
+(mel, sr=16 kHz) desde la forma de onda cruda; por eso el modelo recibe 
+la RUTA del audio y no un tensor de CQT. La CQT cumple el rol 
+de análisis espectral (RF-08/RF-09). No existe etapa `to_tensor`.
 """
 import logging
 import time
 from pathlib import Path
-
 import torch
-
 import settings as config
 from pipeline import audio_stage, cqt_stage, model_stage, post_stage, score_stage
 
 log = logging.getLogger("harmonic.orchestrator")
-
 
 class Orchestrator:
     def run(self, audio_path: Path, out_name: str, on_stage=None):
@@ -62,9 +59,13 @@ class Orchestrator:
 
         # 6) Generación de partitura y PDF (RF-12/RF-13)
         pdf_path = config.OUTPUT_DIR / out_name
+        titulo_pieza = out_name.split('_harmonic_score_')[0] 
+        titulo_pieza = titulo_pieza.replace('.pdf', '').replace('_', ' ').replace('-', ' ').title()
+
         # Pasamos los metadatos estimados al generador de partituras
         time_it("score_pdf", score_stage.build_score, notes, pdf_path, 
-                bpm=estimated_bpm, time_signature=estimated_time_sig)
+                bpm=estimated_bpm, time_signature=estimated_time_sig,
+                title=titulo_pieza)
 
         # Métricas de hardware (evidencia TT-II vs RNF-01/02)
         metrics["total_ms"] = round((time.perf_counter() - t0) * 1000, 1)

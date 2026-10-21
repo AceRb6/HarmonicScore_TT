@@ -4,16 +4,13 @@ Etapa 6 — Generación de partitura MusicXML 4.0 (RF-12) y delegación de RF-13
 Convierte la secuencia refinada de eventos (pitch, onset, offset, velocity)
 en MusicXML 4.0 mediante music21, con figuras rítmicas cuantizadas y silencios
 de relleno basados en el tempo y compás estimados dinámicamente.
-
-La conversión MusicXML → PDF (RF-13) NO vive aquí: se delega a
-pipeline.pdf_stage.render_musicxml_to_pdf (fuente única de verdad del render).
 """
 from __future__ import annotations
 
 import logging
 from pathlib import Path
 
-from music21 import stream, note, tempo, meter, instrument
+from music21 import stream, note, tempo, meter, instrument, metadata
 
 from pipeline.pdf_stage import render_musicxml_to_pdf
 
@@ -26,7 +23,6 @@ FIGURAS_MUSICALES = {
     0.25: '16th', 0.125: '32nd', 0.0625: '64th',
 }
 
-
 def cuantizar_duracion(duracion_s: float, tempo_bpm: float = 120.0) -> float:
     """Convierte segundos a la figura musical (quarterLength) más cercana según el tempo."""
     duracion_negras = duracion_s * (tempo_bpm / 60.0)
@@ -34,7 +30,7 @@ def cuantizar_duracion(duracion_s: float, tempo_bpm: float = 120.0) -> float:
     figura = min(figuras, key=lambda x: abs(x - duracion_negras))
     return max(0.0625, min(4.0, figura))
 
-def build_score(notes: list, pdf_path: Path, bpm: float = 120.0, time_signature: str = "4/4") -> Path:
+def build_score(notes: list, pdf_path: Path, bpm: float = 120.0, time_signature: str = "4/4", title: str = "Pieza sin título") -> Path:
     """
     Genera el MusicXML usando el tempo y compás estimados dinámicamente, 
     y delega el PDF. Devuelve la ruta del PDF final.
@@ -43,6 +39,17 @@ def build_score(notes: list, pdf_path: Path, bpm: float = 120.0, time_signature:
         raise ValueError("No hay notas para generar la partitura")
 
     score = stream.Score()
+
+    # Inyección de metadatos
+    md = metadata.Metadata()
+    md.title = title
+    md.composer = "Harmonic Score v.1.0"
+    md.publisher = "Harmonic Score"
+    md.rights = "Transcrito con Harmonic Score"
+    transcriber = metadata.Contributor(name="Harmonic Score", role="transcriber")
+    md.addContributor(transcriber)
+    score.metadata = md
+
     part = stream.Part()
     part.append(instrument.Piano())
     
