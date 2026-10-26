@@ -1,4 +1,10 @@
 
+# Archivos de variables de entorno y secretos (NUNCA subir a Git)
+.env
+.env.*
+!.env.example
+!.env.correo.example
+
 # Python bytecode y cache
 __pycache__/
 *.py[cod]

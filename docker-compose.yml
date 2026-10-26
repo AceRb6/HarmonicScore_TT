@@ -28,9 +28,9 @@ services:
       - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-harmonicscore.escom@gmail.com}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-dkfuslahcdcmnhia}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Harmonic Score <harmonicscore.escom@gmail.com>}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -47,6 +47,11 @@ services:
       - ./backend:/app
       # CRÍTICO: Permite al worker escribir/leer en la misma carpeta compartida
       - ./ml-service/storage/outputs:/app/ml-service/storage/outputs
+    env_file:
+      - path: ./.env
+        required: false
+      - path: ./.env.correo
+        required: false
     environment:
       - DEBUG=1
       - DB_HOST=db
@@ -59,9 +64,9 @@ services:
       - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-harmonicscore.escom@gmail.com}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-dkfuslahcdcmnhia}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Harmonic Score <harmonicscore.escom@gmail.com>}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-}
     depends_on:
       db:
         condition: service_healthy
