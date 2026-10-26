@@ -382,7 +382,7 @@ function inicializarValidacionLogin() {
                 const nombreUsuario = respuesta.data.username || '';
                 mostrarMensaje(respuesta.data.message || `Bienvenido, ${nombreUsuario}`, false);
                 Sesion.iniciar(nombreUsuario, respuesta.data.token || 'sesion-django');
-                setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+                setTimeout(() => { window.location.href = '/index.html'; }, 1000);
             } else if (respuesta.status === 404 || (respuesta.data && respuesta.data.error === 'usuario_no_encontrado')) {
                 mostrarMensaje('Usuario no existente, registrate porfavor', true);
             } else if (respuesta.status === 401 || (respuesta.data && respuesta.data.error === 'credenciales_invalidas')) {
@@ -399,28 +399,34 @@ function inicializarValidacionLogin() {
 
 /**
  * CU-03: Recuperar contraseña
+ * Solicita el envío de un correo con un enlace temporal (24 h, un solo uso).
+ * Las respuestas se muestran con notificaciones tipo toast (ver toast.js).
  */
 function inicializarRecuperarContrasena() {
     const formulario = document.getElementById('formulario-recuperar');
-    const mensajeContenedor = document.getElementById('mensaje-recuperar');
     if (!formulario) return;
 
-    const mostrarMensaje = (msn, esError) => {
-        if (!mensajeContenedor) return;
-        mensajeContenedor.textContent = msn;
-        mensajeContenedor.style.display = 'block';
-        mensajeContenedor.style.backgroundColor = esError ? '#ffebee' : '#e8f5e9';
-        mensajeContenedor.style.color = esError ? '#c62828' : '#2e7d32';
-        mensajeContenedor.style.border = `1px solid ${esError ? '#ef9a9a' : '#a5d6a7'}`;
+    const TEXTO_BOTON = 'Enviar correo de recuperación';
+    const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    const notificar = (msn, esError) => {
+        if (typeof Toast !== 'undefined') {
+            esError ? Toast.error(msn) : Toast.exito(msn);
+        } else {
+            alert(msn);
+        }
     };
 
     formulario.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (mensajeContenedor) mensajeContenedor.style.display = 'none';
 
         const correo = document.getElementById('recuperar-correo').value.trim();
         if (!correo) {
-            mostrarMensaje('Error al recuperar contraseña: ingresa tu correo.', true); // msn2
+            notificar('Ingresa tu correo electrónico.', true);
+            return;
+        }
+        if (!REGEX_CORREO.test(correo)) {
+            notificar('El formato del correo electrónico no es válido.', true);
             return;
         }
 
@@ -431,25 +437,23 @@ function inicializarRecuperarContrasena() {
         }
 
         try {
-            // Llamada real al backend: verifica si el correo existe en la BD
             const respuesta = await DjangoAPI.peticion('/auth/recuperar-contrasena/', 'POST', { email: correo });
 
             if (respuesta.ok) {
-                // msn1: el correo existe en la BD
-                mostrarMensaje('Se ha enviado la recuperación a tu correo', false);
-            } else if (respuesta.status === 404 || (respuesta.data && respuesta.data.error === 'correo_no_encontrado')) {
-                // msn2: el correo no está registrado
-                mostrarMensaje('Error al recuperar contraseña', true);
+                notificar(`Revisa tu bandeja de entrada del correo (${correo})`, false);
+                formulario.reset();
+            } else if (respuesta.status === 404) {
+                notificar('Correo no registrado en HarmonicScore', true);
             } else {
-                mostrarMensaje('Error al recuperar contraseña', true);
+                const msn = (respuesta.data && respuesta.data.message) || 'Error al recuperar contraseña';
+                notificar(msn, true);
             }
-
         } catch (error) {
-            mostrarMensaje('Error al recuperar contraseña', true);
+            notificar('Ups, tenemos un problema desde nuestro lado', true);
         } finally {
             if (btnRecuperar) {
                 btnRecuperar.disabled = false;
-                btnRecuperar.textContent = 'Enviar enlace de recuperación';
+                btnRecuperar.textContent = TEXTO_BOTON;
             }
         }
     });

@@ -7,7 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonic Score - Recuperar contraseña</title>
     <meta name="description" content="Recupera el acceso a tu cuenta de Harmonic Score ingresando tu correo registrado.">
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261025_2">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261025_2">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
 </head>
 <body>
@@ -32,7 +33,7 @@
                 <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🔑</div>
                 <h2 class="formulario-titulo">Recuperar contraseña</h2>
                 <p style="color: var(--color-texto-secundario); font-size: 0.97rem; margin-top: -0.5rem; margin-bottom: 1.5rem;">
-                    Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                    Ingresa tu correo electrónico registrado y te enviaremos un correo con un enlace para establecer una nueva contraseña.
                 </p>
             </div>
 
@@ -43,13 +44,9 @@
                            placeholder="ejemplo@correo.com" required>
                 </div>
 
-                <div id="mensaje-recuperar" class="mensaje-alerta"
-                     style="display: none; margin-bottom: 1rem; padding: 0.8rem; text-align: center; border-radius: 4px; font-weight: bold;">
-                </div>
-
                 <button type="submit" class="btn btn-primario btn-grande" id="btn-recuperar"
                         style="width: 100%;">
-                    Enviar enlace de recuperación
+                    Enviar correo de recuperación
                 </button>
             </form>
 
@@ -83,11 +80,12 @@
         </div>
     </footer>
 
-    <script src="{% static 'js/sesion.js' %}"></script>
-    <script src="{% static 'js/api.js' %}"></script>
-    <script src="{% static 'js/config.js' %}"></script>
-    <script src="{% static 'js/navigation.js' %}"></script>
-    <script src="{% static 'js/validacion.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/toast.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/sesion.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/api.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/config.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/navigation.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/validacion.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/main.js' %}?v=20261025_2"></script>
 </body>
 </html>

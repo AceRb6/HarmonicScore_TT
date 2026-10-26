@@ -1,0 +1,12 @@
+{% autoescape off %}Hola, {{ nombre_usuario }}.
+
+Recibimos una solicitud para recuperar tu contraseña en Harmonic Score.
+
+Para establecer una nueva contraseña, ingresa al siguiente enlace:
+
+{{ enlace_recuperacion }}
+
+Si no solicitaste este cambio, puedes ignorar este mensaje.
+
+Este enlace caducará en 24 horas.
+{% endautoescape %}

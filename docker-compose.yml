@@ -11,6 +11,11 @@ services:
       - ./ml-service/storage/outputs:/app/ml-service/storage/outputs
     ports:
       - "8001:8001"
+    env_file:
+      - path: ./.env
+        required: false
+      - path: ./.env.correo
+        required: false
     environment:
       - DEBUG=1
       - DB_HOST=db
@@ -20,6 +25,12 @@ services:
       # CORREGIDO: El fallback ahora es host.docker.internal (más seguro que 127.0.0.1)
       - ML_SERVICE_URL=${ML_SERVICE_URL:-http://host.docker.internal:8000}
       - CELERY_BROKER_URL=redis://redis:6379/0
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-harmonicscore.escom@gmail.com}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-dkfuslahcdcmnhia}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Harmonic Score <harmonicscore.escom@gmail.com>}
     depends_on:
       db:
         condition: service_healthy
@@ -45,6 +56,12 @@ services:
       # CORREGIDO: Fallback a host.docker.internal
       - ML_SERVICE_URL=${ML_SERVICE_URL:-http://host.docker.internal:8000}
       - CELERY_BROKER_URL=redis://redis:6379/0
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-harmonicscore.escom@gmail.com}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-dkfuslahcdcmnhia}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Harmonic Score <harmonicscore.escom@gmail.com>}
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="same-origin">
+    <title>Harmonic Score - Nueva contraseña</title>
+    <meta name="description" content="Establece una nueva contraseña para tu cuenta de Harmonic Score.">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261025_2">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261025_2">
+    <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
+</head>
+<body>
+<header class="header">
+    <div class="header-contenido">
+        <div class="header-logo" onclick="window.location.href='/index.html'" style="cursor: pointer;">
+            <div class="header-logo-img">HS</div>
+            <h1 class="header-titulo">Harmonic Score</h1>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><span class="activo" style="font-weight: 700; color: var(--color-primario); cursor: default;">Nueva contraseña</span></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+    <main class="main">
+        <div class="formulario-contenedor">
+
+        {% if token_invalido %}
+            <div style="text-align: center;">
+                <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚠️</div>
+                <h2 class="formulario-titulo">Enlace no válido</h2>
+                <p style="color: var(--color-texto-secundario); font-size: 0.97rem; margin-bottom: 1.5rem;">
+                    El enlace de recuperación es inválido, ya fue utilizado o expiró.
+                    Por seguridad, cada enlace solo puede usarse una vez y caduca en 24 horas.
+                </p>
+                <a href="/recuperar-contrasena.html" class="btn btn-primario btn-grande" style="width: 100%; display: inline-block; text-decoration: none;">
+                    Solicitar un nuevo enlace
+                </a>
+                <p style="text-align: center; margin-top: 1.5rem; font-size: 1rem;">
+                    ¿Recordaste tu contraseña? <a href="/login.html">Inicia sesión aquí</a>
+                </p>
+            </div>
+        {% else %}
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🔒</div>
+                <h2 class="formulario-titulo">Bienvenido, {{ nombre_usuario }}</h2>
+                <p style="color: var(--color-texto-secundario); font-size: 0.97rem; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+                    Para continuar, establece una nueva contraseña para tu cuenta.
+                </p>
+            </div>
+
+            {% if errores %}
+            <ul class="lista-errores" role="alert">
+                {% for error in errores %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+
+            <form id="formulario-recuperacion" class="formulario" method="post" action="" novalidate>
+                {% csrf_token %}
+
+                <div class="formulario-grupo">
+                    <label for="nueva-contrasena" class="formulario-label">Nueva contraseña:</label>
+                    <div class="password-contenedor">
+                        <input type="password" id="nueva-contrasena" name="password" class="formulario-input"
+                               placeholder="Ingresa tu nueva contraseña" autocomplete="new-password" required>
+                        <button type="button" class="password-toggle">Mostrar</button>
+                    </div>
+                </div>
+
+                <div class="formulario-grupo">
+                    <label for="confirmar-nueva-contrasena" class="formulario-label">Confirmar nueva contraseña:</label>
+                    <div class="password-contenedor">
+                        <input type="password" id="confirmar-nueva-contrasena" name="password_confirmacion" class="formulario-input"
+                               placeholder="Confirma tu nueva contraseña" autocomplete="new-password" required>
+                        <button type="button" class="password-toggle">Mostrar</button>
+                    </div>
+                </div>
+
+                <p class="formulario-label" style="margin-bottom: 0.4rem;">Tu nueva contraseña debe cumplir con:</p>
+                <ul class="requisitos-contrasena" id="requisitos-contrasena">
+                    <li data-regla="longitud">Mínimo 8 caracteres.</li>
+                    <li data-regla="mayuscula">Al menos una letra mayúscula.</li>
+                    <li data-regla="minuscula">Al menos una letra minúscula.</li>
+                    <li data-regla="numero">Al menos un número.</li>
+                    <li data-regla="simbolo">Al menos un símbolo especial.</li>
+                    <li data-regla="comun">No debe ser una contraseña común.</li>
+                    <li data-regla="no-solo-numeros">No debe contener solo números.</li>
+                    <li data-regla="coincide">Debe coincidir con la confirmación de contraseña.</li>
+                </ul>
+
+                <button type="submit" class="btn btn-primario btn-grande" id="btn-aceptar-recuperacion" style="width: 100%;">
+                    Aceptar
+                </button>
+            </form>
+        {% endif %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-contenido">
+            <div class="footer-seccion">
+                <h3>Harmonic Score</h3>
+                <p>Transcripción automática de música</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Desarrolladores</h3>
+                <p>Arroyo Parra Jair Uziel</p>
+                <p>Cano Portugal Israel Daniel Arturo</p>
+                <p>Garcés Valencia Brisa Isabel</p>
+            </div>
+            <div class="footer-seccion">
+                <h3>Institución</h3>
+                <p>ESCOM</p>
+                <p>Proyecto académico 2026-B115</p>
+            </div>
+        </div>
+        <div class="footer-inferior">
+            <p>&copy; 2026 Harmonic Score. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/toast.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/validacion.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/recuperacion.js' %}?v=20261025_2"></script>
+</body>
+</html>

@@ -3,6 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from cuentas import views as cuentas_views
 
 urlpatterns = [
     # ─── Vistas HTML ──────────────────────────────────────────────────────────
@@ -26,7 +27,11 @@ urlpatterns = [
     path('api/auth/registro/', views.registro_usuario, name='registro_usuario'),
     path('api/auth/login/', views.login_usuario, name='login_usuario'),
     path('api/auth/logout/', views.logout_usuario, name='logout_usuario'),
-    path('api/auth/recuperar-contrasena/', views.recuperar_contrasena, name='recuperar_contrasena'),
+    path('api/auth/recuperar-contrasena/', cuentas_views.solicitar_recuperacion, name='recuperar_contrasena'),
+
+    # ─── Recuperacion de contrasena (enlace enviado por correo) ───────────────
+    path('recuperacion/', cuentas_views.recuperacion, name='recuperacion_sin_token'),
+    path('recuperacion/<str:token>/', cuentas_views.recuperacion, name='recuperacion'),
 
     # ─── API: Transcripciones ─────────────────────────────────────────────────
     path('api/transcripciones/subir/', views.subir_transcripcion, name='subir_transcripcion'),

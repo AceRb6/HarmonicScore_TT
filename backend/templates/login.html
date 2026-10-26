@@ -6,13 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de login -->
     <title>Harmonic Score - Inicio de sesión</title>
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261025_2">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261025_2">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
 </head>
 <body>
 <header class="header">
     <div class="header-contenido">
-        <div class="header-logo" onclick="window.location.href='index.html'" style="cursor: pointer;">
+        <div class="header-logo" onclick="window.location.href='/index.html'" style="cursor: pointer;">
             <div class="header-logo-img">HS</div>
             <h1 class="header-titulo">Harmonic Score</h1>
         </div>
@@ -66,14 +67,14 @@
                     </form>
 
                     <p style="text-align: center; margin-top: 1.5rem;">
-                        <a href="recuperar-contrasena.html" id="link-olvide-contrasena"
+                        <a href="/recuperar-contrasena.html" id="link-olvide-contrasena"
                            style="color: var(--color-primario); font-weight: 600; text-decoration: underline; font-size: 0.95rem;">
                             ¿Olvidé mi contraseña?
                         </a>
                     </p>
 
                     <p style="text-align: center; margin-top: 1rem; font-size: 1.1rem; color: var(--color-texto-secundario);">
-                        ¿No tienes cuenta? <a href="registro.html" style="color: var(--color-primario); font-weight: 600;">Regístrate aquí</a>
+                        ¿No tienes cuenta? <a href="/registro.html" style="color: var(--color-primario); font-weight: 600;">Regístrate aquí</a>
                     </p>
                 </div>
             </div>
@@ -107,12 +108,13 @@
         </div>
     </footer>
 
-    <script src="{% static 'js/sesion.js' %}"></script>
-    <script src="{% static 'js/api.js' %}"></script>
-    <script src="{% static 'js/config.js' %}"></script>
-    <script src="{% static 'js/navigation.js' %}"></script>
-    <script src="{% static 'js/validacion.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/toast.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/sesion.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/api.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/config.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/navigation.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/validacion.js' %}?v=20261025_3"></script>
+    <script src="{% static 'js/main.js' %}?v=20261025_2"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>

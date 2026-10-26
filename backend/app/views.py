@@ -160,32 +160,6 @@ def logout_usuario(request):
     return JsonResponse({'success': True, 'message': 'Sesion cerrada'})
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def recuperar_contrasena(request):
-    """CU-03: Verifica si el correo existe en la base de datos."""
-    try:
-        data  = json.loads(request.body)
-        email = data.get('email', '').strip()
-
-        if not email:
-            return JsonResponse({'error': 'correo_requerido'}, status=400)
-
-        existe = User.objects.filter(email__iexact=email).exists()
-
-        if existe:
-            return JsonResponse({
-                'success': True,
-                'message': 'Se ha enviado la recuperacion a tu correo'
-            }, status=200)
-        else:
-            return JsonResponse({'error': 'correo_no_encontrado'}, status=404)
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Formato JSON invalido'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
 # ─── API: Transcripciones ─────────────────────────────────────────────────────
 
 @csrf_exempt

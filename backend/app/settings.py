@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'transcripciones',
+    'cuentas',
 ]
 
 MIDDLEWARE = [
@@ -105,6 +106,39 @@ CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+# Cache (Redis, base 1) - usada para limitar solicitudes de recuperacion por IP
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get('CACHE_URL', 'redis://redis:6379/1'),
+    }
+}
+
+# Correo electronico (CU-03: recuperacion de contrasena)
+# Las credenciales se leen de variables de entorno (archivo .env.correo,
+# excluido de Git). Para Gmail se usa una "contrasena de aplicacion".
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').strip()
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend'
+    if (EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') or EMAIL_HOST_USER or 'no-reply@harmonicscore.local'
+EMAIL_TIMEOUT = 15
+
+# URL publica para construir el enlace del correo (opcional).
+# Si esta vacia se usa el host con el que el usuario abrio la pagina.
+SITE_URL = os.environ.get('SITE_URL', '')
+
+# Limite anti-abuso de solicitudes de recuperacion
+RECUPERACION_LIMITE_POR_IP = int(os.environ.get('RECUPERACION_LIMITE_POR_IP', '15'))
+RECUPERACION_VENTANA_SEGUNDOS = int(os.environ.get('RECUPERACION_VENTANA_SEGUNDOS', '900'))
 
 
 # Password validation
