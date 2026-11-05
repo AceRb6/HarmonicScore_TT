@@ -22,7 +22,6 @@ EDGE_CANDIDATES = (
 )
 
 WATERMARK = "Transcrito por Harmonic Score"
-COMPOSER = "Harmonic Score v.1.0"
 
 def _find_group_end(svg: str, start_idx: int) -> int:
     """

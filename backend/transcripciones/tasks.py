@@ -9,10 +9,19 @@ Flujo:
 
 La URL del ml-service se toma de la variable de entorno ML_SERVICE_URL
 (ej. http://192.168.1.50:8000). Ver docker-compose.yml / .env.
+
+NOTA de naming (RF-06 / CU-06): el nombre final del archivo NO se reconstruye
+aquí. La capa de dominio (ml-service) ya decidió el patrón
+{nombre_original}_harmonic_score_{timestamp}; Django lo HEREDA del header
+Content-Disposition de la respuesta de descarga (Ilustración 39), replicando el
+contrato que ya respeta un navegador. Esto elimina la duplicación de heurísticas
+de saneado entre microservicios y el sufijo opaco anti-colisión que Django
+inyectaba al re-guardar archivos homónimos (que ocupaba el puesto del timestamp).
 """
 import os
 import time
 import logging
+from urllib.parse import unquote   # <-- CAMBIO: stdlib, sin 're'
 
 import requests
 from celery import shared_task
@@ -25,6 +34,29 @@ log = logging.getLogger(__name__)
 ML_SERVICE_URL = os.environ.get('ML_SERVICE_URL', 'http://127.0.0.1:8000').rstrip('/')
 INTERVALO_POLLING_S = int(os.environ.get('ML_POLL_INTERVAL', '5'))
 TIEMPO_MAXIMO_S = int(os.environ.get('ML_TIMEOUT', '1800'))  # 30 min
+
+
+def _filename_de(disposition, fallback: str) -> str:
+    """Extrae el nombre del header Content-Disposition sin 're'.
+    Soporta filename="ascii" y filename*=UTF-8''<percent-encoded> (RFC 5987).
+    Si el header falta o no trae filename, devuelve el fallback (único por t.id,
+    que es UUID => nunca colisiona => Django no mete '_XXXXXXX')."""
+    if not disposition:
+        return fallback
+    # RFC 5987 (no-ASCII): filename*=UTF-8''<codificado>  (tiene prioridad)
+    m = "filename*="
+    i = disposition.find(m)
+    if i != -1:
+        resto = disposition[i + len(m):].split(";")[0].strip()
+        if "''" in resto:
+            resto = resto.split("''", 1)[1]
+        return unquote(resto.strip().strip('"'))
+    # Clásico: filename="..."  (o sin comillas)
+    m = "filename="
+    i = disposition.find(m)
+    if i == -1:
+        return fallback
+    return disposition[i + len(m):].split(";")[0].strip().strip('"')
 
 
 def _marcar_error(t: Transcripcion, mensaje: str):
@@ -59,7 +91,7 @@ def procesar_audio(self, transcripcion_id: str):
         return _marcar_error(t, f'No se pudo conectar con el servicio ML ({ML_SERVICE_URL}): {e}')
 
     if r.status_code not in (200, 202):
-        detalle = r.json().get('detail', r.text) if r.headers.get('content-type', '').startswith('application/json') else r.text
+        detalle = r.json.get('detail', r.text) if r.headers.get('content-type', '').startswith('application/json') else r.text
         return _marcar_error(t, f'El servicio ML rechazo el audio: {detalle}')
 
     ml_job_id = r.json().get('job_id')
@@ -87,26 +119,29 @@ def procesar_audio(self, transcripcion_id: str):
         if estado.get('status') == 'completed':
             break
 
-    # 3. Descargar el PDF y guardarlo en media/audios/pdf/
     # 3. Descargar el PDF y el MusicXML y guardarlos en media/
     try:
-        # Descargar PDF
         pdf = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=pdf", timeout=120)
         pdf.raise_for_status()
-        
-        # Descargar MusicXML
+
         xml = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=xml", timeout=120)
         xml.raise_for_status()
     except requests.RequestException as e:
         return _marcar_error(t, f'No se pudo descargar los archivos: {e}')
 
-    base = os.path.splitext(t.titulo_audio)[0]
-    
-    # Guardar PDF en el modelo de Django
-    t.ruta_archivo_pdf.save(f'{base}_harmonic_score.pdf', ContentFile(pdf.content), save=False)
-    
-    # Guardar MusicXML en el modelo de Django
-    t.ruta_archivo_mxl.save(f'{base}_harmonic_score.musicxml', ContentFile(xml.content), save=False)
+    # <-- CAMBIO: hereda el nombre RF-06 del ml-service (no lo reinventa).
+    # Fallback único por t.id (UUID): nunca colisiona => Django no mete '_XXXXXXX'.
+    # El log DIAG es TEMPORAL: confirma una vez que el header llega limpio y bórralo.
+    log.info("DIAG content-disposition pdf=%r xml=%r",
+             pdf.headers.get("content-disposition"),
+             xml.headers.get("content-disposition"))
+
+    fb = f"{t.id}_harmonic_score"
+    nombre_pdf = _filename_de(pdf.headers.get("content-disposition"), fb + ".pdf")
+    nombre_xml = _filename_de(xml.headers.get("content-disposition"), fb + ".musicxml")
+
+    t.ruta_archivo_pdf.save(nombre_pdf, ContentFile(pdf.content), save=False)
+    t.ruta_archivo_mxl.save(nombre_xml, ContentFile(xml.content), save=False)
 
     metrics = estado.get('metrics') or {}
     score = metrics.get('harmonic_score')
@@ -116,4 +151,3 @@ def procesar_audio(self, transcripcion_id: str):
     t.estado = 'EXITO'
     t.detalles_error = None
     t.save()
-    log.info("Transcripcion %s completada exitosamente con PDF y MusicXML", t.id)
