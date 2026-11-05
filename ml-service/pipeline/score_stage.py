@@ -5,6 +5,7 @@ Convierte la secuencia refinada de eventos (pitch, onset, offset, velocity)
 en MusicXML 4.0 mediante music21, con figuras rítmicas cuantizadas y silencios
 de relleno basados en el tempo y compás estimados dinámicamente.
 """
+
 from __future__ import annotations
 
 import logging
@@ -83,4 +84,4 @@ def build_score(notes: list, pdf_path: Path, bpm: float = 120.0, time_signature:
     score.write("musicxml", fp=str(xml_path))
     log.info("MusicXML generado: %s (Tempo: %d, Compás: %s)", xml_path, int(round(bpm)), time_signature)
 
-    return render_musicxml_to_pdf(xml_path, pdf_path)
+    return render_musicxml_to_pdf(xml_path, pdf_path, title=title)

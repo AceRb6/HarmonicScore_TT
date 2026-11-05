@@ -12,12 +12,25 @@ de análisis espectral (RF-08/RF-09). No existe etapa `to_tensor`.
 """
 import logging
 import time
+import unicodedata
 from pathlib import Path
 import torch
 import settings as config
 from pipeline import audio_stage, cqt_stage, model_stage, post_stage, score_stage
 
 log = logging.getLogger("harmonic.orchestrator")
+
+
+def normalizar_texto(texto: str) -> str:
+    """
+    Elimina acentos y caracteres de combinación de un texto.
+    Ejemplo: 'Nomás_acotado' -> 'Nomas_acotado'
+    """
+    # NFD descompone caracteres acentuados (ej: 'á' se vuelve 'a' + '´')
+    texto_normalizado = unicodedata.normalize('NFD', texto)
+    # Filtramos solo los caracteres base, eliminando los acentos (combining marks)
+    return ''.join(c for c in texto_normalizado if not unicodedata.combining(c))
+
 
 class Orchestrator:
     def run(self, audio_path: Path, out_name: str, on_stage=None):
@@ -59,9 +72,14 @@ class Orchestrator:
 
         # 6) Generación de partitura y PDF (RF-12/RF-13)
         pdf_path = config.OUTPUT_DIR / out_name
-        titulo_pieza = out_name.split('_harmonic_score_')[0] 
-        titulo_pieza = titulo_pieza.replace('.pdf', '').replace('_', ' ').replace('-', ' ').title()
 
+        base = out_name.split('_harmonic_score_')[0]
+        parts = base.rsplit('_', 1)
+        if len(parts) == 2 and any(c.isupper() or c.isdigit() for c in parts[1]):
+            base = parts[0]
+        base = normalizar_texto(base)
+        titulo_pieza = base.replace('-', ' ').replace('_', ' ').title()
+        
         # Pasamos los metadatos estimados al generador de partituras
         time_it("score_pdf", score_stage.build_score, notes, pdf_path, 
                 bpm=estimated_bpm, time_signature=estimated_time_sig,
