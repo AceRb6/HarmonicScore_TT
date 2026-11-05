@@ -399,7 +399,7 @@ function inicializarValidacionLogin() {
 
 /**
  * CU-03: Recuperar contraseña
- * Solicita el envío de un correo con un enlace temporal (24 h, un solo uso).
+ * Solicita el envío de un correo con un enlace temporal (1 h, un solo uso).
  * Las respuestas se muestran con notificaciones tipo toast (ver toast.js).
  */
 function inicializarRecuperarContrasena() {

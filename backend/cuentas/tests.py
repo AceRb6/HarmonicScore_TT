@@ -72,9 +72,9 @@ class RecuperacionContrasenaTests(TestCase):
         self.assertEqual(TokenRecuperacion.objects.count(), 1)
         token_db = TokenRecuperacion.objects.first()
         self.assertFalse(token_db.usado)
-        # Expira aproximadamente en 24 horas
+        # Expira aproximadamente en 1 hora
         delta = token_db.fecha_expiracion - token_db.fecha_creacion
-        self.assertAlmostEqual(delta.total_seconds(), 24 * 3600, delta=5)
+        self.assertAlmostEqual(delta.total_seconds(), 1 * 3600, delta=5)
 
         # Verificar formato del correo enviado
         self.assertEqual(len(mail.outbox), 1)
@@ -83,7 +83,7 @@ class RecuperacionContrasenaTests(TestCase):
         self.assertIn('Hola, Carlos.', correo.body)
         self.assertIn('Recibimos una solicitud para recuperar tu contraseña en Harmonic Score.', correo.body)
         self.assertIn('/recuperacion/', correo.body)
-        self.assertIn('Este enlace caducará en 24 horas.', correo.body)
+        self.assertIn('Este enlace caducará en 1 hora.', correo.body)
 
     def test_4_flujo_completo_cambio_contrasena_e_invalidacion_token(self):
         # Crear token directamente para obtener el token en claro

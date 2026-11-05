@@ -125,6 +125,7 @@ async function iniciarTranscripcionReal() {
     }
 
     transcripcionActiva = true;
+    mostrarAvisoModelo();
     setProgreso(5, 'Preparando y procesando audio...');
     document.getElementById('modal-progreso').classList.add('activo');
     iniciarBarraEstimada();
@@ -194,6 +195,7 @@ function finalizarTranscripcion(esExito) {
     const nota = document.querySelector('#modal-progreso p');
     if (nota) nota.textContent = 'Redirigiendo a consultas…';
     setTimeout(() => {
+
         document.getElementById('modal-progreso').classList.remove('activo');
         window.location.href = 'consultas.html';
     }, 2000);

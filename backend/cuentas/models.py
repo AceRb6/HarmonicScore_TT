@@ -5,7 +5,7 @@ Seguridad:
 - El token en claro SOLO viaja en el enlace del correo; en la base de datos
   se guarda su hash SHA-256 (campo `token`). Si alguien lee la tabla, no
   puede reconstruir enlaces validos.
-- Cada token caduca a las 24 horas y solo puede usarse una vez.
+- Cada token caduca a la hora (60 minutos) y solo puede usarse una vez.
 """
 import hashlib
 import secrets
@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
-VIGENCIA_TOKEN = timedelta(hours=24)
+VIGENCIA_TOKEN = timedelta(hours=1)
 
 
 def hash_token(token_plano: str) -> str:

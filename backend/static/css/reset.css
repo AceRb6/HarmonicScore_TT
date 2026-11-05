@@ -18,7 +18,8 @@ body {
     font-family: var(--fuente-principal);
     line-height: 1.6;
     color: var(--color-texto-principal);
-    background-color: var(--color-fondo);
+    background: radial-gradient(circle at 18% 15%, #0077B6 0%, #023E8A 42%, #05163B 75%, #03045E 100%) fixed;
+    background-color: #03045E;
     min-height: 100vh;
     display: flex;
     flex-direction: column;

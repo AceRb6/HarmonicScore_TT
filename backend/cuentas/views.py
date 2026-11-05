@@ -3,7 +3,7 @@ CU-03: Recuperacion de contrasena.
 
 Flujo:
   1. POST /api/auth/recuperar-contrasena/  {email}
-     -> si el correo existe: genera token (24 h, un solo uso) y envia correo.
+     -> si el correo existe: genera token (1 h, un solo uso) y envia correo.
   2. GET  /recuperacion/<token>/  -> formulario para la nueva contrasena.
   3. POST /recuperacion/<token>/  -> valida token y contrasena, guarda con
      set_password(), marca el token como usado y redirige a /login/.

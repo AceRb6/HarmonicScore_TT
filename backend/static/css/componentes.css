@@ -894,3 +894,190 @@
     font-size: 0.92rem;
     font-weight: 600;
 }
+
+
+/* ============================================
+   AVISO DE PRECISIÓN DEL MODELO (Transcribir)
+   Pop-up flotante: se cierra con la "X" o a los 15 s
+   ============================================ */
+.aviso-modelo {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    width: min(680px, calc(100% - 32px));
+    transform: translate(-50%, -20px);
+    opacity: 0;
+    z-index: 10000; /* por encima del modal de progreso */
+    background: #FFFFFF;
+    border: 1px solid #BAE6FD;
+    border-left: 6px solid var(--color-primario);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(2, 62, 138, 0.25);
+    padding: 2rem 3.5rem 2rem 2rem;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+}
+.aviso-modelo.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+}
+.aviso-modelo-titulo {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-primario);
+}
+.aviso-modelo-texto {
+    margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--color-texto-secundario);
+}
+.aviso-modelo-cerrar {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.9rem;
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-texto-secundario);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+}
+.aviso-modelo-cerrar:hover {
+    background: #F1F5F9;
+    color: var(--color-primario);
+}
+.aviso-modelo-barra {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    width: 100%;
+    background: var(--color-primario);
+    border-radius: 0 0 0 14px;
+    transform-origin: left;
+}
+
+
+/* ============================================
+   OCULTACIÓN INMEDIATA DE BOTONES DE INVITADO
+   Evita parpadeo (FOUC) de "Registrarse" e
+   "Iniciar sesión" cuando hay sesión activa.
+   ============================================ */
+html.sesion-activa .nav-solo-invitado,
+html.sesion-activa .header-nav a[href*="registro"],
+html.sesion-activa .header-nav a[href*="login"] {
+    display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+
+/* ============================================
+   FONDO DEGRADADO AZUL GLOBAL EN TODAS LAS VISTAS
+   Y DEGRADADO BLANCO -> AZUL CLARITO EN TODOS LOS
+   CONTENEDORES Y CAMPOS DE INTERACCIÓN
+   ============================================ */
+body {
+    background: radial-gradient(circle at 18% 15%, #0077B6 0%, #023E8A 42%, #05163B 75%, #03045E 100%) fixed !important;
+    background-color: #03045E !important;
+}
+
+/* Tarjetas, contenedores principales, formularios, modales y pop-ups */
+.contenedor-pagina,
+.formulario-contenedor,
+.card,
+.spectrogram-card,
+.delimitation-card,
+.controles-reproduccion-circular,
+.modal-contenido,
+.aviso-modelo,
+.toast,
+.caracteristica-card,
+#mini-barra-progreso {
+    background: linear-gradient(145deg, #FFFFFF 0%, #E6F4FF 55%, #CBE8FF 100%) !important;
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(125, 211, 252, 0.75) !important;
+    box-shadow: 0 18px 42px rgba(2, 18, 58, 0.32) !important;
+}
+
+.spectrogram-card,
+.delimitation-card,
+.controles-reproduccion-circular {
+    border-top: 3px solid #0056b3 !important;
+}
+
+.aviso-modelo {
+    border-left: 6px solid var(--color-primario) !important;
+}
+
+/* Campos de entrada (inputs, selects, textareas) */
+.formulario-input,
+.formulario-select,
+.formulario-textarea {
+    background: linear-gradient(135deg, #FFFFFF 0%, #EFF8FF 58%, #DBEAFE 100%) !important;
+    border: 2px solid #93C5FD !important;
+    color: var(--color-texto-principal) !important;
+}
+
+.formulario-input:focus,
+.formulario-select:focus,
+.formulario-textarea:focus {
+    background: linear-gradient(135deg, #FFFFFF 0%, #E0F2FE 100%) !important;
+    border-color: var(--color-primario) !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22) !important;
+}
+
+/* Áreas internas de interacción (drop-zone, waveform, términos, requisitos, info) */
+.carga-archivo-area,
+.archivo-info,
+.terminos-checkbox-container,
+.terminos-contenido,
+.requisitos-contrasena,
+.waveform-contenedor,
+#waveform,
+#waveform-minimap,
+#waveform-timeline,
+.indicador-formal,
+#transcripciones-leyenda {
+    background: linear-gradient(145deg, #FFFFFF 0%, #E0F2FE 60%, #BAE6FD 100%) !important;
+    border-color: #7DD3FC !important;
+}
+
+.terminos-checkbox-container {
+    border-left: 4px solid var(--color-primario) !important;
+}
+
+/* Filas de tabla de transcripciones */
+.tabla tbody tr:nth-child(even) {
+    background: linear-gradient(90deg, #FFFFFF 0%, #E6F4FF 100%) !important;
+}
+
+.tabla tbody tr:nth-child(odd) {
+    background: linear-gradient(90deg, #F2F9FF 0%, #D8EEFF 100%) !important;
+}
+
+.tabla tbody tr:hover {
+    background: linear-gradient(90deg, #E0F2FE 0%, #BAE6FD 100%) !important;
+}
+
+/* Botón activo y logo en el header */
+.header-logo-img,
+.header-nav a.activo {
+    background: linear-gradient(135deg, #FFFFFF 0%, #E0F2FE 65%, #BAE6FD 100%) !important;
+    color: var(--color-header) !important;
+    border-color: #BAE6FD !important;
+}
+
+.login-split {
+    background: transparent !important;
+}
+
+.login-form-side .formulario-contenedor {
+    padding: 2.75rem 3rem !important;
+    border-radius: 22px !important;
+}

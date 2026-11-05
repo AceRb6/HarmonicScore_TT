@@ -18,6 +18,7 @@ const Sesion = {
         localStorage.setItem(this.KEYS.USERNAME, username);
         localStorage.setItem(this.KEYS.TOKEN,    token);
         localStorage.setItem(this.KEYS.LOGGEDIN, 'true');
+        document.documentElement.classList.add('sesion-activa');
     },
 
     /** Elimina todos los datos y redirige al login */
@@ -30,6 +31,7 @@ const Sesion = {
         localStorage.removeItem(this.KEYS.USERNAME);
         localStorage.removeItem(this.KEYS.TOKEN);
         localStorage.removeItem(this.KEYS.LOGGEDIN);
+        document.documentElement.classList.remove('sesion-activa');
         if (redirigir) {
             window.location.href = 'login.html';
         }
@@ -74,12 +76,12 @@ function renderizarWidgetSesion() {
     widget.id = 'widget-sesion';
     widget.innerHTML = `
         <div class="sesion-usuario-btn" id="sesion-usuario-btn">
-            <span class="sesion-icono">👤</span>
+            <span class="sesion-icono" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             <span class="sesion-nombre">${username}</span>
         </div>
         <div class="sesion-dropdown" id="sesion-dropdown">
             <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">
-                🚪 Cerrar sesión
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-right: 6px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión
             </button>
         </div>
     `;
@@ -130,6 +132,7 @@ function ocultarNavSesion() {
         const texto = link.textContent.trim().toLowerCase();
         if (texto.includes('registrarse') || texto.includes('iniciar sesi')) {
             link.parentElement.style.display = 'none'; // Ocultar el <li>
+            link.parentElement.remove(); // Eliminar del DOM para impedir cualquier interacción
         }
     });
 }
@@ -173,7 +176,7 @@ function inyectarEstilosSesion() {
         }
 
         .sesion-icono {
-            font-size: 1.35rem;
+            font-size: 1rem; color: #90E0EF; display: inline-flex; align-items: center;
             line-height: 1;
         }
 
@@ -282,6 +285,15 @@ function protegerBotonesInvitado() {
    INICIALIZACIÓN AUTOMÁTICA
 ------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', () => {
+    if (!Sesion.estaActiva() ? false : (() => {
+        document.documentElement.classList.add('sesion-activa');
+        const ruta = (window.location.pathname || '').toLowerCase();
+        if (ruta.includes('registro') || ruta.includes('login')) {
+            window.location.replace('/index.html');
+            return true;
+        }
+        return false;
+    })()) return;
     inyectarEstilosSesion();
     renderizarWidgetSesion();
     ocultarNavSesion();

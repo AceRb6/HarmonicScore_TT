@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de registro -->
     <title>Harmonic Score - Registro</title>
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261104_9">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261104_9">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
+    <script>if (localStorage.getItem('hs_logged_in') === 'true') { window.location.replace('/index.html'); }</script>
 </head>
 <body>
 <header class="header">
@@ -185,7 +187,7 @@
         </div>
     </footer>
 
-    <script src="{% static 'js/sesion.js' %}"></script>
+    <script src="{% static 'js/sesion.js' %}?v=20261104_4"></script>
     <script src="{% static 'js/api.js' %}"></script>
     <script src="{% static 'js/config.js' %}"></script>
     <script src="{% static 'js/navigation.js' %}"></script>
