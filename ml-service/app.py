@@ -2,6 +2,8 @@
 import json
 import logging
 import datetime
+import unicodedata
+import re
 from pathlib import Path
 from contextlib import asynccontextmanager
 
@@ -11,22 +13,27 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import settings as config
 from jobs import JobManager, JobStatus
-from pipeline.orchestrator import Orchestrator, normalizar_texto   # <-- CAMBIO: + normalizar_texto
+from pipeline.orchestrator import Orchestrator
 from pipeline import model_stage
 
 import librosa
 
-
-def _sin_token(nombre: str) -> str:
-    """Quita el sufijo aleatorio que el cliente/Django pega al nombre original
-    (p. ej. 'tico-tico-no-fuba_XydlIse' -> 'tico-tico-no-fuba'). Sin 're':
-    descarta el último segmento tras '_' solo si trae mayúscula o dígito (los
-    tokens siempre; el repertorio INBAL va en kebab-case minúsculo, p. ej.
-    'andersen-24-etudes-op15-no2' o '..._acotado', que NO se toca)."""
-    if "_" not in nombre:
-        return nombre
-    base, _, suf = nombre.rpartition("_")
-    return base if any(c.isupper() or c.isdigit() for c in suf) else nombre
+# ==========================================================
+# FUNCIÓN DE SANITIZACIÓN (NUEVA)
+# ==========================================================
+def sanitize_filename(filename: str) -> str:
+    """
+    Elimina acentos y caracteres especiales del nombre del archivo 
+    para evitar errores con librerías C++ como Verovio en Windows.
+    Ej: 'Für_Elise_-_Ludwig.wav' -> 'Fur_Elise_Ludwig'
+    """
+    # 1. Normalizar acentos a su equivalente ASCII (ü -> u, ñ -> n, é -> e)
+    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
+    # 2. Reemplazar espacios y cualquier carácter no alfanumérico por guión bajo
+    filename = re.sub(r'[^a-zA-Z0-9_\-]', '_', filename)
+    # 3. Limpiar guiones bajos consecutivos (ej. "___" -> "_")
+    filename = re.sub(r'_+', '_', filename)
+    return filename.strip('_')
 
 
 def validar_duracion(path: Path, max_segundos: int = 360):
@@ -34,13 +41,14 @@ def validar_duracion(path: Path, max_segundos: int = 360):
     try:
         duracion = librosa.get_duration(path=str(path))
         if duracion > max_segundos:
+            # Eliminamos el archivo antes de lanzar el error para no dejar basura
             path.unlink(missing_ok=True)
             raise HTTPException(
-                400,
+                400, 
                 f"Duración excedida. El archivo no debe superar los {max_segundos//60} minutos."
             )
     except Exception as e:
-        path.unlink(missing_ok=True)
+        path.unlink(missing_ok=True) # Limpieza en caso de error de librosa
         if "duration" in str(e).lower():
             raise HTTPException(400, "No se pudo determinar la duración del audio")
         raise
@@ -67,15 +75,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Harmonic Score ML Service", version="0.3.0", lifespan=lifespan)
 
+# <-- CORREGIDO: Se agrega '*' o la IP de tu red local para evitar bloqueos del navegador
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "*",
+        "*", # Permite cualquier origen en desarrollo (cambiar a lista específica en producción)
         "http://localhost:5500",
         "http://127.0.0.1:5500",
         "http://localhost:8001",
         "http://127.0.0.1:8001",
-        "http://10.100.79.61:8001",
+        "http://10.100.79.61:8001", # Tu IP de red local (ajústala si cambia)
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -88,6 +97,7 @@ AUDIT = config.LOG_DIR / "audit.jsonl"          # RF-15
 
 
 def audit(entry: dict):
+    # Aseguramos que el directorio exista antes de escribir
     config.LOG_DIR.mkdir(parents=True, exist_ok=True)
     with open(AUDIT, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
@@ -111,31 +121,29 @@ async def transcribe(
             400, "Formato no soportado. Solo se aceptan archivos MP3 o WAV")
 
     data = await audio.read()
-
+    
     # RF-03: Validación de tamaño (50 MB)
     if len(data) > config.MAX_BYTES:
         raise HTTPException(
             400, "Tamaño excedido. El archivo no debe superar los cincuenta megabytes")
 
     job = jobs.create(original_name=Path(audio.filename).stem)
-    # <-- CAMBIO: sanea EN LA FRONTERA DE INGESTA, una sola vez. De aquí en
-    # adelante TODO el sistema (out_name en disco, audit RF-15 y el
-    # Content-Disposition que ve Django) habla el mismo idioma limpio:
-    # sin token y sin acentos (transliterados por robustez, R07).
-    job.original_name = normalizar_texto(_sin_token(job.original_name))
     dest = config.UPLOAD_DIR / f"{job.job_id}{ext}"
-
+    
+    # Guardamos el archivo para poder validarlo con librosa
     dest.write_bytes(data)
 
+    # <-- CORREGIDO: Ahora SÍ llamamos a la función de validación de duración (RF-04)
     try:
         validar_duracion(dest, max_segundos=360)
     except HTTPException:
-        raise
+        raise # Re-lanzamos la excepción para que FastAPI la devuelva al cliente
 
+    # Si pasa la validación, lo mandamos al background
     background.add_task(process, job.job_id, dest)
-
+    
     return {
-        "job_id": job.job_id,
+        "job_id": job.job_id, 
         "status": JobStatus.PROCESSING.value,
         "message": "Transcripción en proceso"
     }
@@ -145,17 +153,25 @@ def process(job_id: str, path: Path):
     job = jobs.get(job_id)
     try:
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_name = f"{job.original_name}_harmonic_score_{ts}.pdf"   # RF-06: timestamp, no token
+        
+        # 1. SANITIZAR EL NOMBRE BASE (Elimina 'ü', 'ñ', espacios, etc.)
+        safe_name = sanitize_filename(job.original_name) 
+        
+        # 2. Construir el nombre del PDF (el orquestador derivará el .musicxml de este)
+        # Usamos "HarmonicScore" con mayúsculas para que coincida con el formato del backend
+        out_name = f"{safe_name}_HarmonicScore_{ts}.pdf"
+        
         pdf_path = config.OUTPUT_DIR / out_name
-
-        xml_path = pdf_path.with_suffix('.musicxml')
-
-        pdf, metrics = orch.run(path, out_name,
-                                on_stage=lambda s: jobs.set_stage(job_id, s))
-
+        xml_path = pdf_path.with_suffix('.musicxml')  # <-- Derivación automática y segura
+        
+        # 3. Ejecutar el pipeline (pasando solo el nombre del PDF, como espera orchestrator.py)
+        pdf, metrics = orch.run(path, out_name, on_stage=lambda s: jobs.set_stage(job_id, s))
+        
+        # 4. Completar el job con ambas rutas
         jobs.complete(job_id, pdf_path, xml_path, metrics)
         audit({"job_id": job_id, "file": job.original_name,
                "status": "completed", **metrics})
+               
     except Exception as e:
         log.exception("Job %s falló", job_id)
         jobs.fail(job_id, str(e))
@@ -184,15 +200,18 @@ def download(job_id: str, format: str = "pdf"):
         raise HTTPException(404, "Job no encontrado")
     if job.status != JobStatus.COMPLETED:
         raise HTTPException(400, "La transcripción aún se encuentra en proceso")
-
+    
+    # Si piden XML y existe, servir el XML
     if format.lower() == "xml" and job.xml_path and job.xml_path.exists():
         return FileResponse(job.xml_path, media_type="application/xml",
                             filename=job.xml_path.name)
-
+                            
+    # Por defecto, servir el PDF
     return FileResponse(job.pdf_path, media_type="application/pdf",
                         filename=job.pdf_path.name)
 
 
 if __name__ == "__main__":
     import uvicorn
+    # <-- CRÍTICO: host="0.0.0.0" permite que Docker lo alcance
     uvicorn.run(app, host="0.0.0.0", port=8000)
