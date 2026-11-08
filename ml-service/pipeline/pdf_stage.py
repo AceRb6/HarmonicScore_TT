@@ -34,6 +34,7 @@ EDGE_CANDIDATES = (
 
 # Watermark que aparece en el pie de cada página
 WATERMARK = "Transcrito por Harmonic Score"
+COMPOSER = "Harmonic Score v.1.0"
 
 # Coordenadas absolutas del SVG de Verovio (twips, 1/20 de punto)
 # El SVG de Verovio para A4 tiene dimensiones ~21000 x 29700 twips
