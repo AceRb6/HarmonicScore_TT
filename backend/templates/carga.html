@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- #2026-09-19 + Normalización de mayúsculas y ortografía en la vista de carga -->
     <title>Harmonic Score - Carga de transcripción</title>
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261104_9">
-    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261104_9">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261107_11">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261107_11">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
     <script>if (localStorage.getItem('hs_logged_in') === 'true') { document.documentElement.classList.add('sesion-activa'); }</script>
     <style>html.sesion-activa .nav-solo-invitado { display: none !important; pointer-events: none !important; }</style>
@@ -133,7 +133,7 @@
 
             <!-- PANEL DERECHO: CARGA, ESTADÍSTICAS Y ACCIÓN (30%) -->
             <div class="workspace-right"
-                style="flex: 3; min-width: 400px; background: rgba(3, 18, 56, 0.35); border-left: 1px solid rgba(144, 224, 239, 0.25); padding: 3rem 2.5rem; display: flex; flex-direction: column; box-shadow: -5px 0 25px rgba(2, 18, 58, 0.25);">
+                style="flex: 3; min-width: 400px; background: transparent; border-left: none; padding: 3rem 2.5rem; display: flex; flex-direction: column; box-shadow: none;">
 
                 <!-- Área de Carga -->
                 <div class="card"
@@ -202,7 +202,7 @@
                 <!-- Botón de Acción -->
                 <button class="btn btn-primario btn-grande" id="btn-transcribir" disabled type="button"
                     style="width: 100%; padding: 1.5rem; font-size: 1.6rem; border-radius: 16px; box-shadow: var(--sombra-media);">
-                    ✨ ¡Transcribir!
+                    ¡Transcribir!
                 </button>
 
                 <!-- Barra de progreso mini (oculta inicialmente) -->
@@ -277,9 +277,9 @@
             </div>
             <div class="footer-seccion">
                 <h3>Contacto</h3>
-                <p>Email: harmonic.score@escom.ipn.mx</p>
+                <p>Email: harmonicscore.escom@gmail.com</p>
                 <p><a href="#" id="footer-terminos">Términos y condiciones</a></p>
-                <p><a href="#">Aviso de privacidad</a></p>
+                <p><a href="#" id="footer-privacidad">Aviso de privacidad</a></p>
             </div>
         </div>
         <div class="footer-inferior">
@@ -297,7 +297,7 @@
     </script>
     <script type="module" src="{% static 'js/wavesurfer-setup.js' %}"></script>
     <script src="{% static 'js/transcripcion.js' %}?v=20261104_3"></script>
-    <script src="{% static 'js/main.js' %}?v=20261104_3"></script>
+    <script src="{% static 'js/main.js' %}?v=20261107_11"></script>
 </body>
 
 </html>

@@ -983,8 +983,15 @@ html.sesion-activa .header-nav a[href*="login"] {
    CONTENEDORES Y CAMPOS DE INTERACCIÓN
    ============================================ */
 body {
-    background: radial-gradient(circle at 18% 15%, #0077B6 0%, #023E8A 42%, #05163B 75%, #03045E 100%) fixed !important;
-    background-color: #03045E !important;
+    background:
+        radial-gradient(ellipse 90% 45% at 18% 14%, rgba(0, 150, 199, 0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 85% 50% at 82% 52%, rgba(2, 62, 138, 0.25) 0%, transparent 70%),
+        linear-gradient(180deg, #012A63 0%, #023E8A 22%, #012E6B 48%, #05163B 75%, #0A1329 100%) fixed !important;
+    background-color: #05163B !important;
+}
+
+.header {
+    background: linear-gradient(180deg, #012252 0%, #012A63 100%) !important;
 }
 
 /* Tarjetas, contenedores principales, formularios, modales y pop-ups */
@@ -1080,4 +1087,512 @@ body {
 .login-form-side .formulario-contenedor {
     padding: 2.75rem 3rem !important;
     border-radius: 22px !important;
+}
+
+/* ============================================
+   FOOTER GRIS OSCURO UNIFICADO CON LETRAS BLANCAS
+   ============================================ */
+.footer {
+    background: #1F2937 !important;
+    background-color: #1F2937 !important;
+    color: #FFFFFF !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
+    position: relative;
+    z-index: 5;
+}
+
+.footer-seccion h3,
+.footer-seccion p,
+.footer-seccion li,
+.footer-seccion a,
+.footer-inferior,
+.footer-inferior p {
+    color: #FFFFFF !important;
+}
+
+.footer-seccion a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.footer-seccion a:hover {
+    color: #BAE6FD !important;
+    opacity: 0.92;
+}
+
+/* ============================================
+   ANIMACIONES DE FONDO GLOBALES (NOTAS EN CASCADA
+   Y ONDAS ACÚSTICAS) - MÁS LENTAS EN EL RESTO DE VISTAS
+   ============================================ */
+.main {
+    position: relative;
+    z-index: 2;
+}
+
+.hs-lluvia-notas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.hs-nota-cayendo {
+    position: absolute;
+    top: -15vh;
+    left: var(--x, 50%);
+    font-size: var(--tam, 3.6rem);
+    color: rgba(144, 224, 239, var(--op, 0.45));
+    text-shadow: 0 0 18px rgba(72, 202, 228, 0.8), 0 0 34px rgba(0, 150, 199, 0.5);
+    user-select: none;
+    animation: hsCaidaNotaGlobal var(--dur, 22s) var(--ret, 0s) linear infinite;
+}
+
+@keyframes hsCaidaNotaGlobal {
+    0% {
+        transform: translate3d(0, -12vh, 0) rotate(0deg) scale(0.85);
+        opacity: 0;
+    }
+    12% {
+        opacity: var(--op, 0.48);
+    }
+    35% {
+        transform: translate3d(36px, 35vh, 0) rotate(16deg) scale(1.08);
+    }
+    68% {
+        transform: translate3d(-30px, 72vh, 0) rotate(-14deg) scale(0.95);
+    }
+    88% {
+        opacity: var(--op, 0.44);
+    }
+    100% {
+        transform: translate3d(22px, 115vh, 0) rotate(22deg) scale(1.04);
+        opacity: 0;
+    }
+}
+
+.hs-ondas-acusticas-bg {
+    position: fixed;
+    top: 18%;
+    left: 0;
+    width: 100%;
+    height: 65vh;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.36;
+}
+
+.hs-onda-linea {
+    stroke-linecap: round;
+    stroke-dasharray: 260 420;
+    animation: hsFlujoOndaGlobal 18s linear infinite, hsLatidoOndaGlobal 9s ease-in-out infinite alternate;
+}
+
+.hs-onda-1 {
+    stroke: rgba(72, 202, 228, 0.5);
+    stroke-width: 2.3;
+}
+
+.hs-onda-2 {
+    stroke: rgba(144, 224, 239, 0.36);
+    stroke-width: 1.8;
+    animation-duration: 24s, 11s;
+    animation-direction: reverse, alternate;
+}
+
+.hs-onda-3 {
+    stroke: rgba(0, 180, 216, 0.42);
+    stroke-width: 2;
+    animation-duration: 21s, 8.5s;
+}
+
+@keyframes hsFlujoOndaGlobal {
+    from { stroke-dashoffset: 680; }
+    to   { stroke-dashoffset: 0; }
+}
+
+@keyframes hsLatidoOndaGlobal {
+    from { transform: translateY(-14px) scaleY(0.92); }
+    to   { transform: translateY(14px) scaleY(1.08); }
+}
+
+/* Tipografía global: Outfit (títulos) + Plus Jakarta Sans (cuerpo y controles) */
+body, button, input, select, textarea {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6, .header-titulo, .header-logo-img, .btn {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif !important;
+}
+
+/* ============================================
+   TRANSICIONES ENTRE PESTAÑAS Y ANIMACIONES DE BOTONES
+   ============================================ */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: hsSalidaPestana 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+    animation: hsEntradaPestana 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hsSalidaPestana {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to   { opacity: 0; transform: scale(0.985) translateY(-8px); }
+}
+
+@keyframes hsEntradaPestana {
+    from { opacity: 0; transform: scale(0.985) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Animación de entrada escalonada al abrir cualquier pestaña */
+.main,
+.hs-landing-wrap {
+    animation: hsEntradaContenido 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hs-saliendo-vista .main,
+.hs-saliendo-vista .hs-landing-wrap {
+    opacity: 0 !important;
+    transform: translateY(-10px) scale(0.99) !important;
+    transition: opacity 0.16s ease, transform 0.16s ease !important;
+}
+
+@keyframes hsEntradaContenido {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Animación global: TODOS los elementos salen desde el CENTRO INFERIOR de la pantalla
+   (--hs-dx y --hs-dy calculados dinámicamente hacia (50vw, 96vh)) y se acomodan poco a poco */
+@keyframes hsSubirElemento {
+    0% {
+        opacity: 0;
+        transform: translate3d(var(--hs-dx, 0px), var(--hs-dy, 48vh), 0) scale(0.35);
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes hsSubirInterno {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 42px, 0) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+/* Header: logo y botones emergen del centro inferior */
+.header-logo {
+    animation: hsSubirElemento 0.95s 0.02s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.header-nav ul li:nth-child(1) { animation: hsSubirElemento 0.95s 0.05s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.header-nav ul li:nth-child(2) { animation: hsSubirElemento 0.95s 0.09s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.header-nav ul li:nth-child(3) { animation: hsSubirElemento 0.95s 0.13s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.header-nav ul li:nth-child(4) { animation: hsSubirElemento 0.95s 0.17s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.header-nav ul li:nth-child(5) { animation: hsSubirElemento 0.95s 0.21s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.header-nav ul li:nth-child(6) { animation: hsSubirElemento 0.95s 0.25s cubic-bezier(0.19, 1, 0.22, 1) both; }
+
+/* 1. VISTA DE INICIO (index.html) */
+.hs-eyebrow {
+    animation: hsSubirElemento 1.05s 0.06s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-hero-titulo {
+    animation: hsSubirElemento 1.08s 0.14s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-hero-descripcion {
+    animation: hsSubirElemento 1.08s 0.22s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-panel-usuario-activo {
+    animation: hsSubirElemento 1.08s 0.30s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-hero-acciones {
+    animation: hsSubirElemento 1.08s 0.38s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-metricas-bar .hs-metrica-pill:nth-child(1) {
+    animation: hsSubirElemento 1.05s 0.46s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-metricas-bar .hs-metrica-pill:nth-child(2) {
+    animation: hsSubirElemento 1.05s 0.54s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-metricas-bar .hs-metrica-pill:nth-child(3) {
+    animation: hsSubirElemento 1.05s 0.62s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-consola-card {
+    animation: hsSubirElemento 1.12s 0.20s cubic-bezier(0.19, 1, 0.22, 1) both, hsCardFloat 5s 1.4s ease-in-out infinite alternate !important;
+}
+.hs-selector-instrumentos {
+    animation: hsSubirInterno 0.9s 0.36s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-espectro-caja {
+    animation: hsSubirInterno 0.9s 0.46s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-puente-ia {
+    animation: hsSubirInterno 0.9s 0.56s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-pentagrama-caja {
+    animation: hsSubirInterno 0.9s 0.66s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-consola-footer {
+    animation: hsSubirInterno 0.9s 0.76s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-encabezado-seccion {
+    animation: hsSubirElemento 1.08s 0.24s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-beneficio-card:nth-child(1) {
+    animation: hsSubirElemento 1.12s 0.28s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-beneficio-card:nth-child(2) {
+    animation: hsSubirElemento 1.12s 0.38s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-beneficio-card:nth-child(3) {
+    animation: hsSubirElemento 1.12s 0.48s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-beneficio-card:nth-child(4) {
+    animation: hsSubirElemento 1.12s 0.58s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-paso-card:nth-child(1) {
+    animation: hsSubirElemento 1.12s 0.32s cubic-bezier(0.19, 1, 0.22, 1) both, hsPasoLevitar 3.6s 1.5s ease-in-out infinite alternate !important;
+}
+.hs-paso-card:nth-child(2) {
+    animation: hsSubirElemento 1.12s 0.42s cubic-bezier(0.19, 1, 0.22, 1) both, hsPasoLevitar 3.6s 1.9s ease-in-out infinite alternate !important;
+}
+.hs-paso-card:nth-child(3) {
+    animation: hsSubirElemento 1.12s 0.52s cubic-bezier(0.19, 1, 0.22, 1) both, hsPasoLevitar 3.6s 2.3s ease-in-out infinite alternate !important;
+}
+.hs-paso-card:nth-child(4) {
+    animation: hsSubirElemento 1.12s 0.62s cubic-bezier(0.19, 1, 0.22, 1) both, hsPasoLevitar 3.6s 2.7s ease-in-out infinite alternate !important;
+}
+.hs-tutorial-fila:nth-of-type(1) {
+    animation: hsSubirElemento 1.12s 0.30s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-tutorial-fila:nth-of-type(2) {
+    animation: hsSubirElemento 1.12s 0.42s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-tutorial-fila:nth-of-type(3) {
+    animation: hsSubirElemento 1.12s 0.54s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-tutorial-fila:nth-of-type(4) {
+    animation: hsSubirElemento 1.12s 0.66s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-ondas-divisor {
+    animation: hsSubirElemento 1.08s 0.48s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.hs-cta-caja {
+    animation: hsSubirElemento 1.12s 0.58s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+
+/* 2. VISTA DE TRANSCRIBIR (carga.html) */
+.workspace-left > div:first-child h2 {
+    animation: hsSubirElemento 1.05s 0.05s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+#badge-estado-audio {
+    animation: hsSubirElemento 1.05s 0.12s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.spectrogram-card {
+    animation: hsSubirElemento 1.12s 0.18s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.spectrogram-card h3,
+.spectrogram-card > div:first-child p {
+    animation: hsSubirInterno 0.85s 0.30s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#waveform {
+    animation: hsSubirInterno 0.9s 0.38s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.workspace-right .card:nth-of-type(1) {
+    animation: hsSubirElemento 1.12s 0.26s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#drop-zone {
+    animation: hsSubirInterno 0.9s 0.38s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#btn-examinar {
+    animation: hsSubirInterno 0.85s 0.48s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.delimitation-card {
+    animation: hsSubirElemento 1.12s 0.36s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.delimitation-header {
+    animation: hsSubirInterno 0.85s 0.48s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#waveform-minimap,
+#waveform-timeline {
+    animation: hsSubirInterno 0.9s 0.56s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.workspace-right .card:nth-of-type(2) {
+    animation: hsSubirElemento 1.12s 0.46s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#detalles-vacio {
+    animation: hsSubirInterno 0.85s 0.58s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.controles-reproduccion-circular {
+    animation: hsSubirElemento 1.12s 0.56s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#btn-play-circular,
+.texto-reproduccion-info {
+    animation: hsSubirInterno 0.85s 0.68s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#btn-transcribir {
+    animation: hsSubirElemento 1.15s 0.66s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+#archivo-info .archivo-info-item:nth-child(1) { animation: hsSubirInterno 0.65s 0.05s cubic-bezier(0.19, 1, 0.22, 1) both; }
+#archivo-info .archivo-info-item:nth-child(2) { animation: hsSubirInterno 0.65s 0.14s cubic-bezier(0.19, 1, 0.22, 1) both; }
+#archivo-info .archivo-info-item:nth-child(3) { animation: hsSubirInterno 0.65s 0.23s cubic-bezier(0.19, 1, 0.22, 1) both; }
+#archivo-info .archivo-info-item:nth-child(4) { animation: hsSubirInterno 0.65s 0.32s cubic-bezier(0.19, 1, 0.22, 1) both; }
+#archivo-info .archivo-info-item:nth-child(5) { animation: hsSubirInterno 0.70s 0.42s cubic-bezier(0.19, 1, 0.22, 1) both; }
+
+/* 3. VISTA DE TRANSCRIPCIONES (consultas.html) */
+.contenedor-pagina {
+    animation: hsSubirElemento 1.08s 0.08s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.contenedor-pagina .seccion-titulo {
+    animation: hsSubirInterno 0.9s 0.22s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.contenedor-pagina > div:first-child p {
+    animation: hsSubirInterno 0.9s 0.30s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+#transcripciones-vacio,
+#transcripciones-tabla-wrapper {
+    animation: hsSubirInterno 0.95s 0.38s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.tabla thead {
+    animation: hsSubirInterno 0.9s 0.46s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.tabla tbody tr:nth-child(1) { animation: hsSubirInterno 0.85s 0.52s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.tabla tbody tr:nth-child(2) { animation: hsSubirInterno 0.85s 0.60s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.tabla tbody tr:nth-child(3) { animation: hsSubirInterno 0.85s 0.68s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.tabla tbody tr:nth-child(4) { animation: hsSubirInterno 0.85s 0.76s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.tabla tbody tr:nth-child(5) { animation: hsSubirInterno 0.85s 0.84s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.tabla tbody tr:nth-child(n+6) { animation: hsSubirInterno 0.85s 0.92s cubic-bezier(0.19, 1, 0.22, 1) both; }
+#transcripciones-leyenda {
+    animation: hsSubirInterno 0.9s 0.66s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+/* 4. VISTAS DE FORMULARIOS (login, registro, recuperar-contrasena, recuperacion) */
+.login-image-side {
+    animation: hsSubirElemento 1.12s 0.16s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.formulario-contenedor {
+    animation: hsSubirElemento 1.12s 0.08s cubic-bezier(0.19, 1, 0.22, 1) both !important;
+}
+.formulario-titulo {
+    animation: hsSubirInterno 0.9s 0.24s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.formulario-contenedor > p:first-of-type,
+.formulario-contenedor > div > p {
+    animation: hsSubirInterno 0.9s 0.32s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.formulario-grupo:nth-of-type(1) { animation: hsSubirInterno 0.9s 0.38s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.formulario-grupo:nth-of-type(2) { animation: hsSubirInterno 0.9s 0.46s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.formulario-grupo:nth-of-type(3) { animation: hsSubirInterno 0.9s 0.54s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.formulario-grupo:nth-of-type(4) { animation: hsSubirInterno 0.9s 0.62s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.formulario-grupo:nth-of-type(5) { animation: hsSubirInterno 0.9s 0.70s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.formulario-grupo:nth-of-type(6) { animation: hsSubirInterno 0.9s 0.78s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.formulario-grupo:nth-of-type(7) { animation: hsSubirInterno 0.9s 0.86s cubic-bezier(0.19, 1, 0.22, 1) both; }
+.terminos-checkbox-container,
+.requisitos-contrasena {
+    animation: hsSubirInterno 0.9s 0.66s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.formulario button[type="submit"],
+.formulario .btn-primario {
+    animation: hsSubirInterno 0.95s 0.76s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+.formulario-contenedor > p:last-of-type {
+    animation: hsSubirInterno 0.9s 0.86s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+/* Barra luminosa superior al cambiar de pestaña */
+.hs-barra-transicion-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #48CAE4, #CAF0F8, #0096C7);
+    box-shadow: 0 0 12px #48CAE4;
+    z-index: 99999;
+    pointer-events: none;
+    transition: width 0.25s ease, opacity 0.25s ease;
+}
+
+/* Micro-interacciones elásticas y onda expansiva al hacer clic en botones */
+.btn,
+.hs-btn-principal,
+.hs-btn-secundario,
+.header-nav a,
+.hs-tab-inst,
+.btn-restaurar-audio {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease,
+                background-color 0.22s ease,
+                border-color 0.22s ease !important;
+}
+
+.btn:active,
+.hs-btn-principal:active,
+.hs-btn-secundario:active,
+.header-nav a:active,
+.hs-tab-inst:active {
+    transform: scale(0.95) !important;
+}
+
+.hs-onda-clic {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(144, 224, 239, 0.35) 60%, transparent 100%);
+    pointer-events: none;
+    animation: hsOndaClicAnim 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes hsOndaClicAnim {
+    to {
+        transform: scale(3.8);
+        opacity: 0;
+    }
+}
+
+/* Animación de pulso al cambiar de instrumento en el simulador de Inicio */
+.hs-cambio-preset-pulso {
+    animation: hsPulsoCambioPreset 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes hsPulsoCambioPreset {
+    0%   { transform: scale(0.975); filter: brightness(1.35); box-shadow: 0 0 28px rgba(72, 202, 228, 0.55); }
+    100% { transform: scale(1); filter: brightness(1); }
 }
