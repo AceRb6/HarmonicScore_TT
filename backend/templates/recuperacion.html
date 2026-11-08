@@ -7,8 +7,8 @@
     <meta name="referrer" content="same-origin">
     <title>Harmonic Score - Nueva contraseña</title>
     <meta name="description" content="Establece una nueva contraseña para tu cuenta de Harmonic Score.">
-    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261104_9">
-    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261104_9">
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}?v=20261107_9">
+    <link rel="stylesheet" href="{% static 'css/componentes.css' %}?v=20261107_9">
     <link rel="icon" href="{% static 'assets/img/favicon.ico' %}" type="image/x-icon">
 </head>
 <body>
@@ -26,8 +26,10 @@
     </div>
 </header>
 
-    <main class="main">
-        <div class="formulario-contenedor">
+    <main class="main" style="max-width: 100%; padding: 0; margin: 0; min-height: calc(100vh - 70px);">
+        <div class="login-split" style="border-radius: 0; border: none; box-shadow: none; min-height: calc(100vh - 70px);">
+            <div class="login-form-side" style="padding: 4rem;">
+                <div class="formulario-contenedor" style="box-shadow: none; border: none; padding: 0; max-width: 550px;">
 
         {% if token_invalido %}
             <div style="text-align: center;">
@@ -97,6 +99,12 @@
                 </button>
             </form>
         {% endif %}
+                </div>
+            </div>
+
+            <div class="login-image-side" style="background-image: url('{% static "assets/img/nueva-contrasena.jpg" %}'); background-size: cover; background-position: center; position: relative;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 62, 138, 0.2);"></div>
+            </div>
         </div>
     </main>
 
@@ -105,6 +113,7 @@
             <div class="footer-seccion">
                 <h3>Harmonic Score</h3>
                 <p>Transcripción automática de música</p>
+                <p>para la comunidad educativa</p>
             </div>
             <div class="footer-seccion">
                 <h3>Desarrolladores</h3>
@@ -117,14 +126,24 @@
                 <p>ESCOM</p>
                 <p>Proyecto académico 2026-B115</p>
             </div>
+            <div class="footer-seccion">
+                <h3>Contacto</h3>
+                <p>Email: harmonicscore.escom@gmail.com</p>
+                <p><a href="#" id="footer-terminos">Términos y condiciones</a></p>
+                <p><a href="#" id="footer-privacidad">Aviso de privacidad</a></p>
+            </div>
         </div>
         <div class="footer-inferior">
             <p>&copy; 2026 Harmonic Score. Todos los derechos reservados.</p>
+            <div id="footer-barra-progreso" class="footer-barra-progreso" style="display: none;">
+                <div id="footer-barra-relleno" class="footer-barra-progreso-relleno"></div>
+            </div>
         </div>
     </footer>
 
-    <script src="{% static 'js/toast.js' %}?v=20261025_2"></script>
-    <script src="{% static 'js/validacion.js' %}?v=20261025_2"></script>
-    <script src="{% static 'js/recuperacion.js' %}?v=20261025_2"></script>
+    <script src="{% static 'js/toast.js' %}?v=20261107_9"></script>
+    <script src="{% static 'js/validacion.js' %}?v=20261107_9"></script>
+    <script src="{% static 'js/recuperacion.js' %}?v=20261107_9"></script>
+    <script src="{% static 'js/main.js' %}?v=20261107_9"></script>
 </body>
 </html>

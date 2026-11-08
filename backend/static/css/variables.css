@@ -8,7 +8,7 @@
     /* COLORES PRINCIPALES (Oceanic) */
     --color-header: #023E8A;           /* Deep Blue */
     --color-header-hover: #0077B6;     
-    --color-footer: #03045E;           /* Very Deep Blue */
+    --color-footer: #1F2937;           /* Dark Gray */
     --color-primario: #023E8A;         /* Deep Blue */
     --color-primario-hover: #0077B6;   /* Medium Blue */
     --color-secundario: #90E0EF;       /* Light Cyan */
@@ -27,7 +27,7 @@
     --color-texto-claro: #94A3B8;      /* Slate 400 */
     --color-blanco: #FFFFFF;
     --color-texto-header: #FFFFFF;
-    --color-texto-footer: #E2E8F0;
+    --color-texto-footer: #FFFFFF;
     
     /* COLORES DE ESTADO */
     --color-exito: #10B981;    
@@ -37,8 +37,8 @@
     --color-proceso: #90E0EF;  
     
     /* TIPOGRAFÍA (Montserrat / Inter) */
-    --fuente-principal: 'Inter', system-ui, -apple-system, sans-serif;
-    --fuente-titulos: 'Montserrat', 'Inter', system-ui, sans-serif;
+    --fuente-principal: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --fuente-titulos: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
     --tamano-fuente-base: 16px;
     --tamano-fuente-titulo: 2.8rem;
     --tamano-fuente-subtitulo: 1.8rem;
