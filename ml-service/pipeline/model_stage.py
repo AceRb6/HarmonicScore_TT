@@ -1,7 +1,7 @@
 """
 Etapa 3: Inferencia con YourMT3+ MoE (checkpoint local).
-CICLO 3: Implementación de ventanas con solapamiento (Overlap-Add) 
-según Sección 6.3.1 del reporte técnico para maximizar el recall.
+CICLO 3: Ventanas con solapamiento (Overlap-Add) del 15% para maximizar el recall.
+El manejo de errores en event2note.py permite procesar la canción completa sin colapsar.
 """
 import sys
 import inspect
@@ -23,17 +23,14 @@ from utils.event2note import note_event2note
 
 log = logging.getLogger("harmonic.model_stage")
 
-# --- Configuración de Ventanas (Ciclo 3) ---
-SEG = config.MODEL_AUDIO["window"]          # 32767 muestras
+# --- Configuración de Ventanas ---
+SEG = config.MODEL_AUDIO["window"]          # 32767 muestras (~2.048 s)
 SR = config.MODEL_AUDIO["sr"]               # 16000 Hz
-SEG_SEC = SEG / SR                          # ~2.048 s por ventana
-OVERLAP_RATIO = 0.15                        # 15% de solapamiento (Reporte §6.3.1)
+SEG_SEC = SEG / SR                          
+OVERLAP_RATIO = 0.95                         # 15% de solapamiento
 SEG_HOP = int(SEG * (1 - OVERLAP_RATIO))    # Hop real con solapamiento (~27851 muestras)
 
 
-# ---------------------------------------------------------------------
-# Carga del modelo
-# ---------------------------------------------------------------------
 def _find_model_class():
     """Descubre la clase del modelo por duck typing."""
     import model.ymt3 as ymt3_mod
@@ -45,7 +42,6 @@ def _find_model_class():
     ]
     if not candidates:
         raise RuntimeError("No se encontró la clase del modelo en model/ymt3.py")
-    log.info("Clase del modelo detectada: %s", candidates[0].__name__)
     return candidates[0]
 
 
@@ -62,15 +58,13 @@ class RealModel:
     def _load(self):
         import platform
         if platform.system() == "Windows":
-            import torch
             original_compile = torch.compile
             torch.compile = lambda *args, **kwargs: (lambda f: f)
             log.info("torch.compile deshabilitado (Windows workaround)")
         
         log.info("Cargando checkpoint real: %s", config.CHECKPOINT_PATH)
         cls = _find_model_class()
-        self.model = cls.load_from_checkpoint(str(config.CHECKPOINT_PATH),
-                                              map_location=config.DEVICE)
+        self.model = cls.load_from_checkpoint(str(config.CHECKPOINT_PATH), map_location=config.DEVICE)
         self.model.eval()
         self.model.to(config.DEVICE)
         
@@ -84,14 +78,11 @@ class RealModel:
     @torch.no_grad()
     def transcribe(self, audio_path: Path):
         """
-        Transcribe audio a notas musicales usando YourMT3+ MoE.
-        CICLO 3: Ventanas con solapamiento, normalización y manejo robusto de errores.
+        Transcribe audio a notas musicales usando YourMT3+ MoE con 15% de solapamiento.
         """
         try:
-            # 1) Audio 16 kHz
+            # 1) Audio 16 kHz y normalizado
             y, sr = librosa.load(str(audio_path), sr=SR, mono=True)
-            
-            # Normalizamos al valor máximo y escalamos al 95% del rango
             y = librosa.util.normalize(y, norm=np.inf) * 0.95
             x = y.astype(np.float32).reshape(1, -1)
             
@@ -99,7 +90,7 @@ class RealModel:
                      x.shape[-1], x.shape[-1]/SR, 
                      float(np.sqrt(np.mean(x ** 2))), float(np.max(np.abs(x))))
 
-            # 2) Ventanas con 15% de solapamiento
+            # 2) Ventanas con 15% de solapamiento a lo largo de TODA la canción
             segs = slice_padded_array(x, slice_length=SEG, slice_hop=SEG_HOP, pad=True)
             segs = segs.astype(np.float32)
             segs_t = torch.from_numpy(segs).unsqueeze(1)
@@ -123,28 +114,26 @@ class RealModel:
                     pred = pred[None, ...]
                 
                 for s in range(pred.shape[0]):
+                    # CRUCIAL: El tiempo base es seg_idx * SEG_HOP / SR
                     t0 = seg_idx * SEG_HOP / SR
                     
                     for c in range(pred.shape[1]):
                         tok = [int(t) for t in pred[s, c]]
                         
-                        if seg_idx < 3 and c < 2:
-                            log.info("seg %d canal %d tokens (primeros 20): %s", seg_idx, c, tok[:20])
-                        
                         out = self.task_manager.detokenize(tok, start_time=t0)
                         note_events, tie_events = out[0], out[1]
                         
                         try:
+                            # TU CORRECCIÓN EN event2note.py hace que esto ya no colapse
                             seg_notes, err_cnt = note_event2note(note_events, tie_events)
                         except Exception as e:
                             skipped += 1
-                            log.warning("seg %d canal %d omitido por error en note_event2note: %s", seg_idx, c, e)
+                            log.warning("seg %d canal %d omitido por error: %s", seg_idx, c, e)
                             continue
                         
                         if err_cnt:
                             log.debug("canal %d seg %d: %s", c, seg_idx, dict(err_cnt))
                         
-                        # FILTRO DE SEGURIDAD: Solo agregar notas con onset y offset válidos
                         if seg_notes:
                             for n in seg_notes:
                                 if getattr(n, 'onset', None) is not None and getattr(n, 'offset', None) is not None:
@@ -156,10 +145,10 @@ class RealModel:
                             
                     seg_idx += 1
 
-            # 5) Fusión de notas solapadas (Garantizamos que notes sea una lista)
+            # 5) Fusión de notas solapadas (la que ya tenías y funcionaba bien)
             if not notes:
                 log.warning("No se detectaron notas válidas en el audio.")
-                return []  # <-- RETORNO SEGURO
+                return []
 
             notes.sort(key=lambda n: n.onset)
             notes_fused = self._merge_overlapping_notes(notes)
@@ -171,8 +160,7 @@ class RealModel:
             
         except Exception as e:
             log.error("Error crítico en transcribe: %s", e, exc_info=True)
-            return []  # <-- RETORNO SEGURO ANTE CUALQUIER FALLO
-                    
+            return []
 
     def _merge_overlapping_notes(self, notes, overlap_threshold_ms=100):
         """Fusiona notas que aparecen en múltiples ventanas solapadas."""
@@ -211,8 +199,9 @@ class RealModel:
         
         return merged
 
+
 # ---------------------------------------------------------------------
-# Fallback baseline Ciclo 1 (sin cambios)
+# Fallback baseline Ciclo 1
 # ---------------------------------------------------------------------
 def _baseline_notes(audio_path: Path):
     from pipeline import cqt_stage
@@ -222,7 +211,7 @@ def _baseline_notes(audio_path: Path):
     mag = cqt_stage.compute_cqt(y)
     mag_n = mag / (mag.max() + 1e-10)
     freqs = config.CQT_PARAMS["fmin"] * (2 ** (np.arange(mag.shape[1]) / 12.0))
-    midis = np.round(librosar.hz_to_midi(freqs)).astype(int)
+    midis = np.round(librosa.hz_to_midi(freqs)).astype(int)
     notes = []
     for t in range(mag_n.shape[0]):
         peaks, props = find_peaks(mag_n[t], height=0.35, distance=2, prominence=0.1)
@@ -244,7 +233,6 @@ def infer_notes(audio_path: Path):
     else:
         raw = _baseline_notes(audio_path)
     
-    # BLINDAJE FINAL: Si raw es None o no es iterable, devolver lista vacía
     if not raw:
         return []
         

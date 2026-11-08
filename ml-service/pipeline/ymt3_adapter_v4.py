@@ -1,5 +1,5 @@
 """
-Adaptador YourMT3+ v5 — Inferencia paralela con horizonte fiable (H-35)
+Adaptador YourMT3+ v4 — Inferencia paralela con horizonte fiable (H-35)
 
 Problema resuelto:
   El decoder de YourMT3+ degenera después de ~8 segundos (4 ventanas) dentro

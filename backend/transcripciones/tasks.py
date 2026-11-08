@@ -22,7 +22,8 @@ import os
 import time
 import logging
 from urllib.parse import unquote   # <-- CAMBIO: stdlib, sin 're'
-
+from django.utils.text import slugify
+from datetime import datetime   
 import requests
 from celery import shared_task
 from django.core.files.base import ContentFile
@@ -137,9 +138,27 @@ def procesar_audio(self, transcripcion_id: str):
              xml.headers.get("content-disposition"))
 
     fb = f"{t.id}_harmonic_score"
-    nombre_pdf = _filename_de(pdf.headers.get("content-disposition"), fb + ".pdf")
-    nombre_xml = _filename_de(xml.headers.get("content-disposition"), fb + ".musicxml")
+        # 3. Descargar el PDF y el MusicXML
+    try:
+        pdf = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=pdf", timeout=120)
+        pdf.raise_for_status()
+        xml = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=xml", timeout=120)
+        xml.raise_for_status()
+    except requests.RequestException as e:
+        return _marcar_error(t, f'No se pudo descargar los archivos: {e}')
+    
+    base_limpio = slugify(t.titulo_audio, allow_unicode=False)
+    if not base_limpio:
+        base_limpio = f"transcripcion_{t.id}"
+        
+    # 2. Agregamos un timestamp único para evitar colisiones de Django
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # 3. Construimos los nombres finales (ej: toz-saria_harmonic_score_20261107_103656.pdf)
+    nombre_pdf = f"{base_limpio}_harmonic_score_{timestamp}.pdf"
+    nombre_xml = f"{base_limpio}_harmonic_score_{timestamp}.musicxml"
 
+    # 4. Guardamos. Al ser el timestamp único, Django NUNCA agregará el token aleatorio '_XXXXXX'
     t.ruta_archivo_pdf.save(nombre_pdf, ContentFile(pdf.content), save=False)
     t.ruta_archivo_mxl.save(nombre_xml, ContentFile(xml.content), save=False)
 
