@@ -9,6 +9,7 @@ Optimizaciones Ciclo 3:
 - Limpieza estricta del título (solo nombre de la pieza)
 - Validación de integridad de notas
 - Filtrado de silencios microscópicos (< 1/64 de negra)
+- Etiquetado semántico de instrumentación (Nombre, Abreviatura, MIDI, Clave)
 - Manejo robusto de errores en escritura XML
 """
 
@@ -18,11 +19,47 @@ import logging
 import re
 from pathlib import Path
 
-from music21 import stream, note, tempo, meter, instrument, metadata
+from music21 import stream, note, tempo, meter, instrument, metadata, clef
 
 from pipeline.pdf_stage import render_musicxml_to_pdf
 
 log = logging.getLogger("harmonic.score_stage")
+
+# =====================================================================
+# MAPEO DE INSTRUMENTOS PARA MUSICXML Y GENERAL MIDI
+# =====================================================================
+INSTRUMENTO_MAP = {
+    'violin': {
+        'class': instrument.Violin,
+        'midi_program': 40,
+        'clef': clef.TrebleClef,
+        'name': 'Violín'
+    },
+    'flute': {
+        'class': instrument.Flute,
+        'midi_program': 73,
+        'clef': clef.TrebleClef,
+        'name': 'Flauta'
+    },
+    'piano': {
+        'class': instrument.Piano,
+        'midi_program': 0,
+        'clef': clef.TrebleClef, # Para monofonía. (Para polifonía avanzada se usaría GrandStaff)
+        'name': 'Piano'
+    },
+    'guitar': {
+        'class': instrument.AcousticGuitar,
+        'midi_program': 24,
+        'clef': clef.TrebleClef, # Clave de Sol octavada (estándar para guitarra)
+        'name': 'Guitarra Acústica'
+    },
+    'voice': {
+        'class': instrument.Vocalist,
+        'midi_program': 52,
+        'clef': clef.TrebleClef,
+        'name': 'Voz'
+    }
+}
 
 # Figuras musicales válidas en MusicXML (en fracciones de negra / quarterLength)
 FIGURAS_MUSICALES = {
@@ -38,25 +75,15 @@ MIN_REST_QUARTER = 0.125  # 1/8 de negra (corchea)
 def limpiar_titulo(titulo_raw: str) -> str:
     """
     Limpia el título para que SOLO contenga el nombre de la pieza.
-    Elimina:
-    - Timestamps (20261107_090529)
-    - IDs de job (UUIDs hexadecimales)
-    - Sufijos como '_harmonic_score', '_output', etc.
-    - Caracteres especiales problemáticos para XML
     """
     if not titulo_raw:
         return "Pieza sin título"
     
     titulo = titulo_raw
-    
-    # Eliminar timestamps comunes (YYYYMMDD_HHMMSS o YYYY-MM-DD_HH-MM-SS)
     titulo = re.sub(r'\d{8}[_-]\d{6}', '', titulo)
     titulo = re.sub(r'\d{4}[_-]\d{2}[_-]\d{2}[_-]\d{2}[_-]\d{2}[_-]\d{2}', '', titulo)
-    
-    # Eliminar UUIDs hexadecimales (32 caracteres hex)
     titulo = re.sub(r'[0-9a-f]{32}', '', titulo, flags=re.IGNORECASE)
     
-    # Eliminar sufijos conocidos del sistema
     sufijos_sistema = [
         r'_harmonic_score', r'_HarmonicScore', r'_output', r'_processed',
         r'_transcription', r'_score', r'-harmonic', r'_final'
@@ -64,36 +91,16 @@ def limpiar_titulo(titulo_raw: str) -> str:
     for sufijo in sufijos_sistema:
         titulo = re.sub(sufijo, '', titulo, flags=re.IGNORECASE)
     
-    # Eliminar guiones bajos y guiones al inicio/final
     titulo = titulo.strip('_- ')
-    
-    # Reemplazar guiones bajos internos por espacios
     titulo = titulo.replace('_', ' ').replace('-', ' ')
-    
-    # Capitalizar correctamente (Title Case)
     titulo = titulo.title()
-    
-    # Eliminar espacios múltiples
     titulo = re.sub(r'\s+', ' ', titulo).strip()
     
-    # Validar que no quede vacío
-    if not titulo:
-        return "Pieza sin título"
-    
-    return titulo
+    return titulo if titulo else "Pieza sin título"
 
 
 def cuantizar_duracion(duracion_s: float, tempo_bpm: float = 120.0) -> float:
-    """
-    Convierte segundos a la figura musical (quarterLength) más cercana según el tempo.
-    
-    Args:
-        duracion_s: Duración en segundos
-        tempo_bpm: Tempo en BPM
-        
-    Returns:
-        Duración en quarterLength (fracciones de negra) entre 0.0625 (64th) y 4.0 (whole)
-    """
+    """Convierte segundos a la figura musical (quarterLength) más cercana."""
     if duracion_s <= 0:
         return 0.0
     
@@ -104,47 +111,38 @@ def cuantizar_duracion(duracion_s: float, tempo_bpm: float = 120.0) -> float:
 
 
 def validar_notas(notes: list) -> list:
-    """
-    Valida y filtra notas malformadas antes de generar la partitura.
-    Incluye logs de depuración para identificar por qué se descartan.
-    """
+    """Valida y filtra notas malformadas antes de generar la partitura."""
     notas_validas = []
     descartadas = 0
     
-    # DEBUG: Inspeccionar la primera nota para ver su estructura real
     if len(notes) > 0:
-        log.info(f"🔍 DEBUG validar_notas: Tipo del primer elemento: {type(notes[0])}")
-        log.info(f"🔍 DEBUG validar_notas: Contenido del primer elemento: {notes[0]}")
+        log.debug(f"DEBUG validar_notas: Tipo del primer elemento: {type(notes[0])}")
 
     for i, n in enumerate(notes):
-        # 1. Si es un objeto (dataclass), convertirlo a diccionario
         if not isinstance(n, dict):
             if hasattr(n, '__dict__'):
                 n = n.__dict__
             else:
                 if descartadas < 3:
-                    log.warning(f"Nota {i} descartada: No es diccionario ni objeto válido. Tipo: {type(n)}")
+                    log.warning(f"Nota {i} descartada: No es diccionario ni objeto válido.")
                 descartadas += 1
                 continue
         
-        # 2. Validar campos requeridos
         if 'onset' not in n or 'offset' not in n or 'pitch' not in n:
             if descartadas < 3:
-                log.warning(f"Nota {i} descartada: Faltan campos obligatorios. Claves presentes: {list(n.keys())}")
+                log.warning(f"Nota {i} descartada: Faltan campos obligatorios.")
             descartadas += 1
             continue
         
-        # 3. Validar que offset > onset (duración positiva)
         if n['offset'] <= n['onset']:
             if descartadas < 3:
-                log.warning(f"Nota {i} descartada: Duración <= 0. offset ({n['offset']}) <= onset ({n['onset']})")
+                log.warning(f"Nota {i} descartada: Duración <= 0.")
             descartadas += 1
             continue
         
-        # 4. Validar rango MIDI válido (0-127)
         if not (0 <= n['pitch'] <= 127):
             if descartadas < 3:
-                log.warning(f"Nota {i} descartada: pitch fuera de rango (0-127). Valor: {n['pitch']}")
+                log.warning(f"Nota {i} descartada: pitch fuera de rango (0-127).")
             descartadas += 1
             continue
         
@@ -161,25 +159,12 @@ def build_score(
     pdf_path: Path,
     bpm: float = 120.0,
     time_signature: str = "4/4",
-    title: str = "Pieza sin título"
+    title: str = "Pieza sin título",
+    instrumento: str = 'piano'  # <-- NUEVO PARÁMETRO
 ) -> Path:
     """
     Genera el MusicXML usando el tempo y compás estimados dinámicamente,
-    y delega el PDF al módulo pdf_stage.
-    
-    Args:
-        notes: Lista de diccionarios con {pitch, onset, offset, velocity}
-        pdf_path: Ruta de salida del PDF
-        bpm: Tempo en BPM (estimado dinámicamente)
-        time_signature: Compás (ej. "4/4", "3/4")
-        title: Título de la pieza (se limpiará automáticamente)
-        
-    Returns:
-        Ruta del PDF generado
-        
-    Raises:
-        ValueError: Si no hay notas válidas para transcribir
-        RuntimeError: Si falla la escritura del MusicXML
+    asignando el instrumento y la clave correcta, y delega el PDF.
     """
     # 1. Validar y limpiar notas
     notas_validas = validar_notas(notes)
@@ -188,24 +173,36 @@ def build_score(
     
     log.info(f"Generando partitura: {len(notas_validas)} notas | {bpm:.1f} BPM | {time_signature}")
     
-    # 2. Limpiar el título (SOLO el nombre de la pieza)
+    # 2. Limpiar el título
     titulo_limpio = limpiar_titulo(title)
     log.info(f"Título final de la pieza: '{titulo_limpio}'")
     
     # 3. Crear estructura del score
     score = stream.Score()
-    
-    # Metadatos mínimos (solo información relevante)
     md = metadata.Metadata()
     md.title = titulo_limpio
-    md.composer = ""  # Dejamos vacío, se infiere del contexto
     score.metadata = md
     
-    # 4. Crear parte (asumimos piano por defecto, pero podría ser parametrizable)
+    # 4. Crear parte con el instrumento y clave correctos
     part = stream.Part()
-    part.append(instrument.Piano())
+    
+    # Obtener configuración del instrumento (fallback a piano si no se reconoce)
+    inst_key = instrumento.lower() if instrumento.lower() in INSTRUMENTO_MAP else 'piano'
+    inst_config = INSTRUMENTO_MAP[inst_key]
+    
+    # Aplicar instrumento y configurar programa MIDI
+    inst_obj = inst_config['class']()
+    inst_obj.midiProgram = inst_config['midi_program']
+    part.append(inst_obj)
+    
+    # Aplicar la clave musical correcta (ej. GuitarClef para guitarra)
+    part.append(inst_config['clef']())
+    
+    # Aplicar tempo y compás
     part.append(tempo.MetronomeMark(number=int(round(bpm))))
     part.append(meter.TimeSignature(time_signature))
+    
+    log.info(f"Instrumento asignado a la partitura: {inst_config['name']} (MIDI: {inst_config['midi_program']})")
     
     # 5. Construir la secuencia musical
     current_time = 0.0
@@ -217,7 +214,6 @@ def build_score(
             gap_s = n['onset'] - current_time
             gap_beats = cuantizar_duracion(gap_s, tempo_bpm=bpm)
             
-            # Solo generar silencio si es significativo (>= 1 corchea)
             if gap_beats >= MIN_REST_QUARTER:
                 rest = note.Rest()
                 rest.quarterLength = gap_beats
@@ -230,7 +226,7 @@ def build_score(
         
         # Asignar velocity (dinámica)
         velocity = n.get('velocity', 80)
-        nota.volume.velocity = max(1, min(127, velocity))
+        nota.volume.velocity = max(1, min(127, int(velocity)))
         
         part.append(nota)
         current_time = n['offset']

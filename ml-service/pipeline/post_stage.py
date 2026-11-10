@@ -9,6 +9,149 @@ import logging
 
 log = logging.getLogger("harmonic.post_stage")
 
+from collections import Counter
+
+# =====================================================================
+# DETECCIÓN AUTOMÁTICA DE INSTRUMENTO (Opción B: Heurística por Programa MIDI)
+# =====================================================================
+
+# Mapeo de programas MIDI más comunes a nuestras categorías
+# Basado en el estándar General MIDI Level 1
+PROGRAMAS_MIDI_A_INSTRUMENTO = {
+    # Piano (0-7)
+    0: 'piano', 1: 'piano', 2: 'piano', 3: 'piano',
+    4: 'piano', 5: 'piano', 6: 'piano', 7: 'piano',
+    # Guitarra (24-31)
+    24: 'guitar', 25: 'guitar', 26: 'guitar', 27: 'guitar',
+    28: 'guitar', 29: 'guitar', 30: 'guitar', 31: 'guitar',
+    # Bajo (32-39)
+    32: 'guitar', 33: 'guitar', 34: 'guitar', 35: 'guitar',  # Bajo se mapea a guitar para rango amplio
+    # Violín/Cuerdas frotadas (40-47)
+    40: 'violin', 41: 'violin', 42: 'violin', 43: 'violin',
+    44: 'violin', 45: 'violin', 46: 'violin', 47: 'violin',
+    # Vientos madera (73-80)
+    73: 'flute', 74: 'flute', 75: 'flute', 76: 'flute',
+    77: 'flute', 78: 'flute', 79: 'flute', 80: 'flute',
+    # Vientos metal (56-63)
+    56: 'trumpet', 57: 'trumpet', 58: 'trumpet', 59: 'trumpet',
+    60: 'trumpet', 61: 'trumpet', 62: 'trumpet', 63: 'trumpet',
+    # Voz (52-53 en algunos modelos)
+    52: 'voice', 53: 'voice',
+}
+
+# =====================================================================
+# RANGOS MIDI POR INSTRUMENTO (Para corrección de octavas)
+# =====================================================================
+RANGOS_INSTRUMENTO = {
+    'violin': (55, 100),        # Sol3 (G3) - Mi7 (E7)
+    'flute': (58, 97),          # Si3 (B3) - Re7 (D7)
+    'piano': (21, 108),         # La0 (A0) - Do8 (C8)
+    'guitar': (40, 87),         # Mi2 (E2) - Fa6 (F6)
+    'voice': (48, 84),          # Do3 (C3) - Do6 (C6)
+    'trumpet': (54, 87),        # Fa#3 (F#3) - Fa6 (F6)
+    'clarinet': (50, 94),       # Re3 (D3) - Do7 (C7)
+    'cello': (36, 76),          # Do2 (C2) - Do6 (C6)
+    'viola': (48, 87),          # Do3 (C3) - Fa6 (F6)
+    'default': (21, 108)        # Rango completo de piano
+}
+
+
+def filtrar_notas_fuera_de_rango(notes: list, instrumento: str = 'piano') -> list:
+    """
+    Corrige errores de octava transponiendo notas fuera de rango.
+    Solo elimina si es imposible corregirla matemáticamente.
+    
+    Args:
+        notes: Lista de notas con clave 'pitch' (MIDI)
+        instrumento: Nombre del instrumento para validar rango
+    
+    Returns:
+        Lista de notas corregidas dentro del rango válido
+    """
+    rango_min, rango_max = RANGOS_INSTRUMENTO.get(instrumento.lower(), RANGOS_INSTRUMENTO['default'])
+    notas_filtradas = []
+    notas_corregidas = 0
+    notas_eliminadas = 0
+    
+    for note in notes:
+        pitch = note.get('pitch', 60)
+        
+        # CASO 1: La nota está en el rango correcto
+        if rango_min <= pitch <= rango_max:
+            notas_filtradas.append(note)
+            
+        # CASO 2: Nota muy grave - Intentar subir octavas
+        elif pitch < rango_min:
+            pitch_original = pitch
+            while pitch < rango_min:
+                pitch += 12  # Subir una octava
+            
+            # Verificar si al subir entra en el rango válido
+            if pitch <= rango_max:
+                note['pitch'] = pitch
+                notas_filtradas.append(note)
+                notas_corregidas += 1
+                log.debug(f"Corregida nota {pitch_original} -> {pitch} (subir octava)")
+            else:
+                notas_eliminadas += 1
+                
+        # CASO 3: Nota muy aguda - Intentar bajar octavas
+        elif pitch > rango_max:
+            pitch_original = pitch
+            while pitch > rango_max:
+                pitch -= 12  # Bajar una octava
+            
+            # Verificar si al bajar entra en el rango válido
+            if pitch >= rango_min:
+                note['pitch'] = pitch
+                notas_filtradas.append(note)
+                notas_corregidas += 1
+                log.debug(f"Corregida nota {pitch_original} -> {pitch} (bajar octava)")
+            else:
+                notas_eliminadas += 1
+    
+    if notas_corregidas > 0:
+        log.info(f"✅ Se corrigieron {notas_corregidas} errores de octava para {instrumento}")
+    if notas_eliminadas > 0:
+        log.warning(f"⚠️ Se eliminaron {notas_eliminadas} notas irreparables fuera de rango para {instrumento}")
+        
+    return notas_filtradas
+
+
+def detectar_instrumento_por_modelo(notes: list) -> str:
+    """
+    Detecta el instrumento dominante basándose en los IDs de programa MIDI
+    que el modelo YourMT3+ predice en cada nota.
+    
+    Args:
+        notes: Lista de notas con claves 'program', 'instrument' o 'pitch'
+    
+    Returns:
+        Nombre del instrumento detectado ('piano', 'violin', 'flute', etc.)
+    """
+    # Extraer programas MIDI de las notas (el modelo puede usar 'program' o 'instrument')
+    programas = []
+    for n in notes:
+        prog = n.get('program') or n.get('instrument')
+        if prog is not None and isinstance(prog, (int, float)):
+            programas.append(int(prog))
+    
+    if not programas:
+        log.info("No se encontraron programas MIDI. Usando rango piano (conservador).")
+        return 'piano'
+    
+    # Encontrar el programa más frecuente
+    programa_mas_comun = Counter(programas).most_common(1)[0][0]
+    
+    # Mapear a nuestra categoría
+    instrumento = PROGRAMAS_MIDI_A_INSTRUMENTO.get(programa_mas_comun, 'piano')
+    
+    log.info(f"Instrumento detectado automáticamente: {instrumento} "
+             f"(programa MIDI dominante: {programa_mas_comun}, "
+             f"de {len(programas)} notas analizadas)")
+    
+    return instrumento
+
 def estimate_tempo_from_events(notes: list, min_bpm: float = 40.0, max_bpm: float = 200.0) -> float:
     """Calcula el tempo usando el histograma de Intervalos Inter-Onset (IOI)."""
     valid_notes = [n for n in notes if n.get("confidence", 0) > 0.5]
@@ -133,7 +276,10 @@ def estimate_time_signature(notes: list, bpm: float, mag_cqt: np.ndarray, sr: in
 
 
 def merge_adjacent_notes(notes: list, threshold_s: float = 0.08) -> list:
-    """Ecuación 23: Fusión de notas adyacentes del mismo pitch separadas por < umbral."""
+    """
+    Ecuación 23: Fusión de notas adyacentes.
+    REGLA DE ORO: NUNCA fusionar si el pitch cambia, aunque el gap sea de 0.001s.
+    """
     if not notes:
         return notes
         
@@ -141,9 +287,15 @@ def merge_adjacent_notes(notes: list, threshold_s: float = 0.08) -> list:
     current = notes[0].copy()
     
     for n in notes[1:]:
-        if n['pitch'] == current['pitch'] and (n['onset'] - current['offset']) < threshold_s:
+        gap = n['onset'] - current['offset']
+        
+        # Solo fusionamos si es EXACTAMENTE el mismo pitch Y el hueco es menor al umbral
+        if n['pitch'] == current['pitch'] and 0 < gap < threshold_s:
             current['offset'] = max(current['offset'], n['offset'])
+            # Opcional: Promediar la velocidad si se fusionan
+            current['velocity'] = max(current.get('velocity', 80), n.get('velocity', 80))
         else:
+            # Si el pitch cambió, o el gap es negativo (solapamiento), cerramos la nota actual
             merged.append(current)
             current = n.copy()
             
@@ -248,10 +400,12 @@ def suprimir_micro_pausas(notes: list, umbral_s: float = 0.12) -> list:
     
     return notas_limpias
 
-def refine(notes: list, mag_cqt: np.ndarray = None, sr: int = 44100, hop_length: int = 512, es_percusion: bool = False) -> dict:
+def refine(notes: list, mag_cqt: np.ndarray = None, sr: int = 44100, 
+           hop_length: int = 512, es_percusion: bool = False,
+           es_polifonico: bool = False, instrumento: str = 'auto') -> dict:
     """
     Orquesta el post-procesamiento completo. 
-    ORDEN CRÍTICO: Filtro -> NMS -> Octava Fallback -> Tempo/Compás -> Cuantización -> Fusión
+    ORDEN CRÍTICO: Filtro drums -> NMS -> Octava CQT -> FILTRO RANGO SEGURO -> Tempo -> Cuantización -> Fusión
     """
     if not notes:
         return {"notes": [], "bpm": 120.0, "time_signature": "4/4"}
@@ -266,35 +420,35 @@ def refine(notes: list, mag_cqt: np.ndarray = None, sr: int = 44100, hop_length:
     if not notes:
         return {"notes": [], "bpm": 120.0, "time_signature": "4/4"}
 
+    # PASO 0.5: Detección de instrumento
+    if instrumento == 'auto':
+        instrumento_detectado = detectar_instrumento_por_modelo(notes)
+    else:
+        instrumento_detectado = instrumento
+    
     # PASO 1: NMS (Eliminar duplicados por solapamiento de ventanas)
     notes = suppress_overlap_duplicates(notes, overlap_threshold=0.15)
     
-    # PASO 2: Corrección de octava global (Fallback)
+    # PASO 2: Corrección de octava global basada en energía CQT (Fallback físico)
     if mag_cqt is not None:
         notes = correct_octave_errors(notes, mag_cqt, sr, hop_length)
+    
+    # PASO 2.5: FILTRO DE RANGO SEGURO (CRÍTICO para monofonía no-piano)
+    # Si es monofónico y NO es piano, forzamos un rango de viento/cuerda aguda para eliminar notas graves "fantasma"
+    if not es_polifonico and instrumento_detectado != 'piano':
+        log.info(f"Modo Monofónico no-piano detectado ({instrumento_detectado}). Aplicando rango seguro de viento (48-96).")
+        # Usamos 'flute' como base segura porque cubre la mayoría de vientos y cuerdas agudas (Do3 a Do7)
+        notes = filtrar_notas_fuera_de_rango(notes, instrumento='flute')
+    else:
+        # Si es piano o polifónico, usamos el rango detectado o el default (piano)
+        notes = filtrar_notas_fuera_de_rango(notes, instrumento=instrumento_detectado)
     
     # PASO 3: Estimar Tempo y Compás
     bpm = estimate_tempo_from_events(notes)
     time_sig = estimate_time_signature(notes, bpm, mag_cqt, sr, hop_length)
     
     # PASO 4: Cuantizar Onsets y Offsets a la rejilla rítmica (con tolerancia agógica)
-    refined_notes = []
-    for n in notes:
-        new_note = n.copy()
-        new_note['onset'] = quantize_onset_adaptive(n['onset'], bpm, time_sig)
-        new_note['offset'] = quantize_onset_adaptive(n['offset'], bpm, time_sig)
-        
-        if new_note['offset'] <= new_note['onset']:
-            new_note['offset'] = new_note['onset'] + (60.0 / bpm) * 0.5 
-            
-        refined_notes.append(new_note)
-        
-    # 5. Suprimir micro-pausas (NUEVO: Limpia los silencios artificiales < 120ms)
-    # Esto evita que music21 dibuje silencios diminutos entre notas que deberían sonar continuas
-    notes = suprimir_micro_pausas(notes, umbral_s=0.12)
-    
-    # 6. Cuantizar Onsets y Offsets a la rejilla rítmica
-    refined_notes = []
+    quantized_notes = []
     for n in notes:
         new_note = n.copy()
         new_note['onset'] = quantize_onset_adaptive(n['onset'], bpm, time_sig)
@@ -304,11 +458,15 @@ def refine(notes: list, mag_cqt: np.ndarray = None, sr: int = 44100, hop_length:
         if new_note['offset'] <= new_note['onset']:
             new_note['offset'] = new_note['onset'] + (60.0 / bpm) * 0.5 
             
-        refined_notes.append(new_note)
-        
-    # 7. Fusionar notas adyacentes del mismo pitch (Ec. 23)
-    # (Esto limpia cualquier solapamiento residual después de la cuantización)
-    final_notes = merge_adjacent_notes(refined_notes, threshold_s=0.08) 
+        quantized_notes.append(new_note)
+    
+    # PASO 5: Suprimir micro-pausas (Limpia silencios artificiales < 120ms entre notas cuantizadas)
+    # Esto evita que music21 dibuje silencios diminutos entre notas que deberían sonar continuas (legato)
+    clean_notes = suprimir_micro_pausas(quantized_notes, umbral_s=0.12)
+    
+    # PASO 6: Fusionar notas adyacentes del MISMO pitch (Ec. 23)
+    # REGLA DE ORO: La función merge_adjacent_notes NUNCA fusionará si el pitch cambia.
+    final_notes = merge_adjacent_notes(clean_notes, threshold_s=0.08) 
     
     log.info(f"Post-procesamiento completado: {len(final_notes)} notas finales, {bpm:.1f} BPM, {time_sig}")
     

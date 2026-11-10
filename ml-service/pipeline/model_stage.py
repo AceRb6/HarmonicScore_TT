@@ -27,7 +27,7 @@ log = logging.getLogger("harmonic.model_stage")
 SEG = config.MODEL_AUDIO["window"]          # 32767 muestras (~2.048 s)
 SR = config.MODEL_AUDIO["sr"]               # 16000 Hz
 SEG_SEC = SEG / SR                          
-OVERLAP_RATIO = 0.85                         # 15% de solapamiento
+OVERLAP_RATIO = 0.89                         # % de solapamiento
 SEG_HOP = int(SEG * (1 - OVERLAP_RATIO))    # Hop real con solapamiento (~27851 muestras)
 
 

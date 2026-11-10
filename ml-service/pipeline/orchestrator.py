@@ -15,14 +15,13 @@ import time
 import unicodedata
 from pathlib import Path
 from typing import Tuple, Dict, Any
-
+from pipeline.post_stage import detectar_instrumento_por_modelo
 import torch
 
 import settings as config
 from pipeline import audio_stage, cqt_stage, model_stage, post_stage, score_stage
 
 log = logging.getLogger("harmonic.orchestrator")
-
 
 def normalizar_texto(texto: str) -> str:
     """
@@ -73,12 +72,19 @@ class Orchestrator:
             if not raw_notes:
                 raise ValueError("El modelo no detectó ninguna nota musical en el audio proporcionado.")
 
+            instrumento_detectado = detectar_instrumento_por_modelo(raw_notes)
+            log.info(f"🎵 Instrumento detectado: {instrumento_detectado}")
+            es_polifonico = (level != "monofonico")
+
             # 5) Post-procesamiento con reglas musicales (RF-11)
             # Aquí ocurre la magia: NMS, corrección de octava, cuantización y fusión
             post_result = time_it("post", post_stage.refine, raw_notes, 
-                                  mag_cqt=mag,
-                                  sr=config.CQT_PARAMS["sr"], 
-                                  hop_length=config.CQT_PARAMS["hop_length"])
+                      mag_cqt=mag,
+                      sr=config.CQT_PARAMS["sr"], 
+                      hop_length=config.CQT_PARAMS["hop_length"],
+                      es_percusion=False,  # Asumimos que no es percusión
+                      es_polifonico=es_polifonico,
+                      instrumento=instrumento_detectado)
             
             # Extraer resultados refinados del diccionario
             final_notes = post_result["notes"]
@@ -104,8 +110,10 @@ class Orchestrator:
             
             # ¡CRÍTICO! Pasamos `final_notes` (no `raw_notes`) al generador de partituras
             generated_pdf_path = time_it("score_pdf", score_stage.build_score, final_notes, pdf_path, 
-                                         bpm=estimated_bpm, time_signature=estimated_time_sig,
-                                         title=titulo_pieza)
+                                         bpm=estimated_bpm, 
+                                         time_signature=estimated_time_sig,
+                                         title=titulo_pieza,
+                                         instrumento=instrumento_detectado) 
 
             # Métricas de hardware (evidencia TT-II vs RNF-01/02)
             metrics["total_ms"] = round((time.perf_counter() - t0) * 1000, 1)
