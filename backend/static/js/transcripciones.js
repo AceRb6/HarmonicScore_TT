@@ -2,10 +2,14 @@
    GESTIÓN DE TRANSCRIPCIONES
    Controla el estado vacío o con datos de la
    tabla de historial del usuario.
+   Actualización reactiva por eventos (SSE):
+   solo refresca la tabla cuando el worker de Celery
+   notifica que una transcripción se completó o falló.
    Proyecto: Harmonic Score
    ============================================ */
 
 const Transcripciones = {
+    eventSource: null,
 
     /**
      * Muestra un popup visual en pantalla para avisos y errores.
@@ -14,7 +18,7 @@ const Transcripciones = {
         const modal = document.getElementById('modal-mensaje');
         const titulo = document.getElementById('titulo-mensaje');
         const texto = document.getElementById('texto-mensaje');
-        
+
         if (!modal || !titulo || !texto) {
             alert(mensaje);
             return;
@@ -28,7 +32,7 @@ const Transcripciones = {
         const cerrarModal = () => modal.style.display = 'none';
         const btnCerrar = document.getElementById('cerrar-modal-mensaje');
         const btnAceptar = document.getElementById('btn-cerrar-mensaje');
-        
+
         if (btnCerrar) btnCerrar.onclick = cerrarModal;
         if (btnAceptar) btnAceptar.onclick = cerrarModal;
         modal.onclick = (e) => { if (e.target === modal) cerrarModal(); };
@@ -46,6 +50,8 @@ const Transcripciones = {
 
         tbody.innerHTML = ''; // Limpiar filas anteriores
 
+        let hayEnProceso = false;
+
         lista.forEach(item => {
             const tr = document.createElement('tr');
             const jobId = item.job_id || item.id; // Asegurar compatibilidad de nombres
@@ -55,9 +61,8 @@ const Transcripciones = {
 
             switch (item.estado) {
                 case 'completado':
-                case 'EXITO': 
+                case 'EXITO':
                     estadoHtml = `<td class="estado-exito">✓ Completado</td>`;
-                    // Dos botones de descarga reales (sin depender de Bootstrap JS)
                     descargaHtml = `
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
@@ -79,6 +84,7 @@ const Transcripciones = {
                 case 'proceso':
                 case 'PENDIENTE':
                 case 'PROCESANDO':
+                    hayEnProceso = true;
                     estadoHtml = `<td class="estado-proceso">⊖ En proceso</td>`;
                     descargaHtml = `<td><span style="color:var(--color-proceso); font-size: 0.85rem;">--</span></td>`;
                     break;
@@ -98,6 +104,60 @@ const Transcripciones = {
 
         // Después de insertar, actualizar la vista (vacío o tabla)
         this.actualizarVista();
+
+        // Si hay tareas en proceso, escuchar el evento del worker; si no, cerrar escucha
+        if (hayEnProceso) {
+            this.suscribirEventosWorker();
+        } else {
+            this.cerrarEventosWorker();
+        }
+    },
+
+    /**
+     * Abre un canal Server-Sent Events (SSE) para recibir notificación push
+     * únicamente cuando el worker de Celery reporte que una transcripción
+     * terminó con éxito o falló (sin hacer polling periódico).
+     */
+    suscribirEventosWorker() {
+        if (this.eventSource || typeof EventSource === 'undefined') return;
+
+        const baseUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_BASE_URL)
+            ? CONFIG.API_BASE_URL
+            : '/api';
+
+        this.eventSource = new EventSource(`${baseUrl}/transcripciones/eventos/`, {
+            withCredentials: true
+        });
+
+        this.eventSource.onmessage = (evento) => {
+            try {
+                const data = JSON.parse(evento.data);
+                if (data.estado === 'completado' || data.estado === 'error' ||
+                    data.estado_db === 'EXITO' || data.estado_db === 'ERROR') {
+                    this.cargarDesdeBackend();
+                }
+            } catch (_) {
+                this.cargarDesdeBackend();
+            }
+        };
+
+        this.eventSource.onerror = () => {
+            // Si ya no hay filas en proceso en la tabla, cerrar definitivamente
+            const sigueEnProceso = document.querySelectorAll('.estado-proceso').length > 0;
+            if (!sigueEnProceso) {
+                this.cerrarEventosWorker();
+            }
+        };
+    },
+
+    /**
+     * Cierra el canal de eventos cuando todas las transcripciones ya finalizaron.
+     */
+    cerrarEventosWorker() {
+        if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+        }
     },
 
     /**
@@ -140,9 +200,9 @@ const Transcripciones = {
             if (respuesta.ok && Array.isArray(respuesta.data)) {
                 const lista = respuesta.data.map(t => ({
                     ...t,
-                    fecha: t.fecha ? new Date(t.fecha).toLocaleDateString('es-MX', { 
-                        year: 'numeric', month: '2-digit', day: '2-digit', 
-                        hour: '2-digit', minute: '2-digit' 
+                    fecha: t.fecha ? new Date(t.fecha).toLocaleDateString('es-MX', {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit'
                     }) : '—'
                 }));
                 this.renderizar(lista);
@@ -151,6 +211,7 @@ const Transcripciones = {
 
             // 2. No autenticado (401)
             if (respuesta.status === 401) {
+                this.cerrarEventosWorker();
                 if (typeof Sesion !== 'undefined' && Sesion.estaActiva()) {
                     Sesion.cerrar(false);
                 }
@@ -171,17 +232,13 @@ const Transcripciones = {
 };
 
 /* ------------------------------------------------
-   INICIALIZACIÓN AUTOMÁTICA
+   INICIALIZACIÓN AUTOMÁTICA (SIN POLLING)
 ------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('transcripciones-tbody')) return;
     Transcripciones.cargarDesdeBackend();
-    
-    // Polling cada 10 segundos para actualizar estados "En proceso" automáticamente
-    setInterval(() => {
-        const enProceso = document.querySelectorAll('.estado-proceso').length > 0;
-        if (enProceso) {
-            Transcripciones.cargarDesdeBackend();
-        }
-    }, 10000);
+});
+
+window.addEventListener('beforeunload', () => {
+    Transcripciones.cerrarEventosWorker();
 });

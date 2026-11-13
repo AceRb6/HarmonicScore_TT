@@ -5,27 +5,24 @@ Flujo:
   Django guarda el audio (PENDIENTE) -> encola procesar_audio ->
   el worker envia el audio al ml-service (otra maquina de la red) ->
   consulta el estado hasta que termine -> descarga el PDF ->
-  lo guarda en media/audios/pdf/ y marca EXITO / ERROR.
+  lo guarda en media/audios/pdf/ y marca EXITO / ERROR ->
+  publica evento push (Redis Pub/Sub) para actualizar la tabla del frontend
+  unicamente en el instante en que el worker reporta fallo o completado.
 
 La URL del ml-service se toma de la variable de entorno ML_SERVICE_URL
 (ej. http://192.168.1.50:8000). Ver docker-compose.yml / .env.
-
-NOTA de naming (RF-06 / CU-06): el nombre final del archivo NO se reconstruye
-aquí. La capa de dominio (ml-service) ya decidió el patrón
-{nombre_original}_harmonic_score_{timestamp}; Django lo HEREDA del header
-Content-Disposition de la respuesta de descarga (Ilustración 39), replicando el
-contrato que ya respeta un navegador. Esto elimina la duplicación de heurísticas
-de saneado entre microservicios y el sufijo opaco anti-colisión que Django
-inyectaba al re-guardar archivos homónimos (que ocupaba el puesto del timestamp).
 """
+import json
 import os
 import time
 import logging
-from urllib.parse import unquote   # <-- CAMBIO: stdlib, sin 're'
+from urllib.parse import unquote
 from django.utils.text import slugify
-from datetime import datetime   
+from datetime import datetime
+import redis
 import requests
 from celery import shared_task
+from django.conf import settings
 from django.core.files.base import ContentFile
 
 from .models import Transcripcion
@@ -37,14 +34,31 @@ INTERVALO_POLLING_S = int(os.environ.get('ML_POLL_INTERVAL', '5'))
 TIEMPO_MAXIMO_S = int(os.environ.get('ML_TIMEOUT', '1800'))  # 30 min
 
 
+def _notificar_evento_worker(t: Transcripcion):
+    """
+    Publica en Redis Pub/Sub cuando el worker termina (EXITO o ERROR),
+    para que el endpoint SSE de Django despierte al navegador y actualice
+    la tabla solo cuando cambia a completado o fallido (sin polling).
+    """
+    try:
+        redis_url = getattr(settings, 'CELERY_BROKER_URL', os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0'))
+        cliente = redis.Redis.from_url(redis_url, decode_responses=True)
+        canal = f"hs:eventos:usuario:{t.usuario_id}"
+        payload = json.dumps({
+            'job_id': str(t.id),
+            'titulo': t.titulo_audio,
+            'estado': 'completado' if t.estado == 'EXITO' else 'error',
+            'estado_db': t.estado,
+        })
+        cliente.publish(canal, payload)
+    except Exception as exc:
+        log.warning("No se pudo publicar evento SSE para transcripcion %s: %s", t.id, exc)
+
+
 def _filename_de(disposition, fallback: str) -> str:
-    """Extrae el nombre del header Content-Disposition sin 're'.
-    Soporta filename="ascii" y filename*=UTF-8''<percent-encoded> (RFC 5987).
-    Si el header falta o no trae filename, devuelve el fallback (único por t.id,
-    que es UUID => nunca colisiona => Django no mete '_XXXXXXX')."""
+    """Extrae el nombre del header Content-Disposition sin 're'."""
     if not disposition:
         return fallback
-    # RFC 5987 (no-ASCII): filename*=UTF-8''<codificado>  (tiene prioridad)
     m = "filename*="
     i = disposition.find(m)
     if i != -1:
@@ -52,7 +66,6 @@ def _filename_de(disposition, fallback: str) -> str:
         if "''" in resto:
             resto = resto.split("''", 1)[1]
         return unquote(resto.strip().strip('"'))
-    # Clásico: filename="..."  (o sin comillas)
     m = "filename="
     i = disposition.find(m)
     if i == -1:
@@ -65,6 +78,7 @@ def _marcar_error(t: Transcripcion, mensaje: str):
     t.detalles_error = mensaje[:2000]
     t.save(update_fields=['estado', 'detalles_error', 'fecha_completado'])
     log.error("Transcripcion %s fallo: %s", t.id, mensaje)
+    _notificar_evento_worker(t)
 
 
 @shared_task(bind=True)
@@ -92,14 +106,14 @@ def procesar_audio(self, transcripcion_id: str):
         return _marcar_error(t, f'No se pudo conectar con el servicio ML ({ML_SERVICE_URL}): {e}')
 
     if r.status_code not in (200, 202):
-        detalle = r.json.get('detail', r.text) if r.headers.get('content-type', '').startswith('application/json') else r.text
+        detalle = r.json().get('detail', r.text) if r.headers.get('content-type', '').startswith('application/json') else r.text
         return _marcar_error(t, f'El servicio ML rechazo el audio: {detalle}')
 
     ml_job_id = r.json().get('job_id')
     if not ml_job_id:
         return _marcar_error(t, 'El servicio ML no devolvio job_id')
 
-    # 2. Polling del estado
+    # 2. Polling del estado entre el worker y el ml-service
     inicio = time.time()
     while True:
         if time.time() - inicio > TIEMPO_MAXIMO_S:
@@ -130,35 +144,14 @@ def procesar_audio(self, transcripcion_id: str):
     except requests.RequestException as e:
         return _marcar_error(t, f'No se pudo descargar los archivos: {e}')
 
-    # <-- CAMBIO: hereda el nombre RF-06 del ml-service (no lo reinventa).
-    # Fallback único por t.id (UUID): nunca colisiona => Django no mete '_XXXXXXX'.
-    # El log DIAG es TEMPORAL: confirma una vez que el header llega limpio y bórralo.
-    log.info("DIAG content-disposition pdf=%r xml=%r",
-             pdf.headers.get("content-disposition"),
-             xml.headers.get("content-disposition"))
-
-    fb = f"{t.id}_harmonic_score"
-        # 3. Descargar el PDF y el MusicXML
-    try:
-        pdf = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=pdf", timeout=120)
-        pdf.raise_for_status()
-        xml = requests.get(f"{ML_SERVICE_URL}/api/download/{ml_job_id}?format=xml", timeout=120)
-        xml.raise_for_status()
-    except requests.RequestException as e:
-        return _marcar_error(t, f'No se pudo descargar los archivos: {e}')
-    
     base_limpio = slugify(t.titulo_audio, allow_unicode=False)
     if not base_limpio:
         base_limpio = f"transcripcion_{t.id}"
-        
-    # 2. Agregamos un timestamp único para evitar colisiones de Django
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # 3. Construimos los nombres finales (ej: toz-saria_harmonic_score_20261107_103656.pdf)
     nombre_pdf = f"{base_limpio}_harmonic_score_{timestamp}.pdf"
     nombre_xml = f"{base_limpio}_harmonic_score_{timestamp}.musicxml"
 
-    # 4. Guardamos. Al ser el timestamp único, Django NUNCA agregará el token aleatorio '_XXXXXX'
     t.ruta_archivo_pdf.save(nombre_pdf, ContentFile(pdf.content), save=False)
     t.ruta_archivo_mxl.save(nombre_xml, ContentFile(xml.content), save=False)
 
@@ -170,3 +163,6 @@ def procesar_audio(self, transcripcion_id: str):
     t.estado = 'EXITO'
     t.detalles_error = None
     t.save()
+
+    # 4. Notificar al frontend que la transcripcion ya esta completa
+    _notificar_evento_worker(t)
