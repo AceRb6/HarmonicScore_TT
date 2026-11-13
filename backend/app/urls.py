@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/transcripciones/subir/', views.subir_transcripcion, name='subir_transcripcion'),
     path('api/transcripciones/historial/', views.historial_transcripciones, name='historial_transcripciones'),
     path('api/transcripciones/mis/', views.mis_transcripciones, name='mis_transcripciones'),
+    path('api/transcripciones/eventos/', views.eventos_transcripciones, name='eventos_transcripciones'),
     path('api/transcripciones/<str:job_id>/', views.estado_transcripcion, name='estado_transcripcion'),
     path('api/transcripciones/<uuid:transcripcion_id>/descargar-pdf/', views.descargar_pdf, name='descargar_pdf'),
     path('api/transcripciones/<uuid:transcripcion_id>/descargar-mxl/', views.descargar_mxl, name='descargar_mxl'),

@@ -1,5 +1,5 @@
 import json
-from django.http import FileResponse, JsonResponse, Http404
+from django.http import FileResponse, JsonResponse, Http404, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 import os
 import requests as http_requests
@@ -301,6 +301,52 @@ def mis_transcripciones(request):
         'url_descarga': t.ruta_archivo_pdf.url if t.ruta_archivo_pdf else None,
     } for t in jobs]
     return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def eventos_transcripciones(request):
+    """
+    Stream Server-Sent Events (SSE) que escucha Redis Pub/Sub y notifica al
+    navegador UNICAMENTE cuando el worker de Celery reporta que una transcripcion
+    termino con EXITO ('completado') o fallo con ERROR ('error').
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'no_autenticado'}, status=401)
+
+    usuario_id = request.user.id
+
+    def stream_eventos():
+        import time
+        import redis
+        from django.conf import settings
+
+        redis_url = getattr(settings, 'CELERY_BROKER_URL', os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0'))
+        cliente = redis.Redis.from_url(redis_url, decode_responses=True)
+        pubsub = cliente.pubsub(ignore_subscribe_messages=True)
+        canal = f"hs:eventos:usuario:{usuario_id}"
+        pubsub.subscribe(canal)
+
+        try:
+            yield ": conectado\n\n"
+            inicio = time.time()
+            # Mantener la escucha activa esperando la señal del worker
+            while time.time() - inicio < 55:
+                mensaje = pubsub.get_message(timeout=1.0)
+                if mensaje and mensaje.get('type') == 'message':
+                    datos = mensaje.get('data')
+                    yield f"data: {datos}\n\n"
+        finally:
+            try:
+                pubsub.unsubscribe(canal)
+                pubsub.close()
+            except Exception:
+                pass
+
+    response = StreamingHttpResponse(stream_eventos(), content_type='text/event-stream')
+    response['Cache-Control'] = 'no-cache'
+    response['X-Accel-Buffering'] = 'no'
+    return response
 
 # ─── API: Descargas ─────────────────────────────────────────────────────────────
 
