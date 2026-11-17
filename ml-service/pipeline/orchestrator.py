@@ -25,11 +25,12 @@ log = logging.getLogger("harmonic.orchestrator")
 
 def normalizar_texto(texto: str) -> str:
     """
-    Elimina acentos y caracteres de combinación de un texto (pre-filtro).
+    Elimina acentos y caracteres de combinación de un texto.
     Ejemplo: 'Nomás_acotado' -> 'Nomas_acotado'
-    Nota: La limpieza profunda con regex se realiza en score_stage.limpiar_titulo.
     """
+    # NFD descompone caracteres acentuados (ej: 'á' se vuelve 'a' + '´')
     texto_normalizado = unicodedata.normalize('NFD', texto)
+    # Filtramos solo los caracteres base, eliminando los acentos (combining marks)
     return ''.join(c for c in texto_normalizado if not unicodedata.combining(c))
 
 
@@ -51,7 +52,7 @@ class Orchestrator:
 
         try:
             # 1) Carga y validación técnica (RF-02/RF-03)
-            # CORREGIDO: Desempaquetamos los 4 valores que retorna audio_stage.load_audio
+            # Desempaquetamos los 4 valores que retorna audio_stage.load_audio
             y, sr, duration, audio_metrics = time_it("audio_load", audio_stage.load_audio, audio_path)
             
             # Fusionar las métricas de audio al diccionario general
@@ -102,13 +103,10 @@ class Orchestrator:
 
             # Limpieza básica del título para el log (score_stage hace la limpieza profunda con regex)
             base = out_name.split('_harmonic_score_')[0]
-            parts = base.rsplit('_', 1)
-            if len(parts) == 2 and any(c.isupper() or c.isdigit() for c in parts[1]):
-                base = parts[0]
             base = normalizar_texto(base)
             titulo_pieza = base.replace('-', ' ').replace('_', ' ').title()
             
-            # ¡CRÍTICO! Pasamos `final_notes` (no `raw_notes`) al generador de partituras
+            # Pasamos `final_notes` (no `raw_notes`) al generador de partituras
             generated_pdf_path = time_it("score_pdf", score_stage.build_score, final_notes, pdf_path, 
                                          bpm=estimated_bpm, 
                                          time_signature=estimated_time_sig,
