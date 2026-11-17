@@ -144,13 +144,9 @@ def procesar_audio(self, transcripcion_id: str):
     except requests.RequestException as e:
         return _marcar_error(t, f'No se pudo descargar los archivos: {e}')
 
-    base_limpio = slugify(t.titulo_audio, allow_unicode=False)
-    if not base_limpio:
-        base_limpio = f"transcripcion_{t.id}"
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    nombre_pdf = f"{base_limpio}_harmonic_score_{timestamp}.pdf"
-    nombre_xml = f"{base_limpio}_harmonic_score_{timestamp}.musicxml"
+    fb = f"{t.id}_harmonic_score"
+    nombre_pdf = _filename_de(pdf.headers.get('content-disposition'), fb + ".pdf")
+    nombre_xml = _filename_de(xml.headers.get('content-disposition'), fb + ".musicxml")
 
     t.ruta_archivo_pdf.save(nombre_pdf, ContentFile(pdf.content), save=False)
     t.ruta_archivo_mxl.save(nombre_xml, ContentFile(xml.content), save=False)

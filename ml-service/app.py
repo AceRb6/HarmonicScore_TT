@@ -13,35 +13,21 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import settings as config
 from jobs import JobManager, JobStatus
-from pipeline.orchestrator import Orchestrator
+from pipeline.orchestrator import Orchestrator, normalizar_texto
 from pipeline import model_stage
 
 import librosa
 
-# ==========================================================
-# SANITIZACIÓN DE NOMBRE DE ARCHIVO (RF-06 / CU-06)
-# ==========================================================
-def sanitize_filename(nombre: str) -> str:
-    """
-    1. Elimina el token aleatorio de sufijo (ej. 'nombre_XydlIse' -> 'nombre').
-    2. Elimina acentos y caracteres especiales para evitar errores en Windows/Verovio.
-    3. Reemplaza espacios por guiones bajos para consistencia en URLs y discos.
-    """
-    # 1. Quitar token aleatorio (si termina en _Mayúscula o _Dígito)
-    if "_" in nombre:
-        base, _, suf = nombre.rpartition("_")
-        if any(c.isupper() or c.isdigit() for c in suf):
-            nombre = base
-            
-    # 2. Eliminar acentos (NFD descompone 'á' en 'a' + '´', e ignoramos el combinante)
-    nombre = unicodedata.normalize('NFD', nombre)
-    nombre = ''.join(c for c in nombre if not unicodedata.combining(c))
-    
-    # 3. Reemplazar caracteres no alfanuméricos (excepto guiones normales y bajos) por '_'
-    nombre = re.sub(r'[^a-zA-Z0-9_\-]', '_', nombre)
-    nombre = re.sub(r'_+', '_', nombre) # Limpiar múltiples guiones consecutivos
-    
-    return nombre.strip('_') or "pieza_sin_titulo"
+def _sin_token(nombre: str) -> str:
+    """Quita el sufijo aleatorio que el cliente/Django pega al nombre original
+    (p. ej. 'tico-tico-no-fuba_XydlIse' -> 'tico-tico-no-fuba').
+    Descarta el último segmento tras '_' solo si trae mayúscula o dígito (los
+    tokens siempre; el repertorio INBAL va en kebab-case minúsculo, p. ej.
+    'andersen-24-etudes-op15-no2' o '..._acotado', que NO se toca)."""
+    if "_" not in nombre:
+        return nombre
+    base, _, suf = nombre.rpartition("_")
+    return base if any(c.isupper() or c.isdigit() for c in suf) else nombre
 
 
 def validar_duracion(path: Path, max_segundos: int = 360):
@@ -132,15 +118,9 @@ async def transcribe(
         raise HTTPException(
             400, "Tamaño excedido. El archivo no debe superar los cincuenta megabytes")
 
-    # Obtener nombre base original
-    original_name = Path(audio.filename).stem
+    job = jobs.create(original_name=Path(audio.filename).stem)
     
-    # <-- CORRECCIÓN CLAVE: Sanitizar EN LA FRONTERA DE INGESTA.
-    # De aquí en adelante TODO el sistema habla el mismo idioma limpio:
-    # sin token aleatorio y sin acentos (transliterados por robustez).
-    clean_name = sanitize_filename(original_name)
-    
-    job = jobs.create(original_name=clean_name)
+    job.original_name = normalizar_texto(_sin_token(job.original_name))
     dest = config.UPLOAD_DIR / f"{job.job_id}{ext}"
 
     dest.write_bytes(data)
@@ -165,7 +145,7 @@ def process(job_id: str, path: Path):
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # RF-06: El nombre final usa el clean_name + timestamp, NUNCA el token aleatorio
-        out_name = f"{job.original_name}_HarmonicScore_{ts}.pdf"
+        out_name = f"{job.original_name}_harmonic_score_{ts}.pdf"
         pdf_path = config.OUTPUT_DIR / out_name
         xml_path = pdf_path.with_suffix('.musicxml')
 

@@ -22,9 +22,7 @@ from pathlib import Path
 
 log = logging.getLogger("harmonic.pdf_stage")
 
-# =====================================================================
 # Constantes de renderizado
-# =====================================================================
 
 # Rutas candidatas de Microsoft Edge en Windows (para fallback headless)
 EDGE_CANDIDATES = (
@@ -43,9 +41,7 @@ FOOTER_Y_MID = 28200  # Línea del watermark
 FOOTER_Y_BOT = 28700  # Línea del número de página
 
 
-# =====================================================================
 # Utilidades de parseo de SVG
-# =====================================================================
 
 def _find_group_end(svg: str, start_idx: int) -> int:
     """
@@ -81,10 +77,7 @@ def _is_valid_svg(svg: str) -> bool:
     return '<svg' in svg and '</svg>' in svg
 
 
-# =====================================================================
 # Inyección de elementos visuales (chrome)
-# =====================================================================
-
 def _inject_chrome(svg: str, page_num: int, total_pages: int) -> str:
     """
     Inyecta elementos visuales (header/footer) en el SVG de Verovio.
@@ -125,14 +118,13 @@ def _inject_chrome(svg: str, page_num: int, total_pages: int) -> str:
     close_root = svg.rfind('</svg>')
     if close_root == -1:
         return svg
-    
-    return svg[:close_root] + footer_block + svg[close_root:]
+    close_def = svg.rfind('</svg>', 0, close_root) # penúltimo </svg>
+    if close_def == -1:
+        return svg
+    return svg[:close_def] + footer_block + svg[close_def:]
 
 
-# =====================================================================
 # Conversión MusicXML → SVG (Verovio)
-# =====================================================================
-
 def musicxml_a_svg(xml_path: Path) -> list[str]:
     """
     Convierte MusicXML a lista de SVGs (uno por página) usando Verovio.
@@ -172,9 +164,7 @@ def musicxml_a_svg(xml_path: Path) -> list[str]:
     return svgs
 
 
-# =====================================================================
 # Estrategias de renderizado SVG → PDF
-# =====================================================================
 
 def _merge_pdfs(tmp_pdfs: list[Path], pdf_path: Path) -> None:
     """Fusiona múltiples PDFs de página en uno solo usando pypdf."""
@@ -218,7 +208,6 @@ def _pdf_via_edge(svgs: list[str], pdf_path: Path, workdir: Path) -> None:
         "</style></head><body>" + pages + "</body></html>",
         encoding="utf-8",
     )
-    
     cmd = [
         str(edge), "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
         f"--print-to-pdf={pdf_path}",
@@ -228,7 +217,6 @@ def _pdf_via_edge(svgs: list[str], pdf_path: Path, workdir: Path) -> None:
         "--hide-scrollbars", "--virtual-time-budget=10000",
         html.as_uri(),
     ]
-    
     try:
         r = subprocess.run(cmd, capture_output=True, timeout=180)
     except subprocess.TimeoutExpired:
@@ -259,9 +247,7 @@ def _pdf_via_svglib(svgs: list[str], pdf_path: Path, workdir: Path) -> None:
     _merge_pdfs(tmp, pdf_path)
 
 
-# =====================================================================
 # API pública
-# =====================================================================
 
 def render_musicxml_to_pdf(xml_path: Path, pdf_path: Path, title: str = "") -> Path:
     """
