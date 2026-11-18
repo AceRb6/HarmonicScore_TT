@@ -104,7 +104,7 @@ async function recortarAudioSegmento(archivo, inicio, fin) {
 
         const wavBlob = audioBufferToWavBlob(slicedBuffer);
         const nombreBase = archivo.name.replace(/\.[^/.]+$/, "");
-        return new File([wavBlob], `${nombreBase}_acotado.wav`, { type: 'audio/wav' });
+        return new File([wavBlob], `${nombreBase}.wav`, { type: 'audio/wav' });
     } catch (err) {
         console.warn('Aviso: no se pudo recortar en cliente, procesando archivo original:', err);
         return archivo;
@@ -199,4 +199,4 @@ function finalizarTranscripcion(esExito) {
         document.getElementById('modal-progreso').classList.remove('activo');
         window.location.href = 'consultas.html';
     }, 2000);
-}
+}
