@@ -212,6 +212,6 @@ def download(job_id: str, format: str = "pdf"):
                         filename=job.pdf_path.name)
 
 
-if __name__ == "__":
+if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
