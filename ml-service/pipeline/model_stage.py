@@ -1,6 +1,6 @@
 """
 Etapa 3: Inferencia con YourMT3+ MoE (checkpoint local).
-CICLO 3: Ventanas con solapamiento (Overlap-Add) del 15% para maximizar el recall.
+CICLO 3: Ventanas con solapamiento (Overlap-Add) del 89% para maximizar el recall.
 El manejo de errores en event2note.py permite procesar la canción completa sin colapsar.
 """
 import sys

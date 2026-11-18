@@ -2,8 +2,7 @@
 import json
 import logging
 import datetime
-import unicodedata
-import re
+import threading
 from pathlib import Path
 from contextlib import asynccontextmanager
 
@@ -18,12 +17,13 @@ from pipeline import model_stage
 
 import librosa
 
+# ==============================================================================
+# 1. CANDADO GLOBAL PARA RENDERIZADO (Evita colisión de fuentes en Windows)
+# ==============================================================================
+pdf_render_lock = threading.Lock()
+
 def _sin_token(nombre: str) -> str:
-    """Quita el sufijo aleatorio que el cliente/Django pega al nombre original
-    (p. ej. 'tico-tico-no-fuba_XydlIse' -> 'tico-tico-no-fuba').
-    Descarta el último segmento tras '_' solo si trae mayúscula o dígito (los
-    tokens siempre; el repertorio INBAL va en kebab-case minúsculo, p. ej.
-    'andersen-24-etudes-op15-no2' o '..._acotado', que NO se toca)."""
+    """Quita el sufijo aleatorio que el cliente/Django pega al nombre original."""
     if "_" not in nombre:
         return nombre
     base, _, suf = nombre.rpartition("_")
@@ -76,7 +76,8 @@ app.add_middleware(
         "http://127.0.0.1:5500",
         "http://localhost:8001",
         "http://127.0.0.1:8001",
-        "http://10.100.79.61:8001", # Tu IP de red local
+        "http://10.100.93.66:8001", # IP del Servidor Principal Django
+        "http://10.100.70.17:8001", # IP de prueba (ajustar si es necesario)
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -87,16 +88,34 @@ jobs = JobManager()
 orch = Orchestrator()
 AUDIT = config.LOG_DIR / "audit.jsonl"          # RF-15
 
-
 def audit(entry: dict):
     config.LOG_DIR.mkdir(parents=True, exist_ok=True)
     with open(AUDIT, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
 
 
+# ==============================================================================
+# 2. ENDPOINTS DE ESTADO ENRIQUECIDO (Para balanceo de carga inteligente)
+# ==============================================================================
+def _count_active_jobs() -> int:
+    """Cuenta segura de trabajos en proceso. Ajusta 'jobs.jobs' si tu JobManager usa otro nombre de atributo."""
+    try:
+        # Asumiendo que JobManager tiene un diccionario interno llamado 'jobs' o '_jobs'
+        store = getattr(jobs, 'jobs', getattr(jobs, '_jobs', {}))
+        return sum(1 for j in store.values() if getattr(j, 'status', None) == JobStatus.PROCESSING)
+    except Exception:
+        return 0  # Fallback seguro
+
 @app.get("/")
+@app.get("/status")  # Alias para compatibilidad con el router de Celery
 def root():
-    return {"service": "ml-service", "status": "ok", "device": str(config.DEVICE)}
+    return {
+        "service": "ml-service",
+        "status": "ok",
+        "device": str(config.DEVICE),
+        "active_jobs": _count_active_jobs(),
+        "max_capacity": 2  # Máximo 2 trabajos simultáneos por máquina para proteger la VRAM de 8GB
+    }
 
 
 @app.post("/api/transcribe", status_code=202)
@@ -119,7 +138,6 @@ async def transcribe(
             400, "Tamaño excedido. El archivo no debe superar los cincuenta megabytes")
 
     job = jobs.create(original_name=Path(audio.filename).stem)
-    
     job.original_name = normalizar_texto(_sin_token(job.original_name))
     dest = config.UPLOAD_DIR / f"{job.job_id}{ext}"
 
@@ -143,18 +161,20 @@ def process(job_id: str, path: Path):
     job = jobs.get(job_id)
     try:
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # RF-06: El nombre final usa el clean_name + timestamp, NUNCA el token aleatorio
         out_name = f"{job.original_name}_harmonic_score_{ts}.pdf"
         pdf_path = config.OUTPUT_DIR / out_name
         xml_path = pdf_path.with_suffix('.musicxml')
 
-        # Ejecutar pipeline
-        pdf, metrics = orch.run(path, out_name, on_stage=lambda s: jobs.set_stage(job_id, s))
+        # ==============================================================================
+        # 3. APLICACIÓN DEL CANDADO: Solo bloqueamos la inferencia/renderizado pesado
+        # ==============================================================================
+        with pdf_render_lock:
+            log.info(f"Iniciando pipeline de inferencia y renderizado para {job_id}")
+            pdf, metrics = orch.run(path, out_name, on_stage=lambda s: jobs.set_stage(job_id, s))
 
         jobs.complete(job_id, pdf_path, xml_path, metrics)
-        audit({"job_id": job_id, "file": job.original_name,
-               "status": "completed", **metrics})
+        audit({"job_id": job_id, "file": job.original_name, "status": "completed", **metrics})
+        
     except Exception as e:
         log.exception("Job %s falló", job_id)
         jobs.fail(job_id, str(e))
@@ -192,6 +212,6 @@ def download(job_id: str, format: str = "pdf"):
                         filename=job.pdf_path.name)
 
 
-if __name__ == "__main__":
+if __name__ == "__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
